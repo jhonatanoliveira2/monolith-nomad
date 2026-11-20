@@ -1,108 +1,91 @@
-import { Head } from '@inertiajs/react'
+import { Head, Link } from '@inertiajs/react'
 import { IconExternalLink } from '@tabler/icons-react'
+import { useTranslation } from 'react-i18next'
 import SettingsLayout from '~/layouts/SettingsLayout'
+import StyledSectionHeader from '~/components/StyledSectionHeader'
+import { useProject } from '~/hooks/useProject'
 
+const UPSTREAM_REPO_URL = 'https://github.com/Crosstalk-Solutions/project-nomad'
+
+function ExternalLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1 font-medium text-desert-green hover:underline"
+    >
+      {children}
+      <IconExternalLink size={16} aria-hidden="true" />
+    </a>
+  )
+}
+
+/**
+ * About & Support. An independent distribution has no donation or marketing section: this page says what
+ * monolith-nomad is, where to report problems, where the source code is, and credits the original project.
+ */
 export default function SupportPage() {
+  const { repoUrl, issuesUrl } = useProject()
+  const { t } = useTranslation()
+  const noticesUrl = `${repoUrl}/blob/main/THIRD_PARTY_NOTICES.md`
+
   return (
     <SettingsLayout>
-      <Head title="Support the Project | Project NOMAD" />
+      <Head title={t('About & Support')} />
       <div className="xl:pl-72 w-full">
         <main className="px-12 py-6 max-w-4xl">
-          <h1 className="text-4xl font-semibold mb-4">Support the Project</h1>
+          <h1 className="text-4xl font-semibold mb-4">{t('About & Support')}</h1>
           <p className="text-text-muted mb-10 text-lg">
-            Project NOMAD is 100% free and open source — no subscriptions, no paywalls, no catch.
-            If you'd like to help keep the project going, here are a few ways to show your support.
+            {t(
+              'monolith-nomad is an independent distribution derived from Project N.O.M.A.D. It is not an official version and is not affiliated with or endorsed by the original project or Crosstalk Solutions, LLC.'
+            )}
           </p>
 
-          {/* Ko-fi */}
-          <section className="mb-12">
-            <h2 className="text-2xl font-semibold mb-3">Buy Us a Coffee</h2>
-            <p className="text-text-muted mb-4">
-              Every contribution helps fund development, server costs, and new content packs for NOMAD.
-              Even a small donation goes a long way.
-            </p>
-            <a
-              href="https://ko-fi.com/crosstalk"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FF5E5B] hover:bg-[#e54e4b] text-white font-semibold rounded-lg transition-colors"
-            >
-              Support on Ko-fi
-              <IconExternalLink size={18} />
-            </a>
-          </section>
-
-          {/* Rogue Support */}
-          <section className="mb-12">
-            <h2 className="text-2xl font-semibold mb-3">Need Help With Your Home Network?</h2>
-            <a
-              href="https://rogue.support"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block mb-4 rounded-lg overflow-hidden hover:opacity-90 transition-opacity"
-            >
-              <img
-                src="/rogue-support-banner.webp"
-                alt="Rogue Support — Conquer Your Home Network"
-                className="w-full"
-              />
-            </a>
-            <p className="text-text-muted mb-4">
-              Rogue Support is a networking consultation service for home users.
-              Think of it as Uber for computer networking — expert help when you need it.
-            </p>
-            <a
-              href="https://rogue.support"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-blue-600 hover:underline font-medium"
-            >
-              Visit Rogue.Support
-              <IconExternalLink size={16} />
-            </a>
-          </section>
-
-          {/* Other Ways to Help */}
           <section className="mb-10">
-            <h2 className="text-2xl font-semibold mb-3">Other Ways to Help</h2>
-            <ul className="space-y-2 text-text-muted">
-              <li>
-                <a
-                  href="https://github.com/Crosstalk-Solutions/project-nomad"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
-                >
-                  Star the project on GitHub
-                </a>
-                {' '}— it helps more people discover NOMAD
-              </li>
-              <li>
-                <a
-                  href="https://github.com/Crosstalk-Solutions/project-nomad/issues"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
-                >
-                  Report bugs and suggest features
-                </a>
-                {' '}— every report makes NOMAD better
-              </li>
-              <li>Share NOMAD with someone who'd use it — word of mouth is the best marketing</li>
-              <li>
-                <a
-                  href="https://discord.com/invite/crosstalksolutions"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
-                >
-                  Join the Discord community
-                </a>
-                {' '}— hang out, share your build, help other users
-              </li>
-            </ul>
+            <StyledSectionHeader title={t('Report a problem')} />
+            <p className="text-text-primary mb-3">
+              {t(
+                'Found a bug or have a suggestion? Open an issue in the monolith-nomad repository. Including the "Debug Info" text (link at the bottom of the home screen) helps diagnose the problem.'
+              )}
+            </p>
+            <ExternalLink href={issuesUrl}>{t('Open an issue')}</ExternalLink>
           </section>
 
+          <section className="mb-10">
+            <StyledSectionHeader title={t('Source code')} />
+            <p className="text-text-primary mb-3">
+              {t(
+                'monolith-nomad is open source software under the Apache License 2.0. The code, the change history and the documentation are in the repository.'
+              )}
+            </p>
+            <ExternalLink href={repoUrl}>{t('View the repository')}</ExternalLink>
+          </section>
+
+          <section className="mb-10">
+            <StyledSectionHeader title={t('Original project')} />
+            <p className="text-text-primary mb-3">
+              {t(
+                'monolith-nomad is built on Project N.O.M.A.D., created by Crosstalk Solutions, LLC and released under the Apache License 2.0. Credit for the original work belongs to its authors. Problems with this distribution should be reported here, not to the original project.'
+              )}
+            </p>
+            <ExternalLink href={UPSTREAM_REPO_URL}>{t('Project N.O.M.A.D. on GitHub')}</ExternalLink>
+          </section>
+
+          <section className="mb-10">
+            <StyledSectionHeader title={t('Licenses and notices')} />
+            <p className="text-text-primary mb-3">
+              {t(
+                'The license, the copyright notice of the original work and the third-party attributions are on the Legal Notices page. The full list of components, licenses and trademarks is in THIRD_PARTY_NOTICES.md in the repository.'
+              )}
+            </p>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <Link href="/settings/legal" className="font-medium text-desert-green hover:underline">
+                {t('Legal Notices')}
+              </Link>
+              <ExternalLink href={noticesUrl}>THIRD_PARTY_NOTICES.md</ExternalLink>
+            </div>
+          </section>
         </main>
       </div>
     </SettingsLayout>

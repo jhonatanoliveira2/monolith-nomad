@@ -1,6 +1,7 @@
 import type { DrugInteractionEntry } from '../../../types/drug_reference'
 import { PRODUCT_TYPES } from '../../../types/drug_reference'
 import LabelBlocks from './LabelBlocks'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   entry: DrugInteractionEntry
@@ -15,9 +16,10 @@ interface Props {
  * interaction text" note when the field is absent.
  */
 export default function InteractionColumn({ entry, onRemove }: Props) {
+  const { t } = useTranslation()
   const isRx = entry.product_type === PRODUCT_TYPES.RX
   const isOtc = entry.product_type === PRODUCT_TYPES.OTC
-  const displayName = entry.brand_name ?? entry.generic_name ?? 'Unknown Drug'
+  const displayName = entry.brand_name ?? entry.generic_name ?? t('Unknown Drug')
 
   return (
     <div className="flex h-full flex-col min-w-0 border border-desert-tan-lighter rounded-lg overflow-hidden">
@@ -47,7 +49,7 @@ export default function InteractionColumn({ entry, onRemove }: Props) {
           <button
             type="button"
             onClick={() => onRemove(entry.id)}
-            aria-label={`Remove ${displayName} from comparison`}
+            aria-label={t('Remove {{name}} from comparison', { name: displayName })}
             className="flex-shrink-0 text-desert-stone-light hover:text-desert-stone-dark transition-colors text-lg leading-none ml-1 mt-0.5"
           >
             ×
@@ -61,7 +63,7 @@ export default function InteractionColumn({ entry, onRemove }: Props) {
           <LabelBlocks text={entry.drug_interactions} />
         ) : (
           <p className="text-sm text-desert-stone-light italic">
-            No labeled interaction text on this label.
+            {t('No labeled interaction text on this label.')}
           </p>
         )}
       </div>

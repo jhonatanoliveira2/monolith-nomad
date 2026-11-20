@@ -16,9 +16,12 @@ about 140 MB (Korean) per language. Chinese is published under region codes
 (zh-Hans, zh-Hant) that the proxy's two-letter language codes cannot carry yet.
 """
 
+import hashlib
 import json
 import os
+import random
 import sys
+import time
 import urllib.request
 from pathlib import Path
 
@@ -27,6 +30,58 @@ RECORDS_URL = (
     "/collections/translations-models/records"
 )
 ATTACHMENT_BASE = "https://firefox-settings-attachments.cdn.mozilla.net/"
+
+# Default languages paired with English, both ways. Portuguese first: this distribution (monolith-nomad) is
+# configured for Brazil, where the main use is reading English content (e.g. Wikipedia) in Portuguese.
+DEFAULT_LANGS = "pt,es,fr,de"
+
+ATTEMPTS = 4
+CHUNK = 1 << 20
+
+
+def backoff_delay(attempt: int, base: float = 2.0, cap: float = 30.0, rand=random.random) -> float:
+    """Exponential backoff with full jitter: random in [0, min(cap, base * 2^(attempt-1))]."""
+    return rand() * min(cap, base * (2 ** (max(1, attempt) - 1)))
+
+
+def download_verified(url: str, dest: Path, size: int, sha256: str | None, opener=urllib.request.urlopen,
+                      sleep=time.sleep) -> None:
+    """Stream `url` to `dest` (via a .part file), checking size and SHA-256 before the rename.
+
+    Remote Settings publishes the SHA-256 of every attachment (`attachment.hash`), so a corrupted or
+    truncated file is never installed. Network errors, short reads and hash mismatches are retried with
+    exponential backoff; the last error is raised after ATTEMPTS tries.
+    """
+    tmp = dest.with_suffix(dest.suffix + ".part")
+    last: Exception | None = None
+    for attempt in range(1, ATTEMPTS + 1):
+        digest = hashlib.sha256()
+        got = 0
+        try:
+            with opener(url, timeout=300) as response, open(tmp, "wb") as out:
+                while True:
+                    chunk = response.read(CHUNK)
+                    if not chunk:
+                        break
+                    digest.update(chunk)
+                    out.write(chunk)
+                    got += len(chunk)
+            if got != size:
+                raise RuntimeError(f"expected {size} bytes, got {got}")
+            actual = digest.hexdigest()
+            if sha256 and actual != sha256.lower():
+                raise RuntimeError(f"SHA-256 mismatch: expected {sha256}, got {actual}")
+            tmp.rename(dest)
+            return
+        except Exception as exc:  # network error, short read, bad hash
+            last = exc
+            tmp.unlink(missing_ok=True)
+            if attempt < ATTEMPTS:
+                delay = backoff_delay(attempt)
+                print(f"    {dest.name}: attempt {attempt}/{ATTEMPTS} failed ({exc}); retrying in {delay:.1f}s",
+                      flush=True)
+                sleep(delay)
+    raise RuntimeError(f"{dest.name}: download failed after {ATTEMPTS} attempts: {last}")
 
 # Written next to the model files. Bergamot reads this, not the records.
 CONFIG = """\
@@ -120,20 +175,12 @@ def fetch_pair(data: list[dict], src: str, dst: str, out_root: Path) -> bool:
         dest = target / f"{kind}.{pair}.{suffix[kind]}"
         expected = record["attachment"]["size"]
         # Resume is not worth the complexity here: a partial file is simply
-        # re-fetched. What matters is never leaving a truncated model in place
-        # that would fail cryptically at translation time.
+        # re-fetched. What matters is never leaving a truncated or corrupted model
+        # in place that would fail cryptically at translation time.
         if dest.exists() and dest.stat().st_size == expected:
             continue
         url = ATTACHMENT_BASE + record["attachment"]["location"]
-        tmp = dest.with_suffix(dest.suffix + ".part")
-        with urllib.request.urlopen(url, timeout=300) as response:
-            tmp.write_bytes(response.read())
-        if tmp.stat().st_size != expected:
-            tmp.unlink(missing_ok=True)
-            raise RuntimeError(
-                f"{pair}/{kind}: expected {expected} bytes, got a short read"
-            )
-        tmp.rename(dest)
+        download_verified(url, dest, expected, record["attachment"].get("hash"))
 
     if "vocab" in wanted:
         src_vocab = trg_vocab = f"vocab.{pair}.spm"
@@ -152,7 +199,7 @@ def main() -> int:
     # Comma-separated language codes to pair with English, both directions.
     langs = [
         code.strip().lower()
-        for code in os.environ.get("TRANSLATE_LANGS", "fr,es,de").split(",")
+        for code in os.environ.get("TRANSLATE_LANGS", DEFAULT_LANGS).split(",")
         if code.strip()
     ]
 

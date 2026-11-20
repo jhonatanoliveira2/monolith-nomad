@@ -7,6 +7,8 @@ import type { BenchmarkType } from '../../types/benchmark'
  * users mistaking a partial number for their NOMAD Score. The stored score for
  * a partial run is already renormalized to that category's own 0-100 range
  * (see BenchmarkService._calculateNomadScore).
+ *
+ * `label` and `cta` are English source strings: translate them at the display site with t().
  */
 export function getScoreDisplay(type: BenchmarkType): {
   label: string

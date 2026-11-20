@@ -2,6 +2,12 @@ import KVStore from '#models/kv_store'
 import { SystemService } from '#services/system_service'
 import { defineConfig } from '@adonisjs/inertia'
 import type { InferSharedProps } from '@adonisjs/inertia/types'
+import {
+  BENCHMARK_LEADERBOARD_URL,
+  GITHUB_REPO_URL,
+  PROJECT_NAME,
+  RELEASE_NOTES_SUBSCRIBE_URL,
+} from '../constants/project.js'
 
 let _assistantNameCache: { value: string; expiresAt: number } | null = null
 
@@ -21,6 +27,14 @@ const inertiaConfig = defineConfig({
   sharedData: {
     appVersion: () => SystemService.getAppVersion(),
     environment: process.env.NODE_ENV || 'production',
+    // where this distribution lives and which upstream online services are configured (constants/project.ts)
+    project: {
+      name: PROJECT_NAME,
+      repoUrl: GITHUB_REPO_URL,
+      issuesUrl: `${GITHUB_REPO_URL}/issues`,
+      leaderboardUrl: BENCHMARK_LEADERBOARD_URL || null,
+      releaseNotesEnabled: !!RELEASE_NOTES_SUBSCRIBE_URL,
+    },
     aiAssistantName: async () => {
       const now = Date.now()
       if (_assistantNameCache && now < _assistantNameCache.expiresAt) {

@@ -91,6 +91,69 @@ check("ja: split vocab, android skipped", chosen_versions(JAPANESE, "en", "ja"),
 check("only pre-releases: none", chosen_versions(pair("en", "nn", "1.0a1", NIGHTLY), "en", "nn"), None)
 check("other direction ignored", chosen_versions(SWEDISH, "sv", "en"), None)
 
+# --- verified downloads (SHA-256 from Remote Settings, retry with backoff) ---
+import hashlib  # noqa: E402
+import io  # noqa: E402
+import tempfile  # noqa: E402
+
+GOOD = b"model-bytes" * 1000
+GOOD_SHA = hashlib.sha256(GOOD).hexdigest()
+
+
+class FakeResponse(io.BytesIO):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+def opener_from(*bodies):
+    """Each call returns the next body; an Exception instance is raised instead."""
+    calls = []
+
+    def opener(url, timeout=None):
+        body = bodies[len(calls)]
+        calls.append(url)
+        if isinstance(body, Exception):
+            raise body
+        return FakeResponse(body)
+
+    return opener, calls
+
+
+with tempfile.TemporaryDirectory() as tmp:
+    dest = Path(tmp) / "model.enpt.bin"
+    opener, calls = opener_from(GOOD)
+    fetch_models.download_verified("u", dest, len(GOOD), GOOD_SHA, opener=opener, sleep=lambda s: None)
+    check("verified download: installed", dest.read_bytes() == GOOD, True)
+    check("verified download: no .part left", (Path(tmp) / "model.enpt.bin.part").exists(), False)
+
+with tempfile.TemporaryDirectory() as tmp:
+    dest = Path(tmp) / "lex.enpt.bin"
+    corrupt = GOOD[:-1] + b"X"
+    opener, calls = opener_from(OSError("connection reset"), corrupt, GOOD)
+    slept = []
+    fetch_models.download_verified("u", dest, len(GOOD), GOOD_SHA, opener=opener, sleep=slept.append)
+    check("retry: network error then bad hash then good", (len(calls), dest.read_bytes() == GOOD), (3, True))
+    check("retry: two backoff waits", len(slept), 2)
+
+with tempfile.TemporaryDirectory() as tmp:
+    dest = Path(tmp) / "vocab.enpt.spm"
+    opener, calls = opener_from(*([GOOD[:-10]] * fetch_models.ATTEMPTS))
+    try:
+        fetch_models.download_verified("u", dest, len(GOOD), GOOD_SHA, opener=opener, sleep=lambda s: None)
+        outcome = "installed"
+    except RuntimeError:
+        outcome = "raised"
+    check("always short: gives up, nothing installed", (outcome, dest.exists(), len(calls)),
+          ("raised", False, fetch_models.ATTEMPTS))
+
+check("backoff: full jitter within the exponential cap",
+      [fetch_models.backoff_delay(n, rand=lambda: 1.0) for n in (1, 2, 3, 4, 5, 6)], [2.0, 4.0, 8.0, 16.0, 30.0, 30.0])
+check("backoff: jitter can be zero", fetch_models.backoff_delay(3, rand=lambda: 0.0), 0.0)
+check("default languages start with Portuguese", fetch_models.DEFAULT_LANGS.split(",")[0], "pt")
+
 if failures:
     print(f"FAIL: {len(failures)} of the checks above did not hold\n")
     for failure in failures:

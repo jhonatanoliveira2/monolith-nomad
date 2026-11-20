@@ -36,6 +36,7 @@ import { readFile } from 'node:fs/promises'
 import { randomUUID, createHmac } from 'node:crypto'
 import { DockerService } from './docker_service.js'
 import { SERVICE_NAMES } from '../../constants/service_names.js'
+import { BENCHMARK_LEADERBOARD_URL } from '../../constants/project.js'
 import { BROADCAST_CHANNELS } from '../../constants/broadcast.js'
 import { BenchmarkTelemetrySampler } from './benchmark_telemetry.js'
 import Dockerode from 'dockerode'
@@ -297,6 +298,10 @@ export class BenchmarkService {
    * Submit benchmark results to central repository
    */
   async submitToRepository(benchmarkId?: string, anonymous?: boolean): Promise<RepositorySubmitResponse> {
+    // The public leaderboard is an upstream service: off unless configured (constants/project.ts).
+    if (!BENCHMARK_LEADERBOARD_URL) {
+      throw new Error('Sharing to a public leaderboard is not configured on this install')
+    }
     const result = benchmarkId
       ? await this.getResultById(benchmarkId)
       : await this.getLatestResult()
@@ -362,17 +367,13 @@ export class BenchmarkService {
         .update(payload)
         .digest('hex')
 
-      const response = await axios.post(
-        'https://benchmark.projectnomad.us/api/v1/submit',
-        submission,
-        {
-          timeout: 30000,
-          headers: {
-            'X-NOMAD-Timestamp': timestamp,
-            'X-NOMAD-Signature': signature,
-          },
-        }
-      )
+      const response = await axios.post(`${BENCHMARK_LEADERBOARD_URL}/api/v1/submit`, submission, {
+        timeout: 30000,
+        headers: {
+          'X-NOMAD-Timestamp': timestamp,
+          'X-NOMAD-Signature': signature,
+        },
+      })
 
       if (response.data.success) {
         result.submitted_to_repository = true
@@ -488,7 +489,8 @@ export class BenchmarkService {
    */
   async getComparisonStats(): Promise<RepositoryStats | null> {
     try {
-      const response = await axios.get('https://benchmark.projectnomad.us/api/v1/stats', {
+      if (!BENCHMARK_LEADERBOARD_URL) return null
+      const response = await axios.get(`${BENCHMARK_LEADERBOARD_URL}/api/v1/stats`, {
         timeout: 10000,
       })
       return response.data as RepositoryStats

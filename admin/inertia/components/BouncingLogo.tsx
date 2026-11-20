@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
+import UbuntuLogo from './UbuntuLogo'
+import { useTranslation } from 'react-i18next'
 
 // Fading Image Component
-const FadingImage = ({  alt = "Fading image", className = "" }) => {
+const FadingImage = ({ alt, className = "" }: { alt?: string; className?: string }) => {
+  const { t } = useTranslation()
   const [isVisible, setIsVisible] = useState(true);
   const [shouldShow, setShouldShow] = useState(true);
 
@@ -30,11 +33,7 @@ const FadingImage = ({  alt = "Fading image", className = "" }) => {
     <div className={`fixed inset-0 flex justify-center items-center bg-desert-sand z-50 pointer-events-none transition-opacity duration-1000 ${
       isVisible ? 'opacity-100' : 'opacity-0'
     }`}>
-      <img
-        src="/nomad-primary.svg"
-        alt={alt}
-        className={`w-64 h-64 object-contain ${className}`}
-      />
+      <UbuntuLogo title={alt ?? t('Fading image')} className={`w-64 h-64 text-text-primary ${className}`} />
     </div>
   );
 };

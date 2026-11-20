@@ -3,6 +3,7 @@ import DynamicIcon, { DynamicIconName } from './DynamicIcon'
 import type { CategoryWithStatus, SpecTier } from '../../types/collections'
 import classNames from 'classnames'
 import { IconChevronRight, IconCircleCheck, IconLoader2 } from '@tabler/icons-react'
+import { useTranslation } from 'react-i18next'
 
 export interface CategoryCardProps {
   category: CategoryWithStatus
@@ -11,6 +12,7 @@ export interface CategoryCardProps {
 }
 
 const CategoryCard: React.FC<CategoryCardProps> = ({ category, selectedTier, onClick }) => {
+  const { t } = useTranslation()
   // Calculate total size range across all tiers
   const getTierTotalSize = (tier: SpecTier, allTiers: SpecTier[]): number => {
     let total = tier.resources.reduce((acc, r) => acc + r.size_mb * 1024 * 1024, 0)
@@ -29,7 +31,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, selectedTier, onC
   const minSize = getTierTotalSize(category.tiers[0], category.tiers)
   const maxSize = getTierTotalSize(category.tiers[category.tiers.length - 1], category.tiers)
 
-  // Priority order for the prominent corner badge + lime border:
+  // Priority order for the prominent corner badge + highlight border:
   //   1. selectedTier — in-session wizard pick (highest priority, reflects
   //      what the user is editing right now)
   //   2. downloadingTierSlug — backend-derived from in-flight downloads, so
@@ -56,7 +58,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, selectedTier, onC
     <div
       className={classNames(
         'flex flex-col bg-desert-green rounded-lg p-6 text-white border shadow-sm hover:shadow-lg transition-shadow cursor-pointer h-80',
-        badgeTier ? 'border-lime-400 border-2' : 'border-desert-green'
+        badgeTier ? 'border-white border-2' : 'border-desert-green'
       )}
       onClick={() => onClick?.(category)}
     >
@@ -69,14 +71,14 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, selectedTier, onC
           {badgeTier ? (
             <div className="flex items-center">
               {badgeStatus === 'downloading' ? (
-                <IconLoader2 className="w-5 h-5 text-lime-400 animate-spin" />
+                <IconLoader2 className="w-5 h-5 text-white animate-spin" />
               ) : (
-                <IconCircleCheck className="w-5 h-5 text-lime-400" />
+                <IconCircleCheck className="w-5 h-5 text-white" />
               )}
-              <span className="text-lime-400 text-sm ml-1">
+              <span className="text-white text-sm ml-1">
                 {badgeTier.name}
                 {badgeStatus === 'downloading' &&
-                  (category.downloadingTierIndexing ? ' (indexing)' : ' (downloading)')}
+                  ` ${category.downloadingTierIndexing ? t('(indexing)') : t('(downloading)')}`}
               </span>
             </div>
           ) : (
@@ -85,13 +87,15 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, selectedTier, onC
         </div>
       </div>
 
-      <p className="text-gray-200 grow">{category.description}</p>
+      <p className="text-neutral-200 grow">{category.description}</p>
 
       <div className="mt-4 pt-4 border-t border-white/20">
-        <p className="text-sm text-gray-300 mb-2">
-          {category.tiers.length} tiers available
+        <p className="text-sm text-neutral-300 mb-2">
+          {category.tiers.length === 1
+            ? t('1 tier available')
+            : t('{{count}} tiers available', { count: category.tiers.length })}
           {!highlightedTierSlug && (
-            <span className="text-gray-400"> - Click to choose</span>
+            <span className="text-neutral-400"> - {t('Click to choose')}</span>
           )}
         </p>
         <div className="flex flex-wrap gap-2">
@@ -103,9 +107,9 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, selectedTier, onC
                 className={classNames(
                   'text-xs px-2 py-1 rounded',
                   isInstalled
-                    ? 'bg-lime-500/30 text-lime-200'
-                    : 'bg-white/10 text-gray-300',
-                  selectedTier?.slug === tier.slug && 'ring-2 ring-lime-400'
+                    ? 'bg-white text-black'
+                    : 'bg-white/10 text-neutral-300',
+                  selectedTier?.slug === tier.slug && 'ring-2 ring-white'
                 )}
               >
                 {tier.name}
@@ -113,8 +117,8 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, selectedTier, onC
             )
           })}
         </div>
-        <p className="text-gray-300 text-xs mt-3">
-          Size: {formatBytes(minSize, 1)} - {formatBytes(maxSize, 1)}
+        <p className="text-neutral-300 text-xs mt-3">
+          {t('Size: {{min}} - {{max}}', { min: formatBytes(minSize, 1), max: formatBytes(maxSize, 1) })}
         </p>
       </div>
     </div>

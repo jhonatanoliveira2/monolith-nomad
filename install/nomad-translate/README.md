@@ -47,7 +47,7 @@ Run the tests with `python3 install/nomad-translate/test_blocks.py`,
 |---|---|---|
 | `KIWIX` | `http://nomad_kiwix_server:8080` | Upstream library |
 | `MODELS` | `/models` | Where models are stored |
-| `TRANSLATE_LANGS` | `fr,es,de` | Languages to fetch, paired with English both ways |
+| `TRANSLATE_LANGS` | `pt,es,fr,de` | Languages to fetch, paired with English both ways |
 | `WORKERS` | `8` | Bergamot worker threads |
 | `PORT` | `8391` | Listen port inside the container |
 | `MAX_TRANSLATE_BYTES` | `4194304` | Pages larger than this are forwarded untranslated |

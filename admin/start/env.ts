@@ -76,4 +76,26 @@ export default await Env.create(new URL('../', import.meta.url), {
   */
   CREATOR_PACKS_APP_KEY: Env.schema.string.optional(),
   CREATOR_PACKS_WORKER_BASE: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Smart downloads (app/utils/smart_download.ts) — all optional
+  |----------------------------------------------------------
+  |
+  | Defaults target São Paulo, Brazil (country br, region sa). Location only
+  | orders mirrors not measured yet; measured mirrors are ranked by real
+  | throughput/latency. All are plain strings here: preferencesFromEnv
+  | (app/utils/download_preferences.ts) validates them, and an invalid value
+  | falls back to its default instead of stopping the app.
+  */
+  DOWNLOAD_ENGINE: Env.schema.string.optional(),
+  DOWNLOAD_LOCATION_COUNTRY: Env.schema.string.optional(),
+  DOWNLOAD_LOCATION_REGION: Env.schema.string.optional(),
+  DOWNLOAD_USE_METALINK: Env.schema.string.optional(),
+  DOWNLOAD_MIRROR_BENCHMARK: Env.schema.string.optional(),
+  DOWNLOAD_BENCHMARK_SAMPLE_BYTES: Env.schema.string.optional(),
+  DOWNLOAD_MAX_MIRRORS: Env.schema.string.optional(),
+  DOWNLOAD_ARIA2_PATH: Env.schema.string.optional(),
+  DOWNLOAD_ARIA2_SPLIT: Env.schema.string.optional(),
+  DOWNLOAD_MAX_CONNECTIONS_PER_SERVER: Env.schema.string.optional(),
 })

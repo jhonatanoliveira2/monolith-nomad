@@ -44,43 +44,43 @@ header_red() {
 
 check_has_sudo() {
   if sudo -n true 2>/dev/null; then
-    echo -e "${GREEN}#${RESET} User has sudo permissions.\\n"
+    echo -e "${GREEN}#${RESET} O usuário tem permissão de sudo.\\n"
   else
-    echo "User does not have sudo permissions"
+    echo "O usuário não tem permissão de sudo"
     header_red
-    echo -e "${RED}#${RESET} This script requires sudo permissions to run. Please run the script with sudo.\\n"
-    echo -e "${RED}#${RESET} For example: sudo bash $(basename "$0")"
+    echo -e "${RED}#${RESET} Este script precisa de permissão de sudo. Execute-o com sudo.\\n"
+    echo -e "${RED}#${RESET} Por exemplo: sudo bash $(basename "$0")"
     exit 1
   fi
 }
 
 check_current_directory(){
   if [ "$(pwd)" == "${NOMAD_DIR}" ]; then
-    echo "Please run this script from a directory other than ${NOMAD_DIR}."
+    echo "Execute este script a partir de um diretório diferente de ${NOMAD_DIR}."
     exit 1
   fi
 }
 
 ensure_management_compose_file_exists(){
   if [ ! -f "${MANAGEMENT_COMPOSE_FILE}" ]; then
-    echo "Unable to find the management Docker Compose file at ${MANAGEMENT_COMPOSE_FILE}. There may be a problem with your Project NOMAD installation."
+    echo "Não foi possível encontrar o arquivo Docker Compose de gerenciamento em ${MANAGEMENT_COMPOSE_FILE}. Pode haver um problema na sua instalação do monolith-nomad."
     exit 1
   fi
 }
 
 get_uninstall_confirmation(){
-  read -p "This script will remove ALL Project NOMAD files and containers. THIS CANNOT BE UNDONE. Are you sure you want to continue? (y/n): " choice
+  read -p "Este script vai remover TODOS os arquivos e containers do monolith-nomad. ISSO NÃO PODE SER DESFEITO. Tem certeza de que deseja continuar? (s/n): " choice
   case "$choice" in
-    y|Y )
-      echo -e "User chose to continue with the uninstallation."
+    y|Y|s|S )
+      echo -e "Você escolheu continuar a desinstalação."
       ;;
     n|N )
-      echo -e "User chose not to continue with the uninstallation."
+      echo -e "Você escolheu não continuar a desinstalação."
       exit 0
       ;;
     * )
-      echo "Invalid Response"
-      echo "User chose not to continue with the uninstallation."
+      echo "Resposta inválida"
+      echo "Você escolheu não continuar a desinstalação."
       exit 0
       ;;
   esac
@@ -88,7 +88,7 @@ get_uninstall_confirmation(){
 
 ensure_docker_installed() {
     if ! command -v docker &> /dev/null; then
-        echo "Unable to find Docker. There may be a problem with your Docker installation."
+        echo "Não foi possível encontrar o Docker. Pode haver um problema na sua instalação do Docker."
         exit 1
     fi
 }
@@ -96,57 +96,57 @@ ensure_docker_installed() {
 check_docker_compose() {
   # Check if 'docker compose' (v2 plugin) is available
   if ! docker compose version &>/dev/null; then
-    echo -e "${RED}#${RESET} Docker Compose v2 is not installed or not available as a Docker plugin."
-    echo -e "${YELLOW}#${RESET} This script requires 'docker compose' (v2), not 'docker-compose' (v1)."
-    echo -e "${YELLOW}#${RESET} Please read the Docker documentation at https://docs.docker.com/compose/install/ for instructions on how to install Docker Compose v2."
+    echo -e "${RED}#${RESET} O Docker Compose v2 não está instalado ou não está disponível como plugin do Docker."
+    echo -e "${YELLOW}#${RESET} Este script precisa do 'docker compose' (v2), não do 'docker-compose' (v1)."
+    echo -e "${YELLOW}#${RESET} Veja como instalar o Docker Compose v2 na documentação do Docker: https://docs.docker.com/compose/install/"
     exit 1
   fi
 }
 
 storage_cleanup() {
-  read -p "Do you want to delete the Project NOMAD storage directory (${NOMAD_DIR})? This is best if you want to start a completely fresh install. This will PERMANENTLY DELETE all stored NOMAD data and can't be undone! (y/N): " delete_dir_choice
+  read -p "Deseja excluir o diretório de armazenamento do monolith-nomad (${NOMAD_DIR})? É o ideal se você quer recomeçar com uma instalação totalmente limpa. Isso vai EXCLUIR PERMANENTEMENTE todos os dados guardados e não pode ser desfeito! (s/N): " delete_dir_choice
   case "$delete_dir_choice" in
-      y|Y )
-          echo "Removing Project NOMAD files..."
+      y|Y|s|S )
+          echo "Removendo os arquivos do monolith-nomad..."
           if rm -rf "${NOMAD_DIR}"; then
-              echo "Project NOMAD files removed."
+              echo "Arquivos do monolith-nomad removidos."
           else
-              echo "Warning: Failed to fully remove ${NOMAD_DIR}. You may need to remove it manually."
+              echo "Aviso: falha ao remover ${NOMAD_DIR} por completo. Talvez seja preciso removê-lo manualmente."
           fi
           ;;
       * )
-          echo "Skipping removal of ${NOMAD_DIR}."
+          echo "Mantendo ${NOMAD_DIR} (não removido)."
           ;;
   esac
 }
 
 uninstall_nomad() {
-    echo "Stopping and removing Project NOMAD management containers..."
+    echo "Parando e removendo os containers de gerenciamento do monolith-nomad..."
     docker compose -p project-nomad -f "${MANAGEMENT_COMPOSE_FILE}" down
-    echo "Allowing some time for management containers to stop..."
+    echo "Aguardando os containers de gerenciamento pararem..."
     sleep 5
 
 
     # Stop and remove all containers where name starts with "nomad_"
-    echo "Stopping and removing all Project NOMAD app containers..."
+    echo "Parando e removendo todos os containers de apps do monolith-nomad..."
     docker ps -a --filter "name=^nomad_" --format "{{.Names}}" | xargs -r docker rm -f
-    echo "Allowing some time for app containers to stop..."
+    echo "Aguardando os containers de apps pararem..."
     sleep 5
 
-    echo "Containers should be stopped now."
+    echo "Os containers já devem estar parados."
 
     # Remove the shared Docker network (may still exist if app containers were using it during compose down)
-    echo "Removing project-nomad_default network if it exists..."
-    docker network rm project-nomad_default 2>/dev/null && echo "Network removed." || echo "Network already removed or not found."
+    echo "Removendo a rede project-nomad_default, se existir..."
+    docker network rm project-nomad_default 2>/dev/null && echo "Rede removida." || echo "Rede já removida ou não encontrada."
 
     # Remove the shared update volume
-    echo "Removing project-nomad_nomad-update-shared volume if it exists..."
-    docker volume rm project-nomad_nomad-update-shared 2>/dev/null && echo "Volume removed." || echo "Volume already removed or not found."
+    echo "Removendo o volume project-nomad_nomad-update-shared, se existir..."
+    docker volume rm project-nomad_nomad-update-shared 2>/dev/null && echo "Volume removido." || echo "Volume já removido ou não encontrado."
 
     # Prompt user for storage cleanup and handle it if so
     storage_cleanup
 
-    echo "Project NOMAD has been uninstalled. We hope to see you again soon!"
+    echo "O monolith-nomad foi desinstalado. Até a próxima!"
 }
 
 ###################################################################################################################################################################################################

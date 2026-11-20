@@ -16,6 +16,7 @@ import {
 } from '~/lib/kb_file_grouping'
 import type { KbIngestStateValue } from '../../../types/kb_ingest_state'
 import { formatBytes } from '~/lib/util'
+import { formatDate, formatNumber } from '~/lib/format'
 import {
   IconArrowsSort,
   IconChevronDown,
@@ -34,6 +35,8 @@ import CollectionsManager from './CollectionsManager'
 import { KB_COLLECTIONS } from '../../../constants/kb_collections'
 import CollectionCombobox from './CollectionCombobox'
 import Switch from '~/components/inputs/Switch'
+import { useTranslation } from 'react-i18next'
+import { t } from '~/lib/i18n'
 
 interface KnowledgeBaseModalProps {
   aiAssistantName?: string
@@ -110,32 +113,32 @@ function renderStatePill(record: KbFileGroup): React.ReactNode {
     case 'indexed':
       return (
         <span
-          className={`${base} text-green-700 bg-green-50 border-green-200 dark:text-green-300 dark:bg-green-950/40 dark:border-green-800`}
+          className={`${base} text-desert-olive-dark bg-desert-olive-lighter border-desert-olive-light`}
         >
-          Indexed
+          {t('Indexed')}
         </span>
       )
     case 'pending_decision':
     case 'browse_only':
       return (
         <span className={`${base} text-text-secondary bg-surface-secondary border-border-subtle`}>
-          Not Indexed
+          {t('Not Indexed')}
         </span>
       )
     case 'failed':
       return (
         <span
-          className={`${base} text-red-700 bg-red-50 border-red-200 dark:text-red-300 dark:bg-red-950/40 dark:border-red-800`}
+          className={`${base} text-desert-red-dark bg-desert-red-lighter border-desert-red-light`}
         >
-          Failed
+          {t('Failed')}
         </span>
       )
     case 'stalled':
       return (
         <span
-          className={`${base} text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-300 dark:bg-amber-950/40 dark:border-amber-800`}
+          className={`${base} text-desert-orange-dark bg-desert-orange-lighter border-desert-orange-light`}
         >
-          Stalled
+          {t('Stalled')}
         </span>
       )
   }
@@ -189,9 +192,11 @@ function pickRowAction(record: KbFileGroup, hasWarnings: boolean): RowAction | n
 }
 
 export default function KnowledgeBaseModal({
-  aiAssistantName = 'AI Assistant',
+  aiAssistantName: aiAssistantNameProp,
   onClose,
 }: KnowledgeBaseModalProps) {
+  const { t } = useTranslation()
+  const aiAssistantName = aiAssistantNameProp || t('AI Assistant')
   const { addNotification } = useNotifications()
   const [files, setFiles] = useState<File[]>([])
   const [isUploading, setIsUploading] = useState(false)
@@ -275,14 +280,14 @@ export default function KnowledgeBaseModal({
         type: 'success',
         message:
           policy === 'Always'
-            ? 'New content will be auto-indexed for AI.'
-            : 'New content will wait for you to opt in.',
+            ? t('New content will be auto-indexed for AI.')
+            : t('New content will wait for you to opt in.'),
       })
     },
     onError: (error: any) => {
       addNotification({
         type: 'error',
-        message: error?.message || 'Failed to update indexing policy.',
+        message: error?.message || t('Failed to update indexing policy.'),
       })
     },
   })
@@ -295,12 +300,15 @@ export default function KnowledgeBaseModal({
     mutationFn: ({ source, collection }: { source: string; collection: string }) =>
       api.updateFileCollection(source, collection || null),
     onSuccess: (data) => {
-      addNotification({ type: 'success', message: data?.message || 'Collection updated.' })
+      addNotification({ type: 'success', message: data?.message || t('Collection updated.') })
       queryClient.invalidateQueries({ queryKey: ['storedFiles'] })
       queryClient.invalidateQueries({ queryKey: ['kbCollections'] })
     },
     onError: (error: any) => {
-      addNotification({ type: 'error', message: error?.message || 'Failed to update collection.' })
+      addNotification({
+        type: 'error',
+        message: error?.message || t('Failed to update collection.'),
+      })
     },
   })
 
@@ -308,13 +316,13 @@ export default function KnowledgeBaseModal({
     mutationFn: ({ source, active }: { source: string; active: boolean }) =>
       api.setFileActive(source, active),
     onSuccess: (data) => {
-      addNotification({ type: 'success', message: data?.message || 'Active state updated.' })
+      addNotification({ type: 'success', message: data?.message || t('Active state updated.') })
       queryClient.invalidateQueries({ queryKey: ['storedFiles'] })
     },
     onError: (error: any) => {
       addNotification({
         type: 'error',
-        message: error?.message || 'Failed to update active state.',
+        message: error?.message || t('Failed to update active state.'),
       })
     },
   })
@@ -325,14 +333,14 @@ export default function KnowledgeBaseModal({
     onSuccess: (data) => {
       addNotification({
         type: 'success',
-        message: data?.message || 'Collection active state updated.',
+        message: data?.message || t('Collection active state updated.'),
       })
       queryClient.invalidateQueries({ queryKey: ['storedFiles'] })
     },
     onError: (error: any) => {
       addNotification({
         type: 'error',
-        message: error?.message || 'Failed to update collection active state.',
+        message: error?.message || t('Failed to update collection active state.'),
       })
     },
   })
@@ -340,12 +348,12 @@ export default function KnowledgeBaseModal({
   const deleteMutation = useMutation({
     mutationFn: (source: string) => api.deleteRAGFile(source),
     onSuccess: () => {
-      addNotification({ type: 'success', message: 'File removed from knowledge base.' })
+      addNotification({ type: 'success', message: t('File removed from knowledge base.') })
       setConfirmDeleteSource(null)
       queryClient.invalidateQueries({ queryKey: ['storedFiles'] })
     },
     onError: (error: any) => {
-      addNotification({ type: 'error', message: error?.message || 'Failed to delete file.' })
+      addNotification({ type: 'error', message: error?.message || t('Failed to delete file.') })
       setConfirmDeleteSource(null)
     },
   })
@@ -356,7 +364,7 @@ export default function KnowledgeBaseModal({
     onSuccess: (data) => {
       addNotification({
         type: 'success',
-        message: data?.message || 'File queued for embedding.',
+        message: data?.message || t('File queued for embedding.'),
       })
       setConfirmReembed(null)
       queryClient.invalidateQueries({ queryKey: ['storedFiles'] })
@@ -364,7 +372,7 @@ export default function KnowledgeBaseModal({
       queryClient.invalidateQueries({ queryKey: ['kbFileWarnings'] })
     },
     onError: (error: any) => {
-      addNotification({ type: 'error', message: error?.message || 'Failed to queue file.' })
+      addNotification({ type: 'error', message: error?.message || t('Failed to queue file.') })
       setConfirmReembed(null)
     },
   })
@@ -372,11 +380,11 @@ export default function KnowledgeBaseModal({
   const cleanupFailedMutation = useMutation({
     mutationFn: () => api.cleanupFailedEmbedJobs(),
     onSuccess: (data) => {
-      addNotification({ type: 'success', message: data?.message || 'Failed jobs cleaned up.' })
+      addNotification({ type: 'success', message: data?.message || t('Failed jobs cleaned up.') })
       queryClient.invalidateQueries({ queryKey: ['failedEmbedJobs'] })
     },
     onError: (error: any) => {
-      addNotification({ type: 'error', message: error?.message || 'Failed to clean up jobs.' })
+      addNotification({ type: 'error', message: error?.message || t('Failed to clean up jobs.') })
     },
   })
 
@@ -385,7 +393,7 @@ export default function KnowledgeBaseModal({
     onSuccess: (data) => {
       addNotification({
         type: 'success',
-        message: data?.message || 'All embedding jobs cancelled.',
+        message: data?.message || t('All embedding jobs cancelled.'),
       })
       queryClient.invalidateQueries({ queryKey: ['embed-jobs'] })
       queryClient.invalidateQueries({ queryKey: ['failedEmbedJobs'] })
@@ -393,7 +401,7 @@ export default function KnowledgeBaseModal({
       queryClient.invalidateQueries({ queryKey: ['kbFileWarnings'] })
     },
     onError: (error: any) => {
-      addNotification({ type: 'error', message: error?.message || 'Failed to cancel jobs.' })
+      addNotification({ type: 'error', message: error?.message || t('Failed to cancel jobs.') })
     },
   })
 
@@ -404,7 +412,7 @@ export default function KnowledgeBaseModal({
       queryClient.invalidateQueries({ queryKey: ['qdrantHealth'] })
     },
     onError: (error: any) => {
-      addNotification({ type: 'error', message: error?.message || 'Failed to start Qdrant.' })
+      addNotification({ type: 'error', message: error?.message || t('Failed to start Qdrant.') })
     },
   })
 
@@ -415,13 +423,15 @@ export default function KnowledgeBaseModal({
         type: 'success',
         message:
           data?.message ||
-          'Storage synced successfully. If new files were found, they have been queued for processing.',
+          t(
+            'Storage synced successfully. If new files were found, they have been queued for processing.'
+          ),
       })
     },
     onError: (error: any) => {
       addNotification({
         type: 'error',
-        message: error?.message || 'Failed to sync storage',
+        message: error?.message || t('Failed to sync storage'),
       })
     },
   })
@@ -431,7 +441,7 @@ export default function KnowledgeBaseModal({
     onSuccess: (data) => {
       addNotification({
         type: data?.success ? 'success' : 'error',
-        message: data?.message || 'Re-embed completed.',
+        message: data?.message || t('Re-embed completed.'),
       })
       queryClient.invalidateQueries({ queryKey: ['storedFiles'] })
       queryClient.invalidateQueries({ queryKey: ['embed-jobs'] })
@@ -439,7 +449,7 @@ export default function KnowledgeBaseModal({
       setResetTyped('')
     },
     onError: () => {
-      addNotification({ type: 'error', message: 'Failed to re-embed knowledge base.' })
+      addNotification({ type: 'error', message: t('Failed to re-embed knowledge base.') })
       setBulkMode(null)
     },
   })
@@ -449,7 +459,7 @@ export default function KnowledgeBaseModal({
     onSuccess: (data) => {
       addNotification({
         type: data?.success ? 'success' : 'error',
-        message: data?.message || 'Reset complete.',
+        message: data?.message || t('Reset complete.'),
       })
       queryClient.invalidateQueries({ queryKey: ['storedFiles'] })
       queryClient.invalidateQueries({ queryKey: ['embed-jobs'] })
@@ -457,12 +467,32 @@ export default function KnowledgeBaseModal({
       setResetTyped('')
     },
     onError: () => {
-      addNotification({ type: 'error', message: 'Failed to reset knowledge base.' })
+      addNotification({ type: 'error', message: t('Failed to reset knowledge base.') })
       setBulkMode(null)
     },
   })
 
   const bulkBusy = reembedMutation.isPending || resetMutation.isPending
+  const fileCountLabel =
+    storedFiles.length === 1
+      ? t('1 file')
+      : t('{{count}} files', { count: formatNumber(storedFiles.length) })
+
+  // Group rows get their label here (the grouping helper builds an English one).
+  const groupLabel = (record: KbFileGroup): string => {
+    if (record.bucket === 'admin_docs') {
+      return record.count === 1
+        ? t('monolith-nomad documentation · 1 file')
+        : t('monolith-nomad documentation · {{count}} files', { count: record.count })
+    }
+    if (record.isCollectionHeader) {
+      const name = record.collection ?? t('Uncategorized')
+      return record.count === 1
+        ? t('{{name}} · 1 file', { name })
+        : t('{{name}} · {{count}} files', { name, count: record.count })
+    }
+    return record.displayName
+  }
 
   const handleUpload = async () => {
     if (files.length === 0) return
@@ -487,11 +517,14 @@ export default function KnowledgeBaseModal({
     if (successCount > 0) {
       addNotification({
         type: 'success',
-        message: `${successCount} file${successCount > 1 ? 's' : ''} queued for processing.`,
+        message:
+          successCount === 1
+            ? t('1 file queued for processing.')
+            : t('{{count}} files queued for processing.', { count: successCount }),
       })
     }
     for (const name of failedNames) {
-      addNotification({ type: 'error', message: `Failed to upload: ${name}` })
+      addNotification({ type: 'error', message: t('Failed to upload: {{name}}', { name }) })
     }
   }
 
@@ -510,22 +543,21 @@ export default function KnowledgeBaseModal({
   const handleConfirmCancelAll = () => {
     openModal(
       <StyledModal
-        title="Cancel All Embedding Jobs?"
+        title={t('Cancel All Embedding Jobs?')}
         onConfirm={() => {
           cancelAllMutation.mutate()
           closeModal('confirm-cancel-all-modal')
         }}
         onCancel={() => closeModal('confirm-cancel-all-modal')}
         open={true}
-        confirmText="Cancel All Jobs"
-        cancelText="Keep Jobs"
+        confirmText={t('Cancel All Jobs')}
+        cancelText={t('Keep Jobs')}
         confirmVariant="danger"
       >
         <p className="text-text-primary">
-          This stops <strong>every</strong> embedding job — including ones still in progress or
-          stuck — and clears the processing queue. The uploaded source files for those jobs are
-          deleted, so you'll need to re-upload anything you still want indexed. Stored files that
-          already finished embedding are not affected. Are you sure you want to proceed?
+          {t(
+            "This stops every embedding job — including ones still in progress or stuck — and clears the processing queue. The uploaded source files for those jobs are deleted, so you'll need to re-upload anything you still want indexed. Stored files that already finished embedding are not affected. Are you sure you want to proceed?"
+          )}
         </p>
       </StyledModal>,
       'confirm-cancel-all-modal'
@@ -535,22 +567,21 @@ export default function KnowledgeBaseModal({
   const handleConfirmSync = () => {
     openModal(
       <StyledModal
-        title="Confirm Sync?"
+        title={t('Confirm Sync?')}
         onConfirm={() => {
           syncMutation.mutate()
           closeModal('confirm-sync-modal')
         }}
         onCancel={() => closeModal('confirm-sync-modal')}
         open={true}
-        confirmText="Confirm Sync"
-        cancelText="Cancel"
+        confirmText={t('Confirm Sync')}
+        cancelText={t('Cancel')}
         confirmVariant="primary"
       >
         <p className="text-text-primary">
-          This will scan the NOMAD's storage directories for any new files and queue them for
-          processing. This is useful if you've manually added files to the storage or want to ensure
-          everything is up to date. This may cause a temporary increase in resource usage if new
-          files are found and being processed. Are you sure you want to proceed?
+          {t(
+            "This will scan the monolith-nomad storage directories for any new files and queue them for processing. This is useful if you've manually added files to the storage or want to ensure everything is up to date. This may cause a temporary increase in resource usage if new files are found and being processed. Are you sure you want to proceed?"
+          )}
         </p>
       </StyledModal>,
       'confirm-sync-modal'
@@ -565,9 +596,10 @@ export default function KnowledgeBaseModal({
           against 961px of usable width at 5xl. */}
       <div className="bg-surface-primary rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-border-subtle shrink-0">
-          <h2 className="text-2xl font-semibold text-text-primary">Knowledge Base</h2>
+          <h2 className="text-2xl font-semibold text-text-primary">{t('Knowledge Base')}</h2>
           <button
             onClick={onClose}
+            aria-label={t('Close')}
             className="p-2 hover:bg-surface-secondary rounded-lg transition-colors"
           >
             <IconX className="h-6 w-6 text-text-muted" />
@@ -575,9 +607,10 @@ export default function KnowledgeBaseModal({
         </div>
         <div className="overflow-y-auto flex-1 p-6">
           {qdrantOffline && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm dark:bg-red-950 dark:border-red-800 dark:text-red-300 flex items-center justify-between gap-4">
+            <div className="mb-4 p-4 bg-desert-red-lighter border border-desert-red-light rounded-lg text-desert-red-dark text-sm flex items-center justify-between gap-4">
               <span>
-                <strong>Knowledge Base unavailable:</strong> The Qdrant vector database is offline.
+                <strong>{t('Knowledge Base unavailable:')}</strong>{' '}
+                {t('The Qdrant vector database is offline.')}
               </span>
               <StyledButton
                 variant="danger"
@@ -586,7 +619,7 @@ export default function KnowledgeBaseModal({
                 loading={startQdrantMutation.isPending || isStartingQdrant}
                 disabled={startQdrantMutation.isPending || isStartingQdrant}
               >
-                {isStartingQdrant ? 'Starting…' : 'Start Qdrant'}
+                {isStartingQdrant ? t('Starting…') : t('Start Qdrant')}
               </StyledButton>
             </div>
           )}
@@ -602,7 +635,7 @@ export default function KnowledgeBaseModal({
               />
               <div className="flex justify-center items-center gap-4 my-6">
                 <label className="flex items-center gap-2 text-sm text-text-secondary">
-                  Collection:
+                  {t('Collection:')}
                   <CollectionCombobox
                     value={uploadCollection}
                     onChange={setUploadCollection}
@@ -618,13 +651,13 @@ export default function KnowledgeBaseModal({
                   disabled={files.length === 0 || isUploading || qdrantOffline}
                   loading={isUploading}
                 >
-                  Upload
+                  {t('Upload')}
                 </StyledButton>
               </div>
             </div>
             <div className="border-t bg-surface-primary p-6">
               <h3 className="text-lg font-semibold text-desert-green mb-4">
-                Why upload documents to your Knowledge Base?
+                {t('Why upload documents to your Knowledge Base?')}
               </h3>
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
@@ -633,14 +666,13 @@ export default function KnowledgeBaseModal({
                   </div>
                   <div>
                     <p className="font-medium text-desert-stone-dark">
-                      {aiAssistantName} Knowledge Base Integration
+                      {t('{{name}} Knowledge Base Integration', { name: aiAssistantName })}
                     </p>
                     <p className="text-sm text-desert-stone">
-                      When you upload documents to your Knowledge Base, NOMAD processes and embeds
-                      the content, making it directly accessible to {aiAssistantName}. This allows{' '}
-                      {aiAssistantName} to reference your specific documents during conversations,
-                      providing more accurate and personalized responses based on your uploaded
-                      data.
+                      {t(
+                        'When you upload documents to your Knowledge Base, monolith-nomad processes and embeds the content, making it directly accessible to {{name}}. This allows {{name}} to reference your specific documents during conversations, providing more accurate and personalized responses based on your uploaded data.',
+                        { name: aiAssistantName }
+                      )}
                     </p>
                   </div>
                 </div>
@@ -650,13 +682,12 @@ export default function KnowledgeBaseModal({
                   </div>
                   <div>
                     <p className="font-medium text-desert-stone-dark">
-                      Enhanced Document Processing with OCR
+                      {t('Enhanced Document Processing with OCR')}
                     </p>
                     <p className="text-sm text-desert-stone">
-                      NOMAD includes built-in Optical Character Recognition (OCR) capabilities,
-                      allowing it to extract text from image-based documents such as scanned PDFs or
-                      photos. This means that even if your documents are not in a standard text
-                      format, NOMAD can still process and embed their content for AI access.
+                      {t(
+                        'monolith-nomad includes built-in Optical Character Recognition (OCR) capabilities, allowing it to extract text from image-based documents such as scanned PDFs or photos. This means that even if your documents are not in a standard text format, monolith-nomad can still process and embed their content for AI access.'
+                      )}
                     </p>
                   </div>
                 </div>
@@ -666,12 +697,13 @@ export default function KnowledgeBaseModal({
                   </div>
                   <div>
                     <p className="font-medium text-desert-stone-dark">
-                      Information Library Integration
+                      {t('Information Library Integration')}
                     </p>
                     <p className="text-sm text-desert-stone">
-                      NOMAD will automatically discover and extract any content you save to your
-                      Information Library (if installed), making it instantly available to{' '}
-                      {aiAssistantName} without any extra steps.
+                      {t(
+                        'monolith-nomad will automatically discover and extract any content you save to your Information Library (if installed), making it instantly available to {{name}} without any extra steps.',
+                        { name: aiAssistantName }
+                      )}
                     </p>
                   </div>
                 </div>
@@ -682,16 +714,17 @@ export default function KnowledgeBaseModal({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex-1 min-w-[14rem]">
                 <p className="text-sm font-medium text-text-primary">
-                  Auto-index new content for AI?
+                  {t('Auto-index new content for AI?')}
                 </p>
                 <p className="text-xs text-text-muted mt-1">
-                  Indexed content typically uses 5–10× the original file size on disk. Changes apply
-                  to new content added after this setting changes.
+                  {t(
+                    'Indexed content typically uses 5–10× the original file size on disk. Changes apply to new content added after this setting changes.'
+                  )}
                 </p>
               </div>
               <div
                 role="radiogroup"
-                aria-label="Ingest policy"
+                aria-label={t('Ingest policy')}
                 className="inline-flex rounded-md overflow-hidden border border-border-subtle"
               >
                 {(['Always', 'Manual'] as const).map((option) => {
@@ -710,7 +743,7 @@ export default function KnowledgeBaseModal({
                           : 'bg-surface-primary text-text-secondary hover:bg-surface-tertiary'
                       } ${updateIngestPolicyMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                     >
-                      {option}
+                      {t(option)}
                     </button>
                   )
                 })}
@@ -720,7 +753,7 @@ export default function KnowledgeBaseModal({
 
           <div className="my-8">
             <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
-              <StyledSectionHeader title="Processing Queue" className="!mb-0" />
+              <StyledSectionHeader title={t('Processing Queue')} className="!mb-0" />
               <div className="flex items-center gap-2 flex-wrap">
                 <StyledButton
                   variant="danger"
@@ -730,7 +763,7 @@ export default function KnowledgeBaseModal({
                   loading={cleanupFailedMutation.isPending}
                   disabled={cleanupFailedMutation.isPending || qdrantOffline}
                 >
-                  Clean Up Failed
+                  {t('Clean Up Failed')}
                 </StyledButton>
                 <StyledButton
                   variant="danger"
@@ -739,9 +772,11 @@ export default function KnowledgeBaseModal({
                   onClick={handleConfirmCancelAll}
                   loading={cancelAllMutation.isPending}
                   disabled={cancelAllMutation.isPending}
-                  title="Stop and clear every embedding job regardless of state, including stuck or in-progress ones. Deletes the uploaded source files for those jobs."
+                  title={t(
+                    'Stop and clear every embedding job regardless of state, including stuck or in-progress ones. Deletes the uploaded source files for those jobs.'
+                  )}
                 >
-                  Cancel All Jobs
+                  {t('Cancel All Jobs')}
                 </StyledButton>
               </div>
             </div>
@@ -750,22 +785,22 @@ export default function KnowledgeBaseModal({
 
           <div className="my-12">
             <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
-              <StyledSectionHeader title="Stored Knowledge Base Files" className="!mb-0" />
+              <StyledSectionHeader title={t('Stored Knowledge Base Files')} className="!mb-0" />
               <div className="flex items-center gap-2 flex-wrap">
                 <label className="flex items-center gap-2 text-sm text-text-secondary">
-                  Search in:
+                  {t('Search in:')}
                   <select
                     value={collectionFilter}
                     onChange={(e) => setCollectionFilter(e.target.value)}
                     className="rounded border border-border-subtle bg-surface-primary px-3 py-2 text-text-primary"
                   >
-                    <option value="All">All</option>
+                    <option value="All">{t('All', { context: 'feminine' })}</option>
                     {knownCollections.map((c) => (
                       <option key={c} value={c}>
                         {c}
                       </option>
                     ))}
-                    <option value={UNCATEGORIZED_COLLECTION_KEY}>Uncategorized</option>
+                    <option value={UNCATEGORIZED_COLLECTION_KEY}>{t('Uncategorized')}</option>
                   </select>
                 </label>
                 <StyledButton
@@ -774,7 +809,7 @@ export default function KnowledgeBaseModal({
                   icon="IconSettings"
                   onClick={() => setManageCollectionsOpen(true)}
                 >
-                  Manage Collections
+                  {t('Manage Collections')}
                 </StyledButton>
                 <StyledButton
                   variant="danger"
@@ -786,9 +821,11 @@ export default function KnowledgeBaseModal({
                   }}
                   disabled={isUploading || qdrantOffline || bulkBusy}
                   loading={resetMutation.isPending}
-                  title="Drop the entire embeddings collection and re-embed everything from scratch. Permanently removes vectors for files no longer on disk. Destructive: requires typing RESET to confirm."
+                  title={t(
+                    'Drop the entire embeddings collection and re-embed everything from scratch. Permanently removes vectors for files no longer on disk. Destructive: requires typing RESET to confirm.'
+                  )}
                 >
-                  Reset & Rebuild
+                  {t('Reset & Rebuild')}
                 </StyledButton>
                 <StyledButton
                   variant="secondary"
@@ -797,9 +834,11 @@ export default function KnowledgeBaseModal({
                   onClick={() => setBulkMode('reembed')}
                   disabled={isUploading || qdrantOffline || bulkBusy || storedFiles.length === 0}
                   loading={reembedMutation.isPending}
-                  title="Re-embed every file on disk, replacing existing vectors file-by-file. Vectors for files no longer on disk are preserved. Use this if the chunker or embedding model has changed."
+                  title={t(
+                    'Re-embed every file on disk, replacing existing vectors file-by-file. Vectors for files no longer on disk are preserved. Use this if the chunker or embedding model has changed.'
+                  )}
                 >
-                  Re-embed All
+                  {t('Re-embed All')}
                 </StyledButton>
                 <StyledButton
                   variant="secondary"
@@ -808,16 +847,20 @@ export default function KnowledgeBaseModal({
                   onClick={handleConfirmSync}
                   disabled={syncMutation.isPending || isUploading || qdrantOffline || bulkBusy}
                   loading={syncMutation.isPending || isUploading}
-                  title="Scan storage for new files and queue any that haven't been embedded yet. Safe to run anytime; won't touch already-embedded content."
+                  title={t(
+                    "Scan storage for new files and queue any that haven't been embedded yet. Safe to run anytime; won't touch already-embedded content."
+                  )}
                 >
-                  Sync Storage
+                  {t('Sync Storage')}
                 </StyledButton>
               </div>
             </div>
             {warningsUnavailable && (
-              <div className="mb-4 inline-flex items-center gap-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded px-3 py-2">
+              <div className="mb-4 inline-flex items-center gap-2 text-xs text-desert-orange-dark bg-desert-orange-lighter border border-desert-orange-light rounded px-3 py-2">
                 <span aria-hidden="true">⚠</span>
-                <span>File warnings unavailable — couldn't read storage state. Retrying…</span>
+                <span>
+                  {t("File warnings unavailable — couldn't read storage state. Retrying…")}
+                </span>
               </div>
             )}
             <StyledTable<KbFileGroup>
@@ -826,7 +869,7 @@ export default function KnowledgeBaseModal({
               columns={[
                 {
                   accessor: 'source',
-                  title: renderSortHeader('File Name', 'name', sort, setSort),
+                  title: renderSortHeader(t('File Name'), 'name', sort, setSort),
                   render(record) {
                     if (record.isCollectionHeader) {
                       const key = record.collection ?? UNCATEGORIZED_COLLECTION_KEY
@@ -851,7 +894,7 @@ export default function KnowledgeBaseModal({
                               aria-hidden="true"
                             />
                           )}
-                          {record.displayName}
+                          {groupLabel(record)}
                         </button>
                       )
                     }
@@ -859,27 +902,33 @@ export default function KnowledgeBaseModal({
                     const pill = renderStatePill(record)
                     return (
                       <div className="flex flex-col gap-1.5">
-                        <span className="text-text-primary">{record.displayName}</span>
+                        <span className="text-text-primary">{groupLabel(record)}</span>
                         {(pill || warnings.length > 0) && (
                           <div className="flex flex-wrap items-center gap-1.5">
                             {pill}
                             {warnings.map((w, i) => (
                               <span
                                 key={i}
-                                className="inline-flex items-center gap-1.5 self-start text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded px-2 py-0.5"
+                                className="inline-flex items-center gap-1.5 self-start text-xs text-desert-orange-dark bg-desert-orange-lighter border border-desert-orange-light rounded px-2 py-0.5"
                               >
                                 <span aria-hidden="true">⚠</span>
                                 {w.kind === 'zero_chunks' && (
                                   <span>
-                                    Embedded 0 chunks — this file has no text content. AI Assistant
-                                    cannot reference it.
+                                    {t(
+                                      'Embedded 0 chunks — this file has no text content. {{name}} cannot reference it.',
+                                      { name: aiAssistantName }
+                                    )}
                                   </span>
                                 )}
                                 {w.kind === 'partial_stall' && (
                                   <span>
-                                    Only {w.chunksEmbedded.toLocaleString()} of est.{' '}
-                                    {w.chunksExpected.toLocaleString()} chunks embedded — ingestion
-                                    may have stalled.
+                                    {t(
+                                      'Only {{embedded}} of est. {{expected}} chunks embedded — ingestion may have stalled.',
+                                      {
+                                        embedded: formatNumber(w.chunksEmbedded),
+                                        expected: formatNumber(w.chunksExpected),
+                                      }
+                                    )}
                                   </span>
                                 )}
                               </span>
@@ -892,7 +941,7 @@ export default function KnowledgeBaseModal({
                 },
                 {
                   accessor: 'size',
-                  title: renderSortHeader('Size', 'size', sort, setSort),
+                  title: renderSortHeader(t('Size'), 'size', sort, setSort),
                   className: 'whitespace-nowrap',
                   render(record) {
                     if (record.bucket === 'admin_docs' || record.size === null) {
@@ -903,7 +952,7 @@ export default function KnowledgeBaseModal({
                 },
                 {
                   accessor: 'uploadedAt',
-                  title: renderSortHeader('Uploaded', 'uploadedAt', sort, setSort),
+                  title: renderSortHeader(t('Uploaded'), 'uploadedAt', sort, setSort),
                   className: 'whitespace-nowrap',
                   render(record) {
                     if (record.bucket === 'admin_docs' || !record.uploadedAt) {
@@ -912,14 +961,14 @@ export default function KnowledgeBaseModal({
                     const d = new Date(record.uploadedAt)
                     return (
                       <span className="text-text-secondary" title={d.toISOString()}>
-                        {d.toLocaleDateString()}
+                        {formatDate(d)}
                       </span>
                     )
                   },
                 },
                 {
                   accessor: 'collection',
-                  title: 'Collection',
+                  title: t('Collection'),
                   className: 'whitespace-nowrap',
                   noTruncate: true,
                   render(record) {
@@ -947,7 +996,7 @@ export default function KnowledgeBaseModal({
                 },
                 {
                   accessor: 'active',
-                  title: 'Active',
+                  title: t('Active'),
                   render(record) {
                     if (record.bucket === 'admin_docs') {
                       return <span className="text-text-muted">—</span>
@@ -991,7 +1040,9 @@ export default function KnowledgeBaseModal({
                     if (record.bucket === 'admin_docs') {
                       return (
                         <div className="flex justify-end">
-                          <span className="text-sm text-text-muted italic">Managed by NOMAD</span>
+                          <span className="text-sm text-text-muted italic">
+                            {t('Managed by monolith-nomad')}
+                          </span>
                         </div>
                       )
                     }
@@ -1006,7 +1057,7 @@ export default function KnowledgeBaseModal({
                       return (
                         <div className="flex items-center gap-2 justify-end">
                           <span className="text-sm text-text-secondary">
-                            Remove from knowledge base?
+                            {t('Remove from knowledge base?')}
                           </span>
                           <StyledButton
                             variant="danger"
@@ -1014,7 +1065,7 @@ export default function KnowledgeBaseModal({
                             onClick={() => deleteMutation.mutate(record.source)}
                             disabled={isDeleting}
                           >
-                            {isDeleting ? 'Deleting…' : 'Confirm'}
+                            {isDeleting ? t('Deleting…') : t('Confirm')}
                           </StyledButton>
                           <StyledButton
                             variant="ghost"
@@ -1022,7 +1073,7 @@ export default function KnowledgeBaseModal({
                             onClick={() => setConfirmDeleteSource(null)}
                             disabled={isDeleting}
                           >
-                            Cancel
+                            {t('Cancel')}
                           </StyledButton>
                         </div>
                       )
@@ -1061,7 +1112,7 @@ export default function KnowledgeBaseModal({
                             }
                             loading={actionPendingForThisRow}
                           >
-                            {action.label}
+                            {t(action.label)}
                           </StyledButton>
                         )}
                         {canView && (
@@ -1071,7 +1122,7 @@ export default function KnowledgeBaseModal({
                             icon="IconEye"
                             onClick={() => setViewerSource(record.source)}
                           >
-                            View
+                            {t('View')}
                           </StyledButton>
                         )}
                         {canDownload && (
@@ -1083,7 +1134,7 @@ export default function KnowledgeBaseModal({
                               window.location.href = `/api/rag/files/download?source=${encodeURIComponent(record.source)}`
                             }}
                           >
-                            Download
+                            {t('Download')}
                           </StyledButton>
                         )}
                         <StyledButton
@@ -1096,7 +1147,7 @@ export default function KnowledgeBaseModal({
                             deleteMutation.isPending && confirmDeleteSource === record.source
                           }
                         >
-                          Delete
+                          {t('Delete')}
                         </StyledButton>
                       </div>
                     )
@@ -1122,10 +1173,10 @@ export default function KnowledgeBaseModal({
 
       {bulkMode === 'reembed' && (
         <StyledModal
-          title="Re-embed All Documents?"
+          title={t('Re-embed All Documents?')}
           open={true}
-          confirmText={reembedMutation.isPending ? 'Re-embedding…' : 'Re-embed All'}
-          cancelText="Cancel"
+          confirmText={reembedMutation.isPending ? t('Re-embedding…') : t('Re-embed All')}
+          cancelText={t('Cancel')}
           confirmVariant="primary"
           confirmLoading={reembedMutation.isPending}
           onConfirm={() => reembedMutation.mutate()}
@@ -1133,41 +1184,43 @@ export default function KnowledgeBaseModal({
         >
           <div className="text-text-primary text-sm space-y-3 text-left">
             <p>
-              This will re-process every document currently in your knowledge base — about
-              <strong>
-                {' '}
-                {storedFiles.length} file{storedFiles.length === 1 ? '' : 's'}
-              </strong>
-              . For each file, NOMAD will delete the existing embeddings from Qdrant and queue a
-              fresh embedding job using the current chunking and embedding model.
+              {t('This will re-process every document currently in your knowledge base — about')}{' '}
+              <strong>{fileCountLabel}</strong>
+              {t(
+                '. For each file, monolith-nomad will delete the existing embeddings from Qdrant and queue a fresh embedding job using the current chunking and embedding model.'
+              )}
             </p>
             <div className="rounded border border-border-subtle bg-surface-secondary p-3">
-              <p className="font-semibold mb-1">What this is for</p>
+              <p className="font-semibold mb-1">{t('What this is for')}</p>
               <p className="text-text-secondary">
-                Use this when the embedding model or chunking logic has changed, or when you suspect
-                stored vectors are stale. Files on disk are <em>not</em> deleted, and any orphan
-                points whose source file is no longer present will be preserved untouched (see
-                <em> Reset &amp; Rebuild </em>if you want a fully clean slate).
+                {t(
+                  'Use this when the embedding model or chunking logic has changed, or when you suspect stored vectors are stale. Files on disk are not deleted, and any orphan points whose source file is no longer present will be preserved untouched (see Reset & Rebuild if you want a fully clean slate).'
+                )}
               </p>
             </div>
-            <div className="rounded border border-amber-300 bg-amber-50 dark:bg-amber-950 dark:border-amber-800 p-3 text-amber-900 dark:text-amber-200">
-              <p className="font-semibold mb-1">Heads up</p>
+            <div className="rounded border border-desert-orange-light bg-desert-orange-lighter p-3 text-desert-orange-dark ">
+              <p className="font-semibold mb-1">{t('Heads up')}</p>
               <ul className="list-disc pl-5 space-y-1">
                 <li>
-                  Embedding {storedFiles.length} file{storedFiles.length === 1 ? '' : 's'} may take
-                  a long time, especially for large PDFs or ZIM archives.
+                  {t(
+                    'Embedding {{files}} may take a long time, especially for large PDFs or ZIM archives.',
+                    { files: fileCountLabel }
+                  )}
                 </li>
                 <li>
-                  On systems without GPU acceleration, expect sustained high CPU usage for the
-                  duration.
+                  {t(
+                    'On systems without GPU acceleration, expect sustained high CPU usage for the duration.'
+                  )}
                 </li>
                 <li>
-                  Knowledge Base search results may be incomplete until every file finishes
-                  re-embedding.
+                  {t(
+                    'Knowledge Base search results may be incomplete until every file finishes re-embedding.'
+                  )}
                 </li>
                 <li>
-                  If embed jobs are already in progress, this action will be refused — wait for the
-                  queue to drain first.
+                  {t(
+                    'If embed jobs are already in progress, this action will be refused — wait for the queue to drain first.'
+                  )}
                 </li>
               </ul>
             </div>
@@ -1177,10 +1230,10 @@ export default function KnowledgeBaseModal({
 
       {bulkMode === 'reset' && (
         <StyledModal
-          title="Reset & Rebuild Knowledge Base?"
+          title={t('Reset & Rebuild Knowledge Base?')}
           open={true}
-          confirmText={resetMutation.isPending ? 'Resetting…' : 'Wipe & Rebuild'}
-          cancelText="Cancel"
+          confirmText={resetMutation.isPending ? t('Resetting…') : t('Wipe & Rebuild')}
+          cancelText={t('Cancel')}
           confirmVariant="danger"
           confirmLoading={resetMutation.isPending}
           onConfirm={() => {
@@ -1193,50 +1246,55 @@ export default function KnowledgeBaseModal({
         >
           <div className="text-text-primary text-sm space-y-3 text-left">
             <p>
-              This will <strong>permanently delete every point</strong> in the
-              <code> nomad_knowledge_base </code>Qdrant collection and rebuild from the
-              <strong>
-                {' '}
-                {storedFiles.length} file{storedFiles.length === 1 ? '' : 's'}
-              </strong>{' '}
-              currently on disk. The collection is dropped, recreated, and every file is re-queued
-              for embedding.
+              {t('This will')} <strong>{t('permanently delete every point')}</strong>{' '}
+              {t('in the Qdrant collection')} <code>nomad_knowledge_base</code>{' '}
+              {t('and rebuild from the')} <strong>{fileCountLabel}</strong>{' '}
+              {t(
+                'currently on disk. The collection is dropped, recreated, and every file is re-queued for embedding.'
+              )}
             </p>
             <div className="rounded border border-border-subtle bg-surface-secondary p-3">
-              <p className="font-semibold mb-1">How this differs from Re-embed All</p>
+              <p className="font-semibold mb-1">{t('How this differs from Re-embed All')}</p>
               <ul className="list-disc pl-5 space-y-1 text-text-secondary">
                 <li>
-                  <strong>Re-embed All</strong> replaces vectors file-by-file. Any orphan points
-                  (vectors whose source file was deleted from disk at some point) are preserved.
+                  <strong>{t('Re-embed All')}</strong>{' '}
+                  {t(
+                    'replaces vectors file-by-file. Any orphan points (vectors whose source file was deleted from disk at some point) are preserved.'
+                  )}
                 </li>
                 <li>
-                  <strong>Reset &amp; Rebuild</strong> drops the entire collection. Orphan points
-                  are <strong>gone forever</strong>. Only files currently on disk will exist in
-                  Qdrant afterwards.
+                  <strong>{t('Reset & Rebuild')}</strong>{' '}
+                  {t(
+                    'drops the entire collection. Orphan points are gone forever. Only files currently on disk will exist in Qdrant afterwards.'
+                  )}
                 </li>
               </ul>
             </div>
-            <div className="rounded border border-red-300 bg-red-50 dark:bg-red-950 dark:border-red-800 p-3 text-red-900 dark:text-red-200">
-              <p className="font-semibold mb-1">This action is destructive and cannot be undone</p>
+            <div className="rounded border border-desert-red-light bg-desert-red-lighter p-3 text-desert-red-dark ">
+              <p className="font-semibold mb-1">
+                {t('This action is destructive and cannot be undone')}
+              </p>
               <ul className="list-disc pl-5 space-y-1">
                 <li>
-                  Knowledge Base search will be empty until embedding finishes (potentially hours on
-                  CPU-only systems).
+                  {t(
+                    'Knowledge Base search will be empty until embedding finishes (potentially hours on CPU-only systems).'
+                  )}
                 </li>
                 <li>
-                  For a few seconds during the reset, the Qdrant collection does not exist — any
-                  chat-with-RAG queries in that window may return a "collection not found" error.
-                  Avoid using chat until the rebuild has begun.
+                  {t(
+                    'For a few seconds during the reset, the Qdrant collection does not exist — any chat-with-RAG queries in that window may return a "collection not found" error. Avoid using chat until the rebuild has begun.'
+                  )}
                 </li>
                 <li>
-                  If embed jobs are already in progress, this action will be refused — wait for the
-                  queue to drain first.
+                  {t(
+                    'If embed jobs are already in progress, this action will be refused — wait for the queue to drain first.'
+                  )}
                 </li>
               </ul>
             </div>
             <div>
               <label className="block text-sm font-semibold mb-1">
-                Type <code>RESET</code> to confirm:
+                {t('Type', { context: 'verb' })} <code>RESET</code> {t('to confirm:')}
               </label>
               <input
                 type="text"
@@ -1244,11 +1302,11 @@ export default function KnowledgeBaseModal({
                 onChange={(e) => setResetTyped(e.target.value)}
                 placeholder="RESET"
                 autoFocus
-                className="w-full rounded border border-border-subtle bg-surface-primary px-3 py-2 text-text-primary focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full rounded border border-border-subtle bg-surface-primary px-3 py-2 text-text-primary focus:outline-none focus:ring-2 focus:ring-desert-red"
               />
               {resetTyped.length > 0 && resetTyped !== 'RESET' && (
-                <p className="text-xs text-red-600 mt-1">
-                  Type RESET exactly (uppercase, no spaces) to enable the confirm button.
+                <p className="text-xs text-desert-red-dark mt-1">
+                  {t('Type RESET exactly (uppercase, no spaces) to enable the confirm button.')}
                 </p>
               )}
             </div>
@@ -1258,10 +1316,10 @@ export default function KnowledgeBaseModal({
 
       {confirmReembed && (
         <StyledModal
-          title="Re-embed this file?"
+          title={t('Re-embed this file?')}
           open={true}
-          confirmText={embedMutation.isPending ? 'Queuing…' : 'Re-embed'}
-          cancelText="Cancel"
+          confirmText={embedMutation.isPending ? t('Queuing…') : t('Re-embed')}
+          cancelText={t('Cancel')}
           confirmVariant="primary"
           confirmLoading={embedMutation.isPending}
           onConfirm={() => embedMutation.mutate({ source: confirmReembed.source, force: true })}
@@ -1269,23 +1327,27 @@ export default function KnowledgeBaseModal({
         >
           <div className="text-text-primary text-sm space-y-3 text-left">
             <p>
-              This will delete the existing embeddings for{' '}
-              <strong>{confirmReembed.displayName}</strong> and queue a fresh embedding job. The
-              file on disk is not touched.
+              {t('This will delete the existing embeddings for')}{' '}
+              <strong>{confirmReembed.displayName}</strong>{' '}
+              {t('and queue a fresh embedding job. The file on disk is not touched.')}
             </p>
-            <div className="rounded border border-amber-300 bg-amber-50 dark:bg-amber-950 dark:border-amber-800 p-3 text-amber-900 dark:text-amber-200">
-              <p className="font-semibold mb-1">Heads up</p>
+            <div className="rounded border border-desert-orange-light bg-desert-orange-lighter p-3 text-desert-orange-dark ">
+              <p className="font-semibold mb-1">{t('Heads up')}</p>
               <ul className="list-disc pl-5 space-y-1">
                 <li>
-                  For large ZIM archives this can take a long time, especially on CPU-only systems.
+                  {t(
+                    'For large ZIM archives this can take a long time, especially on CPU-only systems.'
+                  )}
                 </li>
                 <li>
-                  Search results that referenced this file will be incomplete until the new
-                  embedding finishes.
+                  {t(
+                    'Search results that referenced this file will be incomplete until the new embedding finishes.'
+                  )}
                 </li>
                 <li>
-                  If a job for this file is already running, the re-embed will be refused — wait for
-                  it to finish first.
+                  {t(
+                    'If a job for this file is already running, the re-embed will be refused — wait for it to finish first.'
+                  )}
                 </li>
               </ul>
             </div>
@@ -1305,6 +1367,7 @@ export default function KnowledgeBaseModal({
 }
 
 function FileViewerModal({ source, onClose }: { source: string; onClose: () => void }) {
+  const { t } = useTranslation()
   const { data, isLoading, isFetched } = useQuery({
     queryKey: ['rag', 'file-content', source],
     queryFn: () => api.getFileContent(source),
@@ -1326,14 +1389,14 @@ function FileViewerModal({ source, onClose }: { source: string; onClose: () => v
       open={true}
       onClose={onClose}
       onCancel={onClose}
-      cancelText="Close"
+      cancelText={t('Close')}
       large
     >
       <div className="text-left text-sm">
-        {isLoading && <div className="text-text-secondary">Loading…</div>}
+        {isLoading && <div className="text-text-secondary">{t('Loading…')}</div>}
         {showError && (
-          <div className="text-amber-700 dark:text-amber-300">
-            Couldn't load file. It may have been moved or its type isn't viewable.
+          <div className="text-desert-orange-dark ">
+            {t("Couldn't load file. It may have been moved or its type isn't viewable.")}
           </div>
         )}
         {data && (

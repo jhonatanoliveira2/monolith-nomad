@@ -14,6 +14,7 @@ import { useSystemSetting } from '~/hooks/useSystemSetting'
 import Switch from '~/components/inputs/Switch'
 import InfoTooltip from '~/components/InfoTooltip'
 import { abortActiveStream, clearStreamIfCurrent } from './stream_abort'
+import { useTranslation } from 'react-i18next'
 
 interface ChatProps {
   enabled: boolean
@@ -30,6 +31,7 @@ export default function Chat({
   suggestionsEnabled = false,
   streamingEnabled = true,
 }: ChatProps) {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { openModal, closeAllModals } = useModals()
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
@@ -211,7 +213,7 @@ export default function Chat({
       const assistantMessage: ChatMessage = {
         id: `msg-${Date.now()}-assistant`,
         role: 'assistant',
-        content: data.message?.content || 'Sorry, I could not generate a response.',
+        content: data.message?.content || t('Sorry, I could not generate a response.'),
         timestamp: new Date(),
         truncated: data.done_reason === 'length',
       }
@@ -227,7 +229,7 @@ export default function Chat({
       const errorMessage: ChatMessage = {
         id: `msg-${Date.now()}-error`,
         role: 'assistant',
-        content: 'Sorry, there was an error processing your request. Please try again.',
+        content: t('Sorry, there was an error processing your request. Please try again.'),
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, errorMessage])
@@ -322,22 +324,21 @@ export default function Chat({
   const handleClearHistory = useCallback(() => {
     openModal(
       <StyledModal
-        title="Clear All Chat History?"
+        title={t('Clear All Chat History?')}
         onConfirm={() => deleteAllSessionsMutation.mutate()}
         onCancel={closeAllModals}
         open={true}
-        confirmText="Clear All"
-        cancelText="Cancel"
+        confirmText={t('Clear All')}
+        cancelText={t('Cancel')}
         confirmVariant="danger"
       >
         <p className="text-text-primary">
-          Are you sure you want to delete all chat sessions? This action cannot be undone and all
-          conversations will be permanently deleted.
+          {t('Are you sure you want to delete all chat sessions? This action cannot be undone and all conversations will be permanently deleted.')}
         </p>
       </StyledModal>,
       'confirm-clear-history-modal'
     )
-  }, [openModal, closeAllModals, deleteAllSessionsMutation])
+  }, [openModal, closeAllModals, deleteAllSessionsMutation, t])
 
   const handleSessionSelect = useCallback(
     async (sessionId: string) => {
@@ -417,7 +418,7 @@ export default function Chat({
             {
               id: `msg-${Date.now()}-error`,
               role: 'assistant',
-              content: 'Sorry, there was an error starting this chat. Please try again.',
+              content: t('Sorry, there was an error starting this chat. Please try again.'),
               timestamp: new Date(),
             },
           ])
@@ -536,8 +537,8 @@ export default function Chat({
                   role: 'assistant',
                   content:
                     error instanceof Error
-                      ? error.message
-                      : 'Sorry, there was an error processing your request. Please try again.',
+                      ? t(error.message)
+                      : t('Sorry, there was an error processing your request. Please try again.'),
                   timestamp: new Date(),
                 },
               ]
@@ -571,24 +572,24 @@ export default function Chat({
         })
       }
     },
-    [activeSessionId, messages, selectedModel, collectionFilter, chatMutation, queryClient, streamingEnabled, effectiveThinking, abortCurrentStream]
+    [activeSessionId, messages, selectedModel, collectionFilter, chatMutation, queryClient, streamingEnabled, effectiveThinking, abortCurrentStream, t]
   )
 
   return (
     <>
       {pendingModelSwitch && (
         <StyledModal
-          title={`Switch to ${pendingModelSwitch}?`}
+          title={t('Switch to {{model}}?', { model: pendingModelSwitch })}
           onConfirm={handleConfirmModelSwitch}
           onCancel={handleCancelModelSwitch}
           open={true}
-          confirmText="Switch & New Chat"
-          cancelText="Cancel"
+          confirmText={t('Switch & New Chat')}
+          cancelText={t('Cancel')}
           confirmVariant="primary"
         >
           <p className="text-text-primary">
-            Switching to <strong>{pendingModelSwitch}</strong> will start a new chat. Your current
-            conversation stays available in the sidebar.
+            {t('Switching to')} <strong>{pendingModelSwitch}</strong>{' '}
+            {t('will start a new chat. Your current conversation stays available in the sidebar.')}
           </p>
         </StyledModal>
       )}
@@ -611,7 +612,7 @@ export default function Chat({
         {isMobileSidebarOpen && (
           <button
             type="button"
-            aria-label="Close conversation sidebar"
+            aria-label={t('Close conversation sidebar')}
             className="fixed inset-0 z-40 bg-black/40 md:hidden"
             onClick={() => setIsMobileSidebarOpen(false)}
           />
@@ -623,7 +624,7 @@ export default function Chat({
               <button
                 type="button"
                 className="rounded-lg p-1.5 hover:bg-surface-primary focus:outline-none focus:ring-2 focus:ring-desert-green md:hidden"
-                aria-label="Open conversation sidebar"
+                aria-label={t('Open conversation sidebar')}
                 aria-controls="chat-sidebar"
                 aria-expanded={isMobileSidebarOpen}
                 onClick={() => setIsMobileSidebarOpen(true)}
@@ -631,7 +632,7 @@ export default function Chat({
                 <IconMenu2 className="h-6 w-6 text-text-muted" aria-hidden="true" />
               </button>
               <h2 className="text-lg font-semibold text-text-primary truncate">
-                {activeSession?.title || 'New Chat'}
+                {!activeSession?.title || activeSession.title === 'New Chat' ? t('New Chat') : activeSession.title}
               </h2>
             </div>
             <div className="flex items-center gap-2 sm:gap-4 min-w-0">
@@ -640,17 +641,17 @@ export default function Chat({
                   className={classNames(
                     'text-xs rounded px-2 py-1 font-medium',
                     remoteStatus?.connected === false
-                      ? 'text-red-700 bg-red-50 border border-red-200'
-                      : 'text-green-700 bg-green-50 border border-green-200'
+                      ? 'text-desert-red-dark bg-desert-red-lighter border border-desert-red-light'
+                      : 'text-desert-olive-dark bg-desert-olive-lighter border border-desert-olive-light'
                   )}
                 >
-                  {remoteStatus?.connected === false ? 'Remote Disconnected' : 'Remote Connected'}
+                  {remoteStatus?.connected === false ? t('Remote Disconnected') : t('Remote Connected')}
                 </span>
               )}
               {ragEnabled && (
                 <div className="flex items-center gap-2">
                   <label htmlFor="collection-select" className="text-sm text-text-secondary">
-                    Search in:
+                    {t('Search in:')}
                   </label>
                   <select
                     id="collection-select"
@@ -658,7 +659,7 @@ export default function Chat({
                     onChange={(e) => setCollectionFilter(e.target.value)}
                     className="px-3 py-1.5 border border-border-default rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-desert-green focus:border-transparent bg-surface-primary"
                   >
-                    <option value="">All</option>
+                    <option value="">{t('All', { context: 'feminine' })}</option>
                     {knownCollections.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
@@ -667,12 +668,12 @@ export default function Chat({
               )}
               <div className="flex items-center gap-2 min-w-0">
                 <label htmlFor="model-select" className="text-sm text-text-secondary">
-                  Model:
+                  {t('Model:')}
                 </label>
                 {isLoadingModels ? (
-                  <div className="text-sm text-text-muted">Loading models...</div>
+                  <div className="text-sm text-text-muted">{t('Loading models...')}</div>
                 ) : installedModels.length === 0 ? (
-                  <div className="text-sm text-red-600">No models installed</div>
+                  <div className="text-sm text-desert-red-dark">{t('No models installed')}</div>
                 ) : (
                   <select
                     id="model-select"
@@ -690,11 +691,11 @@ export default function Chat({
                 )}
               </div>
               <div className="flex items-center">
-                <span className="text-sm text-text-secondary select-none">Knowledge Base:</span>
+                <span className="text-sm text-text-secondary select-none">{t('Knowledge Base:')}</span>
                 <InfoTooltip
                   position="bottom"
                   align="right"
-                  text="When on, the assistant searches your knowledge base for relevant documents before answering. Turning this off is faster and lighter on hardware, which helps when your knowledge base is small or empty. This is the same setting as in AI Assistant settings."
+                  text={t('When on, the assistant searches your knowledge base for relevant documents before answering. Turning this off is faster and lighter on hardware, which helps when your knowledge base is small or empty. This is the same setting as in AI Assistant settings.')}
                 />
                 <Switch
                   id="chat-rag-toggle"
@@ -704,11 +705,11 @@ export default function Chat({
               </div>
               {selectedModelSupportsThinking && (
                 <div className="flex items-center">
-                  <span className="text-sm text-text-secondary select-none">Thinking:</span>
+                  <span className="text-sm text-text-secondary select-none">{t('Thinking:')}</span>
                   <InfoTooltip
                     position="bottom"
                     align="right"
-                    text="When on, this model works through its reasoning before answering. Slower, but often better on tricky questions. Your choice is remembered for this model; the default for other models is set in AI Assistant settings."
+                    text={t('When on, this model works through its reasoning before answering. Slower, but often better on tricky questions. Your choice is remembered for this model; the default for other models is set in AI Assistant settings.')}
                   />
                   <Switch
                     id="chat-thinking-toggle"
@@ -720,7 +721,7 @@ export default function Chat({
               {isInModal && (
                 <button
                   type="button"
-                  aria-label="Close chat"
+                  aria-label={t('Close chat')}
                   onClick={() => {
                     if (onClose) {
                       onClose()

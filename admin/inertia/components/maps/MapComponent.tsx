@@ -20,6 +20,7 @@ import CoordinateOverlay from './CoordinateOverlay'
 import ViewMapMarkerPopup from './ViewMapMarkerPopup'
 import MapMarkerFormPopup from './MapMarkerFormPopup'
 import ScaleUnitToggle from './ScaleUnitSelector'
+import { useTranslation } from 'react-i18next'
 
 type ScaleUnit = 'imperial' | 'metric' | 'nautical'
 
@@ -43,7 +44,9 @@ type MapLocationParams = {
 }
 
 const SAVED_MAP_VIEW_KEY = 'nomad:map-view'
-const DEFAULT_MAP_VIEW = { longitude: -101, latitude: 40, zoom: 3.5 }
+// First view when nothing was saved yet: Brazil (this distribution is configured for São Paulo, BR).
+// The upstream default was the continental United States (-101, 40).
+const DEFAULT_MAP_VIEW = { longitude: -52, latitude: -14, zoom: 3.5 }
 
 type SavedMapView = { longitude: number; latitude: number; zoom: number }
 
@@ -135,6 +138,7 @@ export default function MapComponent({
                                        isHoveringUI = false,
                                        showCoordinatesEnabled = true,
                                      }: MapComponentProps) {
+  const { t } = useTranslation()
   const mapRef = useRef<MapRef>(null)
   const animationFrameRef = useRef<number | null>(null)
   const handledMapCommandIdRef = useRef<number | null>(null)
@@ -188,8 +192,8 @@ export default function MapComponent({
 
   const confirmDiscardMarkerChanges = useCallback(() => {
     if (!hasUnsavedMarkerChanges) return true
-    return window.confirm('Discard unsaved marker changes?')
-  }, [hasUnsavedMarkerChanges])
+    return window.confirm(t('Discard unsaved marker changes?'))
+  }, [hasUnsavedMarkerChanges, t])
 
   useEffect(() => {
     const protocol = new Protocol()

@@ -18,6 +18,8 @@ node_modules/
 .env
 .env.*
 !.env.example
+# placeholder environment for the test suites (no secrets): admin/.env.test
+!.env.test
 
 # Credentials and keys. Never commit these — the installer generates every
 # password and app key locally at install time, so nothing real belongs in the
@@ -62,6 +64,10 @@ server/temp
 .idea
 
 # Agent Files
+# personal session notes of the maintainer (instructions, prompt, session log): never published
+CLAUDE.md
+ORIGINAL_PROMPT.md
+SESSION_CONTEXT.md
 .agents
 .claude
 .codegraph

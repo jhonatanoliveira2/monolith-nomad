@@ -14,6 +14,18 @@ export type DoResumableDownloadParams = {
    * resumed downloads. Kept generic so any gated source can reuse it.
    */
   requestHeaders?: Record<string, string>
+  /**
+   * Lower-case hex SHA-256 the file must have (e.g. from the Kiwix metalink). Checked before the .tmp is
+   * renamed into place; on a mismatch the .tmp is deleted and ChecksumMismatchError is thrown.
+   */
+  expectedSha256?: string | null
+  /**
+   * Connection policy for third-party sources (smart downloads pass these for metalink mirrors only):
+   * `lookup` resolves every connection, redirects included (host_safety.safeLookup refuses non-public
+   * addresses), and `beforeRedirect` may veto a redirect by throwing.
+   */
+  lookup?: import('axios').AxiosRequestConfig['lookup']
+  beforeRedirect?: import('axios').AxiosRequestConfig['beforeRedirect']
 }
 
 export type DoResumableDownloadWithRetryParams = DoResumableDownloadParams & {

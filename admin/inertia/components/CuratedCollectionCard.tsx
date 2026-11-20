@@ -3,6 +3,7 @@ import DynamicIcon, { DynamicIconName } from './DynamicIcon'
 import type { CollectionWithStatus } from '../../types/collections'
 import classNames from 'classnames'
 import { IconCircleCheck } from '@tabler/icons-react'
+import { useTranslation } from 'react-i18next'
 
 export interface CuratedCollectionCardProps {
   collection: CollectionWithStatus
@@ -11,6 +12,7 @@ export interface CuratedCollectionCardProps {
 }
 
 const CuratedCollectionCard: React.FC<CuratedCollectionCardProps> = ({ collection, onClick, size = 'small' }) => {
+  const { t } = useTranslation()
   const totalSizeBytes = collection.resources?.reduce(
     (acc, resource) => acc + resource.size_mb * 1024 * 1024,
     0
@@ -40,17 +42,17 @@ const CuratedCollectionCard: React.FC<CuratedCollectionCardProps> = ({ collectio
           {collection.all_installed && (
             <div className="flex items-center">
               <IconCircleCheck
-                className="w-5 h-5 text-lime-400 ml-2"
-                title="All items downloaded"
+                className="w-5 h-5 text-white ml-2"
+                title={t('All items downloaded')}
               />
-              <p className="text-lime-400 text-sm ml-1">All items downloaded</p>
+              <p className="text-white text-sm ml-1">{t('All items downloaded')}</p>
             </div>
           )}
         </div>
       </div>
-      <p className="text-gray-200 grow">{collection.description}</p>
-      <p className="text-gray-200 text-xs mt-2">
-        Items: {collection.resources?.length} | Size: {formatBytes(totalSizeBytes, 0)}
+      <p className="text-neutral-200 grow">{collection.description}</p>
+      <p className="text-neutral-200 text-xs mt-2">
+        {t('Items: {{count}} | Size: {{size}}', { count: collection.resources?.length ?? 0, size: formatBytes(totalSizeBytes, 0) })}
       </p>
     </div>
   )

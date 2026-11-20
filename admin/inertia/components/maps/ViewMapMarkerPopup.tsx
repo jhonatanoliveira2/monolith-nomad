@@ -1,6 +1,7 @@
 import { Popup } from 'react-map-gl/maplibre'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { useTranslation } from 'react-i18next'
 
 import type { MapMarker } from '~/hooks/useMapMarkers'
 
@@ -17,6 +18,7 @@ export default function ViewMapMarkerPopup({
                                              onEdit,
                                              onMouseEnter,
                                            }: ViewMapMarkerPopupProps) {
+  const { t } = useTranslation()
   return (
     <Popup
       longitude={marker.longitude}
@@ -37,7 +39,7 @@ export default function ViewMapMarkerPopup({
         <div className="text-sm font-medium break-words">{marker.name}</div>
 
         {marker.notes && (
-          <div className="mt-1 max-w-[240px] break-all whitespace-pre-wrap text-xs text-gray-500">
+          <div className="mt-1 max-w-[240px] break-all whitespace-pre-wrap text-xs text-text-muted">
             {/* react-markdown is intentionally used without rehypeRaw.
                 Do not enable raw HTML rendering unless notes are sanitized first. */}
             <ReactMarkdown
@@ -48,7 +50,7 @@ export default function ViewMapMarkerPopup({
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="break-all text-blue-600 underline hover:text-blue-700"
+                    className="break-all text-text-primary underline hover:text-text-primary"
                   >
                     {children}
                   </a>
@@ -66,7 +68,7 @@ export default function ViewMapMarkerPopup({
             onClick={onClose}
             className="w-16 rounded bg-[#424420] px-2.5 py-1 text-xs text-white hover:bg-[#525530] border-none outline-none"
           >
-            Close
+            {t('Close')}
           </button>
 
           <button
@@ -74,7 +76,7 @@ export default function ViewMapMarkerPopup({
             onClick={onEdit}
             className="w-16 rounded bg-[#424420] px-2.5 py-1 text-xs text-white hover:bg-[#525530] border-none outline-none"
           >
-            Edit
+            {t('Edit')}
           </button>
         </div>
       </div>

@@ -5,6 +5,13 @@ import { blockingFindings, markdocConfig } from '../utils/docs_markdoc.js'
 import path from 'path'
 import InternalServerErrorException from '#exceptions/internal_server_error_exception'
 import logger from '@adonisjs/core/services/logger'
+import {
+  DEFAULT_LOCALE,
+  docTitle,
+  localizedDocCandidates,
+  parseDocFilename,
+  type Locale,
+} from '../utils/locale.js'
 
 export class DocsService {
   private docsPath = path.join(process.cwd(), 'docs')
@@ -22,16 +29,20 @@ export class DocsService {
     'release-notes': 10,
   }
 
-  async getDocs() {
+  /** One entry per document; `<slug>.<locale>.md` translations are merged into their slug. */
+  async getDocs(locale: Locale = DEFAULT_LOCALE) {
     const contents = await listDirectoryContentsRecursive(this.docsPath)
     const files: Array<{ title: string; slug: string }> = []
+    const seen = new Set<string>()
 
     for (const item of contents) {
       if (item.type === 'file' && item.name.endsWith('.md')) {
-        const cleaned = this.prettify(item.name)
+        const { slug } = parseDocFilename(item.name)
+        if (seen.has(slug)) continue
+        seen.add(slug)
         files.push({
-          title: cleaned,
-          slug: item.name.replace(/\.md$/, ''),
+          title: docTitle(slug, locale) ?? this.prettify(`${slug}.md`),
+          slug,
         })
       }
     }
@@ -61,23 +72,29 @@ export class DocsService {
     }
   }
 
-  async parseFile(_filename: string) {
+  async parseFile(_filename: string, locale: Locale = DEFAULT_LOCALE) {
     try {
       if (!_filename) {
         throw new Error('Filename is required')
       }
 
-      const filename = _filename.endsWith('.md') ? _filename : `${_filename}.md`
-
-      // Prevent path traversal — resolved path must stay within the docs directory
+      // translation first (<slug>.<locale>.md), then the English original (<slug>.md)
       const basePath = path.resolve(this.docsPath)
-      const fullPath = path.resolve(path.join(this.docsPath, filename))
-      if (!fullPath.startsWith(basePath + path.sep)) {
-        throw new Error('Invalid document slug')
+      let fullPath: string | null = null
+      let filename = ''
+      for (const candidate of localizedDocCandidates(_filename, locale)) {
+        // Prevent path traversal — resolved path must stay within the docs directory
+        const resolved = path.resolve(path.join(this.docsPath, candidate))
+        if (!resolved.startsWith(basePath + path.sep)) {
+          throw new Error('Invalid document slug')
+        }
+        filename = candidate
+        if (await getFileStatsIfExists(resolved)) {
+          fullPath = resolved
+          break
+        }
       }
-
-      const fileExists = await getFileStatsIfExists(fullPath)
-      if (!fileExists) {
+      if (!fullPath) {
         throw new Error(`File not found: ${filename}`)
       }
 

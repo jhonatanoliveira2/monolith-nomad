@@ -69,6 +69,8 @@ test('unknown backend image rejection returns actionable compatibility details o
   }
   const ollamaService = {
     getModelCapabilities: async () => ({ thinking: false, vision: 'unknown' as const }),
+    // controller.chat reads the model's thinking flag/sampler since 27be71b (no backend: hasThinking false)
+    getModelInfo: async () => ({ hasThinking: false }),
     chatStream: async () => {
       throw new Error('The upstream backend rejected image_url content.')
     },
@@ -158,6 +160,8 @@ test('unknown backend image rejection returns actionable compatibility details w
   }
   const ollamaService = {
     getModelCapabilities: async () => ({ thinking: false, vision: 'unknown' as const }),
+    // controller.chat reads the model's thinking flag/sampler since 27be71b (no backend: hasThinking false)
+    getModelInfo: async () => ({ hasThinking: false }),
     chat: async () => {
       throw new Error('The upstream backend rejected image_url content.')
     },
@@ -241,6 +245,8 @@ test('unknown backend image requests do not mislabel preprocessing failures as i
   let inferenceCalled = false
   const ollamaService = {
     getModelCapabilities: async () => ({ thinking: false, vision: 'unknown' as const }),
+    // controller.chat reads the model's thinking flag/sampler since 27be71b (no backend: hasThinking false)
+    getModelInfo: async () => ({ hasThinking: false }),
     chatStream: async () => {
       inferenceCalled = true
       throw new Error('Inference should not be reached')
@@ -304,6 +310,8 @@ test('text-only JSON chat preserves long histories through the controller bounda
   let upstreamMessages: unknown[] = []
   const ollamaService = {
     getModelCapabilities: async () => ({ thinking: false, vision: 'unsupported' as const }),
+    // controller.chat reads the model's thinking flag/sampler since 27be71b (no backend: hasThinking false)
+    getModelInfo: async () => ({ hasThinking: false }),
     chat: async (chatRequest: { messages: unknown[] }) => {
       upstreamMessages = chatRequest.messages
       return {
@@ -340,8 +348,10 @@ test('text-only JSON chat preserves long histories through the controller bounda
 
   assert.ok(result)
   assert.equal(result.message.content, 'Text response')
-  assert.equal(upstreamMessages.length, 202)
-  assert.deepEqual(upstreamMessages.slice(1), messages)
+  // the system prompt is added by RagPipelineService.buildPrompt (stubbed above as a pass-through), not by the
+  // controller, so the whole history reaches the backend unchanged
+  assert.equal(upstreamMessages.length, 201)
+  assert.deepEqual(upstreamMessages, messages)
   assert.ok(
     upstreamMessages.every(
       (message) => typeof (message as { content?: unknown }).content === 'string'

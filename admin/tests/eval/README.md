@@ -437,14 +437,13 @@ Implementation:
   npm run test:unit    # every tests/unit spec
   ```
 
-  `test:unit` currently reports **7 pre-existing failures** unrelated to this
-  harness: `drug_interactions`, `drug_ingest_status`, `drug_labels`, and
-  `rag_retrieval_toggle` are written against `@japa/runner` rather than
-  `node:test`, and `app_auto_update`, `content_auto_update`, and
-  `content_auto_update_backoff` import services that need a booted application.
-  Both groups belong in the Japa suite (`node ace test`, which needs MySQL and
-  Redis). They fail identically before and after any change here — use
-  `test:eval` when you want a signal you can trust.
+  `test:unit` runs only the specs that need no services (`scripts/run_tests.mjs`
+  sorts them): the `@japa/runner` specs (`drug_interactions`, `drug_ingest_status`,
+  `drug_labels`, `rag_retrieval_toggle`, ...) and the `node:test` specs that import
+  services needing a booted application (`app_auto_update`, `content_auto_update`)
+  run with `npm run test:app` (`node ace test`, which needs MySQL and Redis).
+  `bash scripts/test-in-docker.sh` (repository root) runs both with throwaway
+  MySQL and Redis.
 - `app/services/eval_*_service.ts` — orchestration; these need Qdrant and Ollama.
 - `commands/eval/*` — the CLI.
 - `app/services/rag_pipeline_service.ts` — the prompt pipeline, shared with the

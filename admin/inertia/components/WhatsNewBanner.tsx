@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { router, usePage } from '@inertiajs/react'
 import Alert from '~/components/Alert'
+import { useTranslation } from 'react-i18next'
 
 /**
  * Post-upgrade "what's new" highlights shown once on the dashboard.
@@ -35,6 +36,7 @@ function majorMinor(version: string | undefined | null): string | null {
 
 export default function WhatsNewBanner() {
   const { appVersion } = usePage<{ appVersion: string }>().props
+  const { t } = useTranslation()
   const storageKey = `nomad:whatsnew-dismissed:${WHATS_NEW.version}`
 
   const [dismissed, setDismissed] = useState(() => {
@@ -64,7 +66,7 @@ export default function WhatsNewBanner() {
   return (
     <div className="flex justify-center items-center p-4 w-full">
       <Alert
-        title={WHATS_NEW.title}
+        title={t(WHATS_NEW.title)}
         type="info-inverted"
         variant="solid"
         className="w-full"
@@ -72,14 +74,14 @@ export default function WhatsNewBanner() {
         onDismiss={handleDismiss}
         buttonProps={{
           variant: 'primary',
-          children: 'See release notes',
+          children: t('See release notes'),
           icon: 'IconBook',
           onClick: () => router.visit('/docs/release-notes'),
         }}
       >
         <ul className="mt-1 list-disc list-inside space-y-1 text-white text-opacity-90 text-sm leading-relaxed">
           {WHATS_NEW.highlights.map((highlight) => (
-            <li key={highlight}>{highlight}</li>
+            <li key={highlight}>{t(highlight)}</li>
           ))}
         </ul>
       </Alert>

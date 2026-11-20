@@ -4,9 +4,12 @@ import api from '~/lib/api'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNotifications } from '~/context/NotificationContext'
 import { useAppAutoUpdateStatus } from '~/hooks/useAppAutoUpdateStatus'
+import { useTranslation } from 'react-i18next'
+import { formatDateTime } from '~/lib/format'
 
 export default function AppAutoUpdateSection() {
   const { addNotification } = useNotifications()
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { data: status, isLoading } = useAppAutoUpdateStatus()
 
@@ -18,40 +21,41 @@ export default function AppAutoUpdateSection() {
       queryClient.invalidateQueries({ queryKey: ['app-auto-update-status'] })
       addNotification({
         type: 'success',
-        message: value ? 'App automatic updates enabled.' : 'App automatic updates disabled.',
+        message: value ? t('App automatic updates enabled.') : t('App automatic updates disabled.'),
       })
     },
     onError: () => {
-      addNotification({ type: 'error', message: 'Failed to update app auto-update setting.' })
+      addNotification({ type: 'error', message: t('Failed to update app auto-update setting.') })
     },
   })
 
   return (
     <>
-      <StyledSectionHeader title="Automatic App Updates" className="mt-8" />
+      <StyledSectionHeader title={t('Automatic App Updates')} className="mt-8" />
       <div className="bg-surface-primary rounded-lg border shadow-md overflow-hidden mt-6 p-6">
         <Switch
           checked={enabled}
           onChange={(value) => toggleMutation.mutate(value)}
           disabled={toggleMutation.isPending || isLoading}
-          label="Enable Automatic App Updates"
-          description="Automatically install minor and patch updates for apps you've opted in (toggle each app in Supply Depot). Major versions always require a manual update. Uses the same update window and cool-off period as the core schedule above."
+          label={t('Enable Automatic App Updates')}
+          description={t("Automatically install minor and patch updates for apps you've opted in (toggle each app in Supply Depot). Major versions always require a manual update. Uses the same update window and cool-off period as the core schedule above.")}
         />
 
         {enabled && status && (
           <div className="mt-6 pt-4 border-t border-desert-stone-light text-sm">
             <p className="text-desert-stone mb-3">
-              <span className="font-medium">Update window: </span>
-              {status.windowStart}–{status.windowEnd} (
-              {status.withinWindow ? 'currently inside' : 'currently outside'}); cool-off{' '}
-              {status.cooloffHours}h.
+              <span className="font-medium">{t('Update window:')} </span>
+              {status.withinWindow
+                ? t('{{start}}–{{end}} (currently inside); cool-off {{hours}}h', { start: status.windowStart, end: status.windowEnd, hours: status.cooloffHours })
+                : t('{{start}}–{{end}} (currently outside); cool-off {{hours}}h', { start: status.windowStart, end: status.windowEnd, hours: status.cooloffHours })}
+              .
               {status.lastResult && (
                 <>
                   {' '}
-                  <span className="font-medium">Last run: </span>
+                  <span className="font-medium">{t('Last run:')} </span>
                   {status.lastResult}
                   {status.lastAttemptAt
-                    ? ` (${new Date(status.lastAttemptAt).toLocaleString()})`
+                    ? ` (${formatDateTime(status.lastAttemptAt)})`
                     : ''}
                 </>
               )}
@@ -59,7 +63,7 @@ export default function AppAutoUpdateSection() {
 
             {status.apps.length === 0 ? (
               <p className="text-desert-stone-dark">
-                No apps are opted in yet. Enable auto-update on individual apps from the Supply Depot.
+                {t('No apps are opted in yet. Enable auto-update on individual apps from the Supply Depot.')}
               </p>
             ) : (
               <ul className="space-y-2">
@@ -76,7 +80,7 @@ export default function AppAutoUpdateSection() {
                         {app.current_version}
                         {app.available_update_version
                           ? ` → ${app.available_update_version}`
-                          : ' (up to date)'}
+                          : ` ${t('(up to date)')}`}
                       </p>
                       {app.auto_disabled_reason && (
                         <p className="text-desert-red mt-0.5">{app.auto_disabled_reason}</p>

@@ -1,6 +1,7 @@
 import classNames from '~/lib/classNames'
 import DynamicIcon, { DynamicIconName } from './DynamicIcon'
 import StyledButton, { StyledButtonProps } from './StyledButton'
+import { useTranslation } from 'react-i18next'
 
 export type AlertProps = React.HTMLAttributes<HTMLDivElement> & {
   title: string
@@ -26,6 +27,7 @@ export default function Alert({
   buttonProps,
   ...props
 }: AlertProps) {
+  const { t } = useTranslation()
   const getDefaultIcon = (): DynamicIconName => {
     switch (type) {
       case 'warning':
@@ -201,7 +203,7 @@ export default function Alert({
               type === 'success' ? 'focus:ring-desert-olive' : '',
               type === 'info' ? 'focus:ring-desert-stone' : ''
             )}
-            aria-label="Dismiss alert"
+            aria-label={t('Dismiss alert')}
           >
             <DynamicIcon icon="IconX" className="size-4" />
           </button>

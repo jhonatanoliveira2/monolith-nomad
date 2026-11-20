@@ -124,7 +124,7 @@ function collectionHeaderKey(collectionKey: string): string {
  * Group stored-file rows into table rows for the Stored Files panel.
  *
  * - Admin docs (`/app/docs/*`, README) collapse into a single
- *   "Project NOMAD documentation · N files" row.
+ *   "monolith-nomad documentation · N files" row.
  * - Upload-bucket files (personal uploads) are clustered under a collapsible
  *   header row per KB-collection tag -- including an "Uncategorized" header
  *   for files with no tag -- so a user with many uploads doesn't see one flat
@@ -162,7 +162,7 @@ export function groupAndSortKbFiles(
       groups.push({
         bucket,
         source: '__admin_docs_group__',
-        displayName: `Project NOMAD documentation · ${members.length} file${members.length === 1 ? '' : 's'}`,
+        displayName: `monolith-nomad documentation · ${members.length} file${members.length === 1 ? '' : 's'}`,
         count: members.length,
         members: members.map((m) => m.source),
         state: null,

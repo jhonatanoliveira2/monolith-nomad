@@ -11,6 +11,11 @@ interface CircularGaugeProps {
   animated?: boolean
   /** Render the ring in a neutral tone (e.g. for a partial, non-NOMAD score). */
   muted?: boolean
+  /**
+   * 'score' (default): higher is better (benchmarks). 'usage': higher is worse (CPU, memory, swap) —
+   * neutral below 70 %, warning from 70 %, alert red only from 90 % (Nothing: red is for critical states).
+   */
+  scale?: 'score' | 'usage'
 }
 
 export default function CircularGauge({
@@ -22,6 +27,7 @@ export default function CircularGauge({
   subtext,
   animated = true,
   muted = false,
+  scale = 'score',
 }: CircularGaugeProps) {
   const [animatedValue, setAnimatedValue] = useState(animated ? 0 : value)
 
@@ -63,9 +69,16 @@ export default function CircularGauge({
   const circumference = 2 * Math.PI * config.radius
   const offset = circumference - (displayValue / 100) * circumference
 
+  // Built as `text-${color}` below; Tailwind only generates classes it sees literally, so list them:
+  // text-accent text-desert-red text-desert-orange text-desert-olive text-desert-green text-desert-stone
   const getColor = () => {
     // Neutral tone signals this isn't a real NOMAD Score (partial run).
     if (muted) return 'desert-stone'
+    if (scale === 'usage') {
+      if (value >= 90) return 'desert-red'
+      if (value >= 70) return 'desert-orange'
+      return 'accent'
+    }
     // For benchmarks: higher scores = better = green
     if (value >= 75) return 'desert-green'
     if (value >= 50) return 'desert-olive'

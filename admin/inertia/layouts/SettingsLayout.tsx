@@ -21,9 +21,11 @@ import useServiceInstalledStatus from '~/hooks/useServiceInstalledStatus'
 import useCreatorPacks from '~/hooks/useCreatorPacks'
 import { useSystemSetting } from '~/hooks/useSystemSetting'
 import { SERVICE_NAMES } from '../../constants/service_names'
+import { useTranslation } from 'react-i18next'
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const { aiAssistantName } = usePage<{ aiAssistantName: string }>().props
+  const { t } = useTranslation()
   const aiAssistantInstallStatus = useServiceInstalledStatus(SERVICE_NAMES.OLLAMA)
   // Only show the Creator Packs entry on builds that can actually install packs
   // (release-injected key present) — a fork built from source has no key.
@@ -57,13 +59,17 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
     { name: 'System', href: '/settings/system', icon: IconSettings, current: false },
     { name: 'Advanced', href: '/settings/advanced', icon: IconAdjustments, current: false },
     { name: 'API Reference', href: '/reference', icon: IconCode, current: false },
-    { name: 'Support the Project', href: '/settings/support', icon: IconHeart, current: false },
+    { name: 'About & Support', href: '/settings/support', icon: IconHeart, current: false },
     { name: 'Legal Notices', href: '/settings/legal', icon: IconGavel, current: false },
   ]
 
   return (
     <div className="min-h-screen flex flex-row bg-surface-secondary/90">
-      <StyledSidebar title="Settings" items={navigation} />
+      <StyledSidebar
+        title={t('Settings')}
+        // labels are English constants above, translated here (the AI assistant name is user-chosen)
+        items={navigation.map((item) => ({ ...item, name: item.name === aiAssistantName ? item.name : t(item.name) }))}
+      />
       {children}
     </div>
   )

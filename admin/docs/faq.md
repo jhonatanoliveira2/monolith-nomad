@@ -305,7 +305,7 @@ sudo bash /opt/project-nomad/update_nomad.sh
 
 **Uninstall NOMAD:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Crosstalk-Solutions/project-nomad/refs/heads/main/install/uninstall_nomad.sh -o uninstall_nomad.sh
+curl -fsSL https://github.com/jhonatanoliveira2/monolith-nomad/releases/latest/download/uninstall_nomad.sh -o uninstall_nomad.sh
 sudo bash uninstall_nomad.sh
 ```
 *Warning: This cannot be undone. All data will be deleted.*

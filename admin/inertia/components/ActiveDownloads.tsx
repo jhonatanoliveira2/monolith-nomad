@@ -5,6 +5,7 @@ import { formatSpeed } from '../../app/utils/misc'
 import StyledSectionHeader from './StyledSectionHeader'
 import { IconAlertTriangle, IconX, IconLoader2, IconRefresh, IconExternalLink } from '@tabler/icons-react'
 import api from '~/lib/api'
+import { useTranslation } from 'react-i18next'
 
 interface ActiveDownloadProps {
   filetype?: useDownloadsProps['filetype']
@@ -30,6 +31,7 @@ function getDownloadStatus(download: {
 }
 
 const ActiveDownloads = ({ filetype, withHeader = false }: ActiveDownloadProps) => {
+  const { t } = useTranslation()
   const { data: downloads, invalidate } = useDownloads({ filetype })
   const [cancellingJobs, setCancellingJobs] = useState<Set<string>>(new Set())
   const [confirmingCancel, setConfirmingCancel] = useState<string | null>(null)
@@ -112,7 +114,7 @@ const ActiveDownloads = ({ filetype, withHeader = false }: ActiveDownloadProps) 
 
   return (
     <>
-      {withHeader && <StyledSectionHeader title="Active Downloads" className="mt-12 mb-4" />}
+      {withHeader && <StyledSectionHeader title={t('Active Downloads')} className="mt-12 mb-4" />}
       <div className="space-y-4">
         {downloads && downloads.length > 0 ? (
           downloads.map((download) => {
@@ -129,14 +131,14 @@ const ActiveDownloads = ({ filetype, withHeader = false }: ActiveDownloadProps) 
                 key={download.jobId}
                 className={`rounded-lg p-4 border shadow-sm hover:shadow-lg transition-shadow ${
                   status === 'failed'
-                    ? 'bg-surface-primary border-red-300'
+                    ? 'bg-surface-primary border-desert-red-light'
                     : 'bg-surface-primary border-default'
                 }`}
               >
                 {status === 'failed' ? (
                   <div className="space-y-3">
                     <div className="flex items-start gap-2">
-                      <IconAlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                      <IconAlertTriangle className="w-5 h-5 text-desert-red flex-shrink-0 mt-0.5" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-text-primary truncate">
                           {download.title || filename}
@@ -144,16 +146,18 @@ const ActiveDownloads = ({ filetype, withHeader = false }: ActiveDownloadProps) 
                         {download.title && (
                           <p className="text-xs text-text-muted truncate">{filename}</p>
                         )}
-                        <p className="text-xs text-red-600 mt-0.5">
-                          Download failed{download.failedReason ? `: ${download.failedReason}` : ''}
+                        <p className="text-xs text-desert-red-dark mt-0.5">
+                          {download.failedReason
+                            ? t('Download failed: {{reason}}', { reason: download.failedReason })
+                            : t('Download failed')}
                         </p>
                       </div>
                       <button
                         onClick={() => handleDismiss(download.jobId)}
-                        className="flex-shrink-0 p-1 rounded hover:bg-red-100 transition-colors"
-                        title="Dismiss failed download"
+                        className="flex-shrink-0 p-1 rounded hover:bg-desert-red-lighter transition-colors"
+                        title={t('Dismiss failed download')}
                       >
-                        <IconX className="w-4 h-4 text-red-400 hover:text-red-600" />
+                        <IconX className="w-4 h-4 text-desert-red hover:text-desert-red-dark" />
                       </button>
                     </div>
                     <div className="flex items-center gap-2 pl-7">
@@ -161,14 +165,14 @@ const ActiveDownloads = ({ filetype, withHeader = false }: ActiveDownloadProps) 
                         onClick={() => handleRetry(download.jobId)}
                         disabled={isRetrying}
                         className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded bg-desert-green text-white hover:bg-desert-green-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Retry download"
+                        title={t('Retry download')}
                       >
                         {isRetrying ? (
                           <IconLoader2 className="w-3.5 h-3.5 animate-spin" />
                         ) : (
                           <IconRefresh className="w-3.5 h-3.5" />
                         )}
-                        {isRetrying ? 'Retrying...' : 'Retry'}
+                        {isRetrying ? t('Retrying...') : t('Retry')}
                       </button>
                       {download.url && download.url.startsWith('http') && (
                         <a
@@ -176,10 +180,10 @@ const ActiveDownloads = ({ filetype, withHeader = false }: ActiveDownloadProps) 
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded bg-desert-stone-lighter text-text-secondary hover:bg-desert-stone-light transition-colors"
-                          title="Open resource download page"
+                          title={t('Open resource download page')}
                         >
                           <IconExternalLink className="w-3.5 h-3.5" />
-                          Download page
+                          {t('Download page')}
                         </a>
                       )}
                     </div>
@@ -212,15 +216,15 @@ const ActiveDownloads = ({ filetype, withHeader = false }: ActiveDownloadProps) 
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <button
                             onClick={() => handleCancel(download.jobId)}
-                            className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+                            className="text-xs px-2 py-1 rounded bg-desert-red-lighter text-desert-red-dark hover:bg-desert-red-lighter transition-colors"
                           >
-                            Confirm
+                            {t('Confirm')}
                           </button>
                           <button
                             onClick={() => setConfirmingCancel(null)}
                             className="text-xs px-2 py-1 rounded bg-desert-stone-lighter text-text-muted hover:bg-desert-stone-light transition-colors"
                           >
-                            Keep
+                            {t('Keep')}
                           </button>
                         </div>
                       ) : isCancelling ? (
@@ -228,10 +232,10 @@ const ActiveDownloads = ({ filetype, withHeader = false }: ActiveDownloadProps) 
                       ) : (
                         <button
                           onClick={() => setConfirmingCancel(download.jobId)}
-                          className="flex-shrink-0 p-1 rounded hover:bg-red-100 transition-colors"
-                          title="Cancel download"
+                          className="flex-shrink-0 p-1 rounded hover:bg-desert-red-lighter transition-colors"
+                          title={t('Cancel download')}
                         >
-                          <IconX className="w-4 h-4 text-text-muted hover:text-red-500" />
+                          <IconX className="w-4 h-4 text-text-muted hover:text-desert-red" />
                         </button>
                       )}
                     </div>
@@ -269,23 +273,24 @@ const ActiveDownloads = ({ filetype, withHeader = false }: ActiveDownloadProps) 
                       {status === 'queued' && (
                         <>
                           <div className="w-2 h-2 rounded-full bg-desert-stone" />
-                          <span className="text-xs text-text-muted">Waiting...</span>
+                          <span className="text-xs text-text-muted">{t('Waiting...')}</span>
                         </>
                       )}
                       {status === 'active' && (
                         <>
-                          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                          <div className="w-2 h-2 rounded-full bg-desert-olive animate-pulse" />
                           <span className="text-xs text-text-muted">
-                            Downloading...{speed > 0 ? ` ${formatSpeed(speed)}` : ''}
+                            {t('Downloading...')}{speed > 0 ? ` ${formatSpeed(speed)}` : ''}
                           </span>
                         </>
                       )}
                       {status === 'stalled' && download.lastProgressTime && (
                         <>
-                          <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-                          <span className="text-xs text-orange-600">
-                            No data received for{' '}
-                            {Math.floor((Date.now() - download.lastProgressTime) / 60_000)}m...
+                          <div className="w-2 h-2 rounded-full bg-desert-orange animate-pulse" />
+                          <span className="text-xs text-desert-orange-dark">
+                            {t('No data received for {{minutes}}m...', {
+                              minutes: Math.floor((Date.now() - download.lastProgressTime) / 60_000),
+                            })}
                           </span>
                         </>
                       )}
@@ -296,7 +301,7 @@ const ActiveDownloads = ({ filetype, withHeader = false }: ActiveDownloadProps) 
             )
           })
         ) : (
-          <p className="text-text-muted">No active downloads</p>
+          <p className="text-text-muted">{t('No active downloads')}</p>
         )}
       </div>
     </>

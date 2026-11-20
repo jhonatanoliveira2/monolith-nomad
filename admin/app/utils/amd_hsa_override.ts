@@ -16,6 +16,9 @@
  * Mapping:
  *  - gfx1030 / gfx1100 / gfx1101 / gfx1102 → none. Discrete RDNA 2/3 on the allowlist;
  *    forcing an override here breaks GPU discovery.
+ *  - gfx1200 / gfx1201 (RDNA 4: Navi 44 = RX 9060 XT / 9050, Navi 48 = RX 9070 series) → none. On the
+ *    allowlist; listed explicitly so a change to the unknown-target default can never coerce them.
+ *    Verified on an RX 9060 XT: lspci "Navi 44 [Radeon RX 9050 / 9060 XT]", KFD gfx_target_version 120000.
  *  - gfx1150 / gfx1151 (Strix 890M, Strix Halo) → none. RDNA 3.5 iGPUs that ARE on the
  *    allowlist under the bundled ROCm, so native discovery works. (#1076 got this right.)
  *  - gfx1103 (Phoenix/Hawk Point 780M/760M) → '11.0.0'. RDNA 3 iGPU that is NOT on the
@@ -32,6 +35,10 @@
 export function mapGfxToHsaOverride(gfx: string): string | null {
   // Officially supported by the bundled ROCm — no override needed.
   if (gfx === 'gfx1030' || gfx === 'gfx1100' || gfx === 'gfx1101' || gfx === 'gfx1102') {
+    return null
+  }
+  // RDNA 4 (Navi 44 = gfx1200: RX 9060 XT / 9050; Navi 48 = gfx1201: RX 9070 series) — natively supported.
+  if (gfx === 'gfx1200' || gfx === 'gfx1201') {
     return null
   }
   // RDNA 3.5 iGPUs (Strix 890M = gfx1150, Strix Halo = gfx1151) — natively supported.

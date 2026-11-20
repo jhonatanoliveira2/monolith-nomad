@@ -1,11 +1,8 @@
 import { Job, UnrecoverableError } from 'bullmq'
 import { RunDownloadJobParams, DownloadProgressData } from '../../types/downloads.js'
 import { QueueService } from '#services/queue_service'
-import {
-  doResumableDownload,
-  GatedContentAuthError,
-  InsufficientDiskSpaceError,
-} from '../utils/downloads.js'
+import { GatedContentAuthError, InsufficientDiskSpaceError } from '../utils/downloads.js'
+import { smartDownload } from '../utils/smart_download.js'
 import { createHash } from 'crypto'
 import { DockerService } from '#services/docker_service'
 import { ZimService } from '#services/zim_service'
@@ -111,7 +108,9 @@ export class RunDownloadJob {
     }, 2000)
 
     try {
-      await doResumableDownload({
+      // Mirror selection, aria2c and SHA-256 happen inside: `url` stays the canonical URL (job id,
+      // InstalledResource.url and onComplete never see a mirror's URL).
+      await smartDownload({
         url,
         filepath,
         timeout,

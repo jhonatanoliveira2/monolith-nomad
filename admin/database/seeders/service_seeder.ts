@@ -3,6 +3,7 @@ import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import { ModelAttributes } from '@adonisjs/lucid/types/model'
 import env from '#start/env'
 import { SERVICE_NAMES } from '../../constants/service_names.js'
+import { NOMAD_TRANSLATE_IMAGE } from '../../constants/project.js'
 import { KIWIX_LIBRARY_CMD } from '../../constants/kiwix.js'
 import {
   mergeContainerConfigPreservingHostPorts,
@@ -550,7 +551,7 @@ export default class ServiceSeeder extends BaseSeeder {
       description:
         'Read the Information Library in another language. Machine translation that works offline, on CPU',
       icon: 'IconWorld',
-      container_image: 'ghcr.io/crosstalk-solutions/project-nomad-translate:0.1.2',
+      container_image: `${NOMAD_TRANSLATE_IMAGE}:0.1.2`,
       source_repo: 'https://github.com/browsermt/bergamot-translator',
       container_command: null,
       container_config: JSON.stringify({
@@ -570,7 +571,8 @@ export default class ServiceSeeder extends BaseSeeder {
           // rather than a host port means this survives the library being
           // remapped.
           'KIWIX=http://nomad_kiwix_server:8080',
-          'TRANSLATE_LANGS=fr,es,de',
+          // Portuguese first: monolith-nomad is configured for Brazil (pt-BR)
+          'TRANSLATE_LANGS=pt,es,fr,de',
           'WORKERS=8',
         ],
       }),

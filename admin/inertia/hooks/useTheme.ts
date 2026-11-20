@@ -10,7 +10,8 @@ function getInitialTheme(): Theme {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored === 'dark' || stored === 'light') return stored
   } catch {}
-  return 'light'
+  // Nothing theme: dark (OLED black) is the default; light stays available
+  return 'dark'
 }
 
 export function useTheme() {

@@ -1395,6 +1395,13 @@ export class OllamaService {
       logger.info('[OllamaService] Fetching fresh available models from API')
 
       const baseUrl = env.get('NOMAD_API_URL') || NOMAD_API_DEFAULT_BASE_URL
+      // The curated model list is an upstream service: without NOMAD_API_URL the bundled list is used.
+      if (!baseUrl) {
+        logger.info(
+          '[OllamaService] No model catalog API configured; using the bundled recommended models'
+        )
+        return null
+      }
       const fullUrl = new URL(NOMAD_MODELS_API_PATH, baseUrl).toString()
 
       const response = await axios.get(fullUrl, { timeout: 10000 })

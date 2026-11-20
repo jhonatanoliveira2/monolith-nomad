@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import StyledModal from './StyledModal'
 import { formatBytes } from '~/lib/util'
 import api from '~/lib/api'
+import { useTranslation } from 'react-i18next'
+import { formatNumber } from '~/lib/format'
 
 interface Stats {
   cpuPercent: number
@@ -44,6 +46,8 @@ export default function ServiceStatsModal({
   open,
   onClose,
 }: ServiceStatsModalProps) {
+  const { t } = useTranslation()
+  const pct = (n: number) => `${formatNumber(n, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
   const [stats, setStats] = useState<Stats | null>(null)
   const [running, setRunning] = useState(true)
   const [loading, setLoading] = useState(false)
@@ -71,29 +75,29 @@ export default function ServiceStatsModal({
 
   return (
     <StyledModal
-      title={`Stats — ${friendlyName}`}
+      title={t('Stats — {{name}}', { name: friendlyName })}
       open={open}
       onCancel={onClose}
-      cancelText="Close"
+      cancelText={t('Close')}
     >
       <div className="space-y-4 text-sm">
         {!running ? (
           <p className="text-text-muted text-center py-6">
-            This app is not running. Start it to see live resource usage.
+            {t('This app is not running. Start it to see live resource usage.')}
           </p>
         ) : !stats ? (
           <p className="text-text-muted text-center py-6">
-            {loading ? 'Loading…' : 'No stats available.'}
+            {loading ? t('Loading…') : t('No stats available.')}
           </p>
         ) : (
           <>
-            <Bar label="CPU" percent={stats.cpuPercent} value={`${stats.cpuPercent.toFixed(1)}%`} />
+            <Bar label="CPU" percent={stats.cpuPercent} value={pct(stats.cpuPercent)} />
             <Bar
-              label="Memory"
+              label={t('Memory')}
               percent={stats.memPercent}
-              value={`${formatBytes(stats.memUsageBytes)} / ${formatBytes(stats.memLimitBytes)} (${stats.memPercent.toFixed(1)}%)`}
+              value={`${formatBytes(stats.memUsageBytes)} / ${formatBytes(stats.memLimitBytes)} (${pct(stats.memPercent)})`}
             />
-            <p className="text-xs text-text-muted">Updates every 2 seconds.</p>
+            <p className="text-xs text-text-muted">{t('Updates every 2 seconds.')}</p>
           </>
         )}
       </div>

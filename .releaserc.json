@@ -13,6 +13,12 @@
       "assets": ["package.json"],
       "message": "chore(release): ${nextRelease.version} [skip ci]"
     }],
-    "@semantic-release/github"
+    ["@semantic-release/github", {
+      "assets": [
+        { "path": "install/install_nomad.sh", "label": "install_nomad.sh" },
+        { "path": "install/uninstall_nomad.sh", "label": "uninstall_nomad.sh" },
+        { "path": "install/management_compose.yaml", "label": "management_compose.yaml" }
+      ]
+    }]
   ]
 }

@@ -1,124 +1,223 @@
 @import 'tailwindcss';
 
-@theme {
-  --color-desert-white: #f6f6f4;
-  --color-desert-sand: #f7eedc;
+/* `dark:` follows the app theme (data-theme, set by ThemeProvider), not the OS prefers-color-scheme. */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
-  --color-desert-green-darker: #2a2a15;
-  --color-desert-green-dark: #353518;
-  --color-desert-green: #424420;
-  --color-desert-green-light: #babaaa;
-  --color-desert-green-lighter: #d4d4c8;
+/*
+ * Nothing theme (monolith-nomad). Visual language of the Nothing theme of the MONOLITH shell
+ * (~/monolith-dotfiles, nix/nothing/tokens.json): OLED black, monochrome greys, dot-matrix texture,
+ * Doto / Space Grotesk / Space Mono. Inspired by NIHIL Shell (MIT); not affiliated with Nothing Technology Ltd.
+ *
+ * The `desert-*` token NAMES are kept (≈750 uses across the UI), only their values change:
+ * - neutral families (green, tan, stone, surfaces, text, borders) → the monochrome ramp below;
+ * - semantic families keep a hue so meaning survives: red = Nothing alert (#d71921, errors/danger),
+ *   orange = warnings (e.g. drug-interaction severity), olive = success.
+ * Dark is the default theme; light is the same system inverted.
+ */
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('/fonts/nothing/SpaceGrotesk-Variable.ttf') format('truetype');
+  font-weight: 300 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Space Mono';
+  src: url('/fonts/nothing/SpaceMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Space Mono';
+  src: url('/fonts/nothing/SpaceMono-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Space Mono';
+  src: url('/fonts/nothing/SpaceMono-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Doto';
+  src: url('/fonts/nothing/Doto-Variable.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@theme {
+  /* typography */
+  --font-sans: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-dot: 'Doto', 'Space Mono', ui-monospace, monospace;
+
+  /* motion (nix/nothing/tokens.json) */
+  --ease-nothing: cubic-bezier(0.2, 0, 0, 1);
+  --duration-fast: 140ms;
+  --duration-normal: 240ms;
+  --duration-slow: 480ms;
+
+  /* Nothing palette, light (the dark theme below is the default) */
+  --color-void: #ffffff;
+  --color-ink: #0e0e0e;
+  --color-accent: #0e0e0e;
+  --color-accent-contrast: #ffffff;
+  --color-alert: #d71921;
+
+  --color-desert-white: #ffffff;
+  --color-desert-sand: #f2f2f2;
+
+  --color-desert-green-darker: #000000;
+  --color-desert-green-dark: #0e0e0e;
+  --color-desert-green: #1a1a1a;
+  --color-desert-green-light: #d4d4d4;
+  --color-desert-green-lighter: #e6e6e6;
 
   --color-desert-orange-dark: #8a3d0f;
   --color-desert-orange: #a84a12;
+  --color-desert-orange-hover: #8a3d0f;
   --color-desert-orange-light: #c85815;
-  --color-desert-orange-lighter: #e69556;
+  --color-desert-orange-lighter: #fbeadb;
 
-  --color-desert-tan-dark: #6b5d4f;
-  --color-desert-tan: #8b7355;
-  --color-desert-tan-light: #a8927a;
-  --color-desert-tan-lighter: #c9b99f;
+  --color-desert-tan-dark: #2e2e2e;
+  --color-desert-tan: #4a4a4a;
+  --color-desert-tan-light: #8a8a8a;
+  --color-desert-tan-lighter: #cfcfcf;
 
-  --color-desert-red-dark: #7a2e2e;
-  --color-desert-red: #994444;
-  --color-desert-red-light: #b05555;
-  --color-desert-red-lighter: #d88989;
+  --color-desert-red-dark: #a8141a;
+  --color-desert-red: #d71921;
+  --color-desert-red-hover: #a8141a;
+  --color-desert-red-light: #e0454b;
+  --color-desert-red-lighter: #fbe4e5;
 
-  --color-desert-olive-dark: #5a5c3a;
-  --color-desert-olive: #6d7042;
-  --color-desert-olive-light: #858a55;
-  --color-desert-olive-lighter: #a5ab7d;
+  --color-desert-olive-dark: #3f5a3a;
+  --color-desert-olive: #4f6b47;
+  --color-desert-olive-hover: #3f5a3a;
+  --color-desert-olive-light: #6f8a66;
+  --color-desert-olive-lighter: #e7eee4;
 
-  --color-desert-stone-dark: #5c5c54;
-  --color-desert-stone: #75756a;
-  --color-desert-stone-light: #8f8f82;
-  --color-desert-stone-lighter: #afafa5;
+  --color-desert-stone-dark: #3d3d3d;
+  --color-desert-stone: #5c5c5c;
+  --color-desert-stone-light: #8a8a8a;
+  --color-desert-stone-lighter: #bdbdbd;
 
   /* Semantic surface/text tokens (for replacing generic gray/white Tailwind classes) */
   --color-surface-primary: #ffffff;
-  --color-surface-secondary: #f9fafb;
+  --color-surface-secondary: #f7f7f7;
   --color-surface-elevated: #ffffff;
-  --color-text-primary: #111827;
-  --color-text-secondary: #6b7280;
-  --color-text-muted: #9ca3af;
-  --color-border-default: #d1d5db;
-  --color-border-subtle: #e5e7eb;
+  --color-text-primary: #0e0e0e;
+  --color-text-secondary: #4a4a4a;
+  --color-text-muted: #7a7a7a;
+  --color-border-default: #d4d4d4;
+  --color-border-subtle: #e6e6e6;
 
-  /* Button interactive states (green hover/active swap conflicts with text color inversion) */
-  --color-btn-green-hover: #353518;
-  --color-btn-green-active: #2a2a15;
+  /* Button interactive states */
+  --color-btn-green-hover: #333333;
+  --color-btn-green-active: #000000;
+}
+
+html {
+  font-family: var(--font-sans);
 }
 
 body {
   background-color: var(--color-desert-sand);
   color: var(--color-text-primary);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color var(--duration-normal) var(--ease-nothing),
+    color var(--duration-normal) var(--ease-nothing);
 }
 
-/* Night Ops — warm charcoal dark mode */
+/* Nothing (dark, default) — OLED black, monochrome greys (nix/nothing/tokens.json) */
 [data-theme="dark"] {
-  /* Backgrounds: light sand → warm charcoal */
-  --color-desert-sand: #1c1b16;
-  --color-desert-white: #2a2918;
+  --color-void: #000000;
+  --color-ink: #f2f2f2;
+  --color-accent: #f2f2f2;
+  --color-accent-contrast: #000000;
 
-  /* Text greens: dark text → light text for readability */
-  --color-desert-green-darker: #f7eedc;
-  --color-desert-green-dark: #e8dfc8;
+  /* page background → void, white surfaces → surface */
+  --color-desert-sand: #000000;
+  --color-desert-white: #0e0e0e;
 
-  /* Accent green remains dark enough for white text on buttons */
-  --color-desert-green: #525530;
-  --color-desert-green-foreground: #babaaa;
+  /* green was the brand accent: now monochrome. Fills stay dark so white text keeps its contrast;
+     text uses the -foreground value (see the .text-desert-green rules below). */
+  --color-desert-green-darker: #f2f2f2;
+  --color-desert-green-dark: #d4d4d4;
+  --color-desert-green: #2a2a2a;
+  --color-desert-green-foreground: #f2f2f2;
+  --color-desert-green-light: #1a1a1a;
+  --color-desert-green-lighter: #141414;
 
-  /* Light variants → dark variants (hover bg, disabled states) */
-  --color-desert-green-light: #3a3c24;
-  --color-desert-green-lighter: #2d2e1c;
+  /* orange = warnings: values tuned for dark surfaces are kept */
+  --color-desert-orange-dark: #f0b87a;
+  --color-desert-orange: #bf5412;
+  --color-desert-orange-hover: #8a3d0f;
+  --color-desert-orange-light: #7a3e12;
+  --color-desert-orange-lighter: #2b1708;
 
-  /* Orange: brighter for contrast on dark surfaces */
-  --color-desert-orange-dark: #c85815;
-  --color-desert-orange: #c85815;
-  --color-desert-orange-light: #e69556;
-  --color-desert-orange-lighter: #f0b87a;
+  /* tan (secondary): grey */
+  --color-desert-tan-dark: #c8c8c8;
+  --color-desert-tan: #3d3d3d;
+  --color-desert-tan-light: #5a5a5a;
+  --color-desert-tan-lighter: #262626;
 
-  /* Tan: lightened for readability */
-  --color-desert-tan-dark: #c9b99f;
-  --color-desert-tan: #a8927a;
-  --color-desert-tan-light: #8b7355;
-  --color-desert-tan-lighter: #6b5d4f;
+  /* red = Nothing alert, for errors and destructive actions only */
+  --color-desert-red-dark: #ff6b70;
+  --color-desert-red: #d71921;
+  --color-desert-red-hover: #a8141a;
+  --color-desert-red-light: #a8141a;
+  --color-desert-red-lighter: #3a0c0e;
 
-  /* Red: lightened for dark bg */
-  --color-desert-red-dark: #d88989;
-  --color-desert-red: #b05555;
-  --color-desert-red-light: #994444;
-  --color-desert-red-lighter: #7a2e2e;
+  /* olive = success: lightened for dark surfaces */
+  --color-desert-olive-dark: #a9c2a0;
+  --color-desert-olive: #5f7a57;
+  --color-desert-olive-hover: #4a6044;
+  --color-desert-olive-light: #4a6044;
+  --color-desert-olive-lighter: #1e2a1c;
 
-  /* Olive: lightened */
-  --color-desert-olive-dark: #a5ab7d;
-  --color-desert-olive: #858a55;
-  --color-desert-olive-light: #6d7042;
-  --color-desert-olive-lighter: #5a5c3a;
+  /* stone (secondary text, borders): dim / muted / line */
+  --color-desert-stone-dark: #a3a3a3;
+  --color-desert-stone: #8a8a8a;
+  --color-desert-stone-light: #6b6b6b;
+  --color-desert-stone-lighter: #333333;
 
-  /* Stone: lightened */
-  --color-desert-stone-dark: #afafa5;
-  --color-desert-stone: #8f8f82;
-  --color-desert-stone-light: #75756a;
-  --color-desert-stone-lighter: #5c5c54;
+  /* Semantic surface overrides: void / surface / raised / line */
+  --color-surface-primary: #0e0e0e;
+  --color-surface-secondary: #141414;
+  --color-surface-elevated: #1a1a1a;
+  --color-text-primary: #f2f2f2;
+  --color-text-secondary: #a3a3a3;
+  --color-text-muted: #7a7a7a;
+  --color-border-default: #2a2a2a;
+  --color-border-subtle: #1a1a1a;
 
-  /* Semantic surface overrides */
-  --color-surface-primary: #2a2918;
-  --color-surface-secondary: #353420;
-  --color-surface-elevated: #3d3c2a;
-  --color-text-primary: #f7eedc;
-  --color-text-secondary: #afafa5;
-  --color-text-muted: #8f8f82;
-  --color-border-default: #424420;
-  --color-border-subtle: #353420;
-
-  /* Button interactive states: darker green for hover/active on dark bg */
-  --color-btn-green-hover: #474a28;
-  --color-btn-green-active: #3a3c24;
+  --color-btn-green-hover: #3a3a3a;
+  --color-btn-green-active: #1f1f1f;
 
   color-scheme: dark;
+}
+
+/* Dot-matrix texture behind the page (the shell's DotGrid: 9 px pitch, 1.6 px dot, 7 %) */
+[data-theme="dark"] body {
+  background-image: radial-gradient(circle, rgb(242 242 242 / 0.07) 0.8px, transparent 1px);
+  background-size: 9px 9px;
+  background-position: 4px 4px;
+}
+
+/* Dot-matrix display type (Doto) — headlines, scores, big numbers */
+.font-dot {
+  font-family: var(--font-dot);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* Nothing-style section label: monospace, upper case, wide tracking */
+.nothing-label {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
 }
 
 /* Keep foreground accents readable without lightening green button backgrounds. */
@@ -134,47 +233,63 @@ body {
   color: color-mix(in oklab, var(--color-desert-green-foreground) 80%, transparent);
 }
 
+/* Orange as text on the dark surfaces: the base is tuned for white text on it, so text uses the light step. */
+[data-theme="dark"] .text-desert-orange,
+[data-theme="dark"] .hover\:text-desert-orange:hover {
+  color: var(--color-desert-orange-dark);
+}
+
 [data-theme="dark"] .group-hover\:text-desert-green:is(:where(.group):hover *) {
   color: var(--color-desert-green-foreground);
 }
 
-/* MapLibre popup styling for dark mode */
+/* MapLibre popup styling for dark mode (Nothing surfaces) */
 [data-theme="dark"] .maplibregl-popup-content {
-  background: #2a2918;
-  color: #f7eedc;
+  background: var(--color-surface-primary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-default);
 }
 
 [data-theme="dark"] .maplibregl-popup-content input,
 [data-theme="dark"] .maplibregl-popup-content textarea {
-  background: #353420;
-  color: #f7eedc;
-  border-color: #424420;
+  background: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-default);
 }
 
 [data-theme="dark"] .maplibregl-popup-content input::placeholder,
 [data-theme="dark"] .maplibregl-popup-content textarea::placeholder {
-  color: #8f8f82;
+  color: var(--color-text-muted);
 }
 
 [data-theme="dark"] .maplibregl-popup-tip {
-  border-top-color: #2a2918;
+  border-top-color: var(--color-surface-primary);
 }
 
 [data-theme="dark"] .maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
-  border-top-color: #2a2918;
+  border-top-color: var(--color-surface-primary);
 }
 
 [data-theme="dark"] .maplibregl-popup-anchor-top .maplibregl-popup-tip {
-  border-bottom-color: #2a2918;
+  border-bottom-color: var(--color-surface-primary);
 }
 
 [data-theme="dark"] .maplibregl-popup-close-button {
-  color: #afafa5;
+  color: var(--color-text-secondary);
 }
 
 [data-theme="dark"] .maplibregl-popup-close-button:hover {
-  color: #f7eedc;
-  background: #353420;
+  color: var(--color-text-primary);
+  background: var(--color-surface-elevated);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
 
 /* Base (hidden scrollbar + fade hint) */

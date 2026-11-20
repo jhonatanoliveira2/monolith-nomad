@@ -16,7 +16,7 @@ export default function LabelBlocks({
 }) {
   const blocks = parseLabelSection(text)
   if (blocks.length === 0) return null
-  const bodyColor = tone === 'danger' ? 'text-red-800' : 'text-text-primary'
+  const bodyColor = tone === 'danger' ? 'text-desert-red-dark' : 'text-text-primary'
   return (
     <div className="space-y-3">
       {blocks.map((block, i) => (

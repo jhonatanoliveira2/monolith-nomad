@@ -4,6 +4,68 @@ import XHRUpload from '@uppy/xhr-upload'
 import '@uppy/core/css/style.min.css'
 import '@uppy/dashboard/css/style.min.css'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { t as translate } from '~/lib/i18n'
+
+/**
+ * Translated strings for the visible parts of the Uppy Dashboard (the rest stays in Uppy's English).
+ * Built when the Uppy instance is created, so it follows the interface language at that moment.
+ * %{...} placeholders are Uppy's own interpolation and must be kept verbatim in the catalog.
+ */
+export function uppyLocale() {
+  const t = translate
+  return {
+    strings: {
+      dropPasteFiles: t('Drop files here or %{browseFiles}'),
+      browseFiles: t('browse files'),
+      dropHint: t('Drop your files here'),
+      myDevice: t('My Device'),
+      addMore: t('Add more'),
+      addMoreFiles: t('Add more files'),
+      addingMoreFiles: t('Adding more files'),
+      back: t('Back'),
+      cancel: t('Cancel'),
+      done: t('Done'),
+      retry: t('Retry'),
+      pause: t('Pause'),
+      resume: t('Resume'),
+      upload: t('Upload'),
+      uploading: t('Uploading'),
+      complete: t('Complete'),
+      uploadComplete: t('Upload complete'),
+      uploadFailed: t('Upload failed'),
+      uploadPaused: t('Upload paused'),
+      paused: t('Paused'),
+      error: t('Error'),
+      removeFile: t('Remove file'),
+      retryUpload: t('Retry upload'),
+      cancelUpload: t('Cancel upload'),
+      pauseUpload: t('Pause upload'),
+      resumeUpload: t('Resume upload'),
+      showErrorDetails: t('Show error details'),
+      xTimeLeft: t('%{time} left'),
+      dataUploadedOfTotal: t('%{complete} of %{total}'),
+      failedToUpload: t('Failed to upload %{file}'),
+      exceedsSize: t('%{file} exceeds maximum allowed size of %{size}'),
+      youCanOnlyUploadFileTypes: t('You can only upload: %{types}'),
+      noDuplicates: t("Cannot add the duplicate file '%{fileName}', it already exists"),
+      noMoreFilesAllowed: t('Cannot add more files'),
+      xFilesSelected: { 0: t('%{smart_count} file selected'), 1: t('%{smart_count} files selected') },
+      uploadingXFiles: { 0: t('Uploading %{smart_count} file'), 1: t('Uploading %{smart_count} files') },
+      uploadXFiles: { 0: t('Upload %{smart_count} file'), 1: t('Upload %{smart_count} files') },
+      uploadXNewFiles: { 0: t('Upload +%{smart_count} file'), 1: t('Upload +%{smart_count} files') },
+      youCanOnlyUploadX: {
+        0: t('You can only upload %{smart_count} file'),
+        1: t('You can only upload %{smart_count} files'),
+      },
+      youHaveToAtLeastSelectX: {
+        0: t('You have to select at least %{smart_count} file'),
+        1: t('You have to select at least %{smart_count} files'),
+      },
+    },
+    pluralize: (count: number) => (count === 1 ? 0 : 1),
+  }
+}
 
 interface ZimUploaderProps {
   onUploadComplete: (added: number) => void
@@ -11,6 +73,7 @@ interface ZimUploaderProps {
 }
 
 export default function ZimUploader({ onUploadComplete, existingFilenames }: ZimUploaderProps) {
+  const { t } = useTranslation()
   const existingFilenamesRef = useRef(existingFilenames)
   useEffect(() => {
     existingFilenamesRef.current = existingFilenames
@@ -33,6 +96,7 @@ export default function ZimUploader({ onUploadComplete, existingFilenames }: Zim
         allowedFileTypes: ['.zim'],
       },
       autoProceed: false,
+      locale: uppyLocale(),
     }).use(XHRUpload, {
       endpoint: '/api/zim/upload',
       fieldName: 'file',
@@ -41,7 +105,7 @@ export default function ZimUploader({ onUploadComplete, existingFilenames }: Zim
           const body = JSON.parse(responseText)
           if (body?.message) return new Error(body.message)
         } catch {}
-        return new Error('Upload failed')
+        return new Error(translate('Upload failed'))
       },
     })
   )
@@ -50,7 +114,7 @@ export default function ZimUploader({ onUploadComplete, existingFilenames }: Zim
     const handleFileAdded = (file: { id: string; name: string }) => {
       if (existingFilenamesRef.current.includes(file.name)) {
         uppy.removeFile(file.id)
-        uppy.info('A ZIM file with that name already exists', 'error', 6000)
+        uppy.info(translate('A ZIM file with that name already exists'), 'error', 6000)
         return
       }
 
@@ -59,7 +123,7 @@ export default function ZimUploader({ onUploadComplete, existingFilenames }: Zim
         const alreadyQueued = uppy.getFiles().some((f) => f.id !== file.id && isWikipedia(f.name))
         if (alreadyQueued) {
           uppy.removeFile(file.id)
-          uppy.info('Only one Wikipedia file can be uploaded at a time', 'error', 6000)
+          uppy.info(translate('Only one Wikipedia file can be uploaded at a time'), 'error', 6000)
         }
       }
     }
@@ -89,7 +153,9 @@ export default function ZimUploader({ onUploadComplete, existingFilenames }: Zim
       uppy={uppy}
       width="100%"
       height={300}
-      note="ZIM files only. Large files (up to 20 GB) are supported. For best results, upload from the same machine or over a stable LAN connection. Larger files should be copied directly to the storage volume"
+      note={t(
+        'ZIM files only. Large files (up to 20 GB) are supported. For best results, upload from the same machine or over a stable LAN connection. Larger files should be copied directly to the storage volume'
+      )}
     />
   )
 }

@@ -8,8 +8,8 @@ export function List({
   children: React.ReactNode
 }) {
   const className = ordered
-    ? 'list-decimal list-outside ml-6 mb-5 space-y-2 marker:text-desert-orange marker:font-semibold'
-    : 'list-disc list-outside ml-6 mb-5 space-y-2 marker:text-desert-orange'
+    ? 'list-decimal list-outside ml-6 mb-5 space-y-2 marker:text-text-muted marker:font-semibold'
+    : 'list-disc list-outside ml-6 mb-5 space-y-2 marker:text-text-muted'
   const Tag = ordered ? 'ol' : 'ul'
   return (
     // @ts-ignore

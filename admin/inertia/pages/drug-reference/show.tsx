@@ -5,6 +5,8 @@ import type { DrugLabelDetail } from '../../../types/drug_reference'
 import type { ConditionSummary } from '../../../types/conditions'
 import { PRODUCT_TYPES } from '../../../types/drug_reference'
 import LabelBlocks from '../../components/drug-reference/LabelBlocks'
+import { Trans, useTranslation } from 'react-i18next'
+import { formatDate } from '~/lib/format'
 
 interface PageProps {
   label: DrugLabelDetail
@@ -22,10 +24,11 @@ interface PageProps {
 export default function DrugReferenceShow({ label, situations = [] }: PageProps) {
   const isRx = label.product_type === PRODUCT_TYPES.RX
   const isOtc = label.product_type === PRODUCT_TYPES.OTC
+  const { t } = useTranslation()
 
   return (
     <AppLayout compact>
-      <Head title={label.brand_name ?? label.generic_name ?? 'Drug Detail'} />
+      <Head title={label.brand_name ?? label.generic_name ?? t('Drug Detail')} />
 
       <div className="p-4 max-w-3xl mx-auto">
         {/* Back nav + comparison entry */}
@@ -35,13 +38,13 @@ export default function DrugReferenceShow({ label, situations = [] }: PageProps)
             className="inline-flex items-center gap-1 text-sm text-desert-green hover:underline"
           >
             <IconArrowLeft size={16} />
-            Drug Reference
+            {t('Drug Reference')}
           </Link>
           <Link
             href={`/drug-reference/interactions?ids=${label.id}`}
             className="text-xs px-2.5 py-1 rounded border border-desert-green text-desert-green hover:bg-desert-green hover:text-white transition-colors"
           >
-            Add to interaction comparison
+            {t('Add to interaction comparison')}
           </Link>
         </div>
 
@@ -49,7 +52,7 @@ export default function DrugReferenceShow({ label, situations = [] }: PageProps)
         <div className="mb-6">
           <div className="flex flex-wrap items-start gap-2 mb-1">
             <h1 className="text-2xl font-bold">
-              {label.brand_name ?? label.generic_name ?? 'Unknown Drug'}
+              {label.brand_name ?? label.generic_name ?? t('Unknown Drug')}
             </h1>
             {/* OTC / Rx badge */}
             {isRx && (
@@ -71,13 +74,13 @@ export default function DrugReferenceShow({ label, situations = [] }: PageProps)
           <dl className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm">
             {label.manufacturer && (
               <div>
-                <dt className="inline font-semibold">Manufacturer: </dt>
+                <dt className="inline font-semibold">{t('Manufacturer:')} </dt>
                 <dd className="inline">{label.manufacturer}</dd>
               </div>
             )}
             {label.route && (
               <div>
-                <dt className="inline font-semibold">Route: </dt>
+                <dt className="inline font-semibold">{t('Route:')} </dt>
                 <dd className="inline">{label.route}</dd>
               </div>
             )}
@@ -89,7 +92,7 @@ export default function DrugReferenceShow({ label, situations = [] }: PageProps)
             )}
             {label.source_updated_at && (
               <div>
-                <dt className="inline font-semibold">Label date: </dt>
+                <dt className="inline font-semibold">{t('Label date:')} </dt>
                 <dd className="inline">{label.source_updated_at}</dd>
               </div>
             )}
@@ -100,11 +103,11 @@ export default function DrugReferenceShow({ label, situations = [] }: PageProps)
 
         {/* 1. Boxed Warning — red callout, most serious */}
         {label.boxed_warning && (
-          <section className="mb-6 border-2 border-red-600 rounded-lg p-4 bg-red-50">
+          <section className="mb-6 border-2 border-desert-red rounded-lg p-4 bg-desert-red-lighter">
             <div className="flex items-center gap-2 mb-2">
-              <IconAlertTriangle size={20} className="text-red-600 flex-shrink-0" />
-              <h2 className="text-base font-bold text-red-700 uppercase tracking-wide">
-                Boxed Warning
+              <IconAlertTriangle size={20} className="text-desert-red-dark flex-shrink-0" />
+              <h2 className="text-base font-bold text-desert-red-dark uppercase tracking-wide">
+                {t('Boxed Warning')}
               </h2>
             </div>
             <LabelBlocks text={label.boxed_warning} tone="danger" />
@@ -113,7 +116,7 @@ export default function DrugReferenceShow({ label, situations = [] }: PageProps)
 
         {/* 2. Indications & Usage */}
         {label.indications && (
-          <LabelSection title="Indications & Usage" body={label.indications} />
+          <LabelSection title={t('Indications & Usage')} body={label.indications} />
         )}
 
         {/* Reverse link — curated situations this label treats. The other half of
@@ -124,7 +127,7 @@ export default function DrugReferenceShow({ label, situations = [] }: PageProps)
             <div className="mb-2 flex items-center gap-2">
               <IconFirstAidKit size={18} className="flex-shrink-0 text-desert-olive-dark" />
               <h2 className="text-sm font-bold uppercase tracking-wide text-desert-green-darker">
-                Commonly used for
+                {t('Commonly used for')}
               </h2>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -143,53 +146,57 @@ export default function DrugReferenceShow({ label, situations = [] }: PageProps)
 
         {/* 3. Dosage & Administration */}
         {label.dosage && (
-          <LabelSection title="Dosage & Administration" body={label.dosage} />
+          <LabelSection title={t('Dosage & Administration')} body={label.dosage} />
         )}
 
         {/* 4. Warnings */}
         {label.warnings && (
-          <LabelSection title="Warnings" body={label.warnings} />
+          <LabelSection title={t('Warnings')} body={label.warnings} />
         )}
 
         {/* 5. Drug Interactions — single-drug label text, not a pairwise checker */}
         {label.drug_interactions && (
           <LabelSection
-            title="Drug Interactions"
+            title={t('Drug Interactions')}
             body={label.drug_interactions}
-            footnote="Single-drug label information — not a cross-drug interaction checker"
+            footnote={t('Single-drug label information — not a cross-drug interaction checker')}
           />
         )}
 
         {/* 6. Contraindications */}
         {label.contraindications && (
-          <LabelSection title="Contraindications" body={label.contraindications} />
+          <LabelSection title={t('Contraindications')} body={label.contraindications} />
         )}
 
         {/* 7. When Using (OTC) */}
         {label.when_using && (
-          <LabelSection title="When Using" body={label.when_using} />
+          <LabelSection title={t('When Using')} body={label.when_using} />
         )}
 
         {/* 8. Stop Use (OTC) */}
         {label.stop_use && (
-          <LabelSection title="Stop Use" body={label.stop_use} />
+          <LabelSection title={t('Stop Use')} body={label.stop_use} />
         )}
 
         {/* ── Footer citation ───────────────────────────────────────────────── */}
         <footer className="mt-8 pt-4 border-t border-border-subtle text-xs text-text-secondary space-y-1">
           <p>
-            <strong>Source:</strong> U.S. Food &amp; Drug Administration drug labeling, via{' '}
-            <strong>openFDA</strong> — public domain (CC0 1.0). NOMAD is not affiliated with or
-            endorsed by the FDA.
+            <Trans
+              i18nKey="<strong>Source:</strong> U.S. Food & Drug Administration drug labeling, via <strong>openFDA</strong> — public domain (CC0 1.0). monolith-nomad is not affiliated with or endorsed by the FDA."
+              components={{ strong: <strong /> }}
+            />
           </p>
           <p>
-            Do not rely on this data to make decisions regarding medical care. While every effort
-            is made to ensure accuracy, you should assume all results are unvalidated.
+            {t(
+              'Do not rely on this data to make decisions regarding medical care. While every effort is made to ensure accuracy, you should assume all results are unvalidated.'
+            )}
           </p>
           {label.set_id && (
             <p className="font-mono opacity-60">set_id: {label.set_id}</p>
           )}
-          <p className="opacity-60">Last refreshed: {label.ingested_at.slice(0, 10)}</p>
+          <p className="opacity-60">
+            {t('Last refreshed: {{date}}', { date: formatDate(label.ingested_at) || label.ingested_at.slice(0, 10) })}
+          </p>
         </footer>
       </div>
     </AppLayout>

@@ -1,6 +1,7 @@
 import { NomadDiskInfo } from '../../types/system'
 import { Systeminformation } from 'systeminformation'
 import { formatBytes } from '~/lib/util'
+import { t } from '~/lib/i18n'
 
 type DiskDisplayItem = {
   label: string
@@ -31,7 +32,7 @@ export function getAllDiskDisplayItems(
   const storageMountItem: DiskDisplayItem[] = storageMount
     ? [
         {
-          label: 'NAS Storage',
+          label: t('NAS Storage'),
           value: storageMount.use || 0,
           total: formatBytes(storageMount.size),
           used: formatBytes(storageMount.used),
@@ -46,7 +47,7 @@ export function getAllDiskDisplayItems(
     return [
       ...storageMountItem,
       ...validDisks.map((disk) => ({
-        label: disk.name || 'Unknown',
+        label: disk.name || t('Unknown'),
         value: disk.percentUsed || 0,
         total: formatBytes(disk.totalSize),
         used: formatBytes(disk.totalUsed),
@@ -70,7 +71,7 @@ export function getAllDiskDisplayItems(
     return [
       ...storageMountItem,
       ...displayFs.map((fs) => ({
-        label: fs.fs || 'Unknown',
+        label: fs.fs || t('Unknown'),
         value: fs.use || 0,
         total: formatBytes(fs.size),
         used: formatBytes(fs.used),

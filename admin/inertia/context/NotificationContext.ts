@@ -1,6 +1,10 @@
 import { createContext, useContext } from "react";
 
 export interface Notification {
+  /**
+   * Shown through translateServerMessage (~/lib/server_messages) at display time, so a raw server message
+   * (English, e.g. `response.data.message`) can be passed as-is. Text written in the UI still goes through t().
+   */
   message: string;
   type: "error" | "success" | "info";
   duration?: number; // in milliseconds

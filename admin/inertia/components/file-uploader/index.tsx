@@ -5,6 +5,7 @@ import '@uppy/dashboard/css/style.min.css'
 import { useUppyEvent } from '@uppy/react'
 import Dashboard from '@uppy/react/dashboard'
 import classNames from 'classnames'
+import { uppyLocale } from '~/components/ZimUploader'
 import './index.css' // Custom styles for the uploader
 
 interface FileUploaderProps {
@@ -39,6 +40,7 @@ const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>((props, ref)
   const [uppy] = useState(() => {
     const uppy = new Uppy({
       debug: true,
+      locale: uppyLocale(),
       restrictions: {
         maxFileSize: maxFileSize,
         minNumberOfFiles: minFiles,

@@ -35,12 +35,12 @@ header_red() {
 
 check_has_sudo() {
   if sudo -n true 2>/dev/null; then
-    echo -e "${GREEN}#${RESET} User has sudo permissions.\\n"
+    echo -e "${GREEN}#${RESET} O usuário tem permissão de sudo.\\n"
   else
-    echo "User does not have sudo permissions"
+    echo "O usuário não tem permissão de sudo"
     header_red
-    echo -e "${RED}#${RESET} This script requires sudo permissions to run. Please run the script with sudo.\\n"
-    echo -e "${RED}#${RESET} For example: sudo bash $(basename "$0")"
+    echo -e "${RED}#${RESET} Este script precisa de permissão de sudo. Execute-o com sudo.\\n"
+    echo -e "${RED}#${RESET} Por exemplo: sudo bash $(basename "$0")"
     exit 1
   fi
 }
@@ -48,36 +48,36 @@ check_has_sudo() {
 check_is_bash() {
   if [[ -z "$BASH_VERSION" ]]; then
     header_red
-    echo -e "${RED}#${RESET} This script requires bash to run. Please run the script using bash.\\n"
-    echo -e "${RED}#${RESET} For example: bash $(basename "$0")"
+    echo -e "${RED}#${RESET} Este script precisa do bash. Execute-o com o bash.\\n"
+    echo -e "${RED}#${RESET} Por exemplo: bash $(basename "$0")"
     exit 1
   fi
-    echo -e "${GREEN}#${RESET} This script is running in bash.\\n"
+    echo -e "${GREEN}#${RESET} O script está rodando no bash.\\n"
 }
 
 check_is_debian_based() {
   if [[ ! -f /etc/debian_version ]]; then
     header_red
-    echo -e "${RED}#${RESET} This script is designed to run on Debian-based systems only.\\n"
-    echo -e "${RED}#${RESET} Please run this script on a Debian-based system and try again."
+    echo -e "${RED}#${RESET} Este script foi feito só para sistemas baseados em Debian.\\n"
+    echo -e "${RED}#${RESET} Execute-o num sistema baseado em Debian (como o Ubuntu) e tente de novo."
     exit 1
   fi
-    echo -e "${GREEN}#${RESET} This script is running on a Debian-based system.\\n"
+    echo -e "${GREEN}#${RESET} O sistema é baseado em Debian.\\n"
 }
 
 get_update_confirmation(){
-  read -p "This script will update Project NOMAD and its dependencies on your machine. No data loss is expected, but you should always back up your data before proceeding. Are you sure you want to continue? (y/n): " choice
+  read -p "Este script vai atualizar o monolith-nomad e as dependências dele nesta máquina. Não se espera perda de dados, mas sempre faça backup antes de continuar. Tem certeza de que deseja continuar? (s/n): " choice
   case "$choice" in
-    y|Y )
-      echo -e "${GREEN}#${RESET} User chose to continue with the update."
+    y|Y|s|S )
+      echo -e "${GREEN}#${RESET} Você escolheu continuar a atualização."
       ;;
     n|N )
-      echo -e "${RED}#${RESET} User chose not to continue with the update."
+      echo -e "${RED}#${RESET} Você escolheu não continuar a atualização."
       exit 0
       ;;
     * )
-      echo "Invalid Response"
-      echo "User chose not to continue with the update."
+      echo "Resposta inválida"
+      echo "Você escolheu não continuar a atualização."
       exit 0
       ;;
   esac
@@ -85,15 +85,15 @@ get_update_confirmation(){
 
 ensure_docker_installed_and_running() {
   if ! command -v docker &> /dev/null; then
-    echo -e "${RED}#${RESET} Docker is not installed. This is unexpected, as Project NOMAD requires Docker to run. Did you mean to use the install script instead of the update script?"
+    echo -e "${RED}#${RESET} O Docker não está instalado. Isso é inesperado, porque o monolith-nomad precisa do Docker. Você queria usar o script de instalação em vez do de atualização?"
     exit 1
   fi
 
   if ! systemctl is-active --quiet docker; then
-    echo -e "${RED}#${RESET} Docker is not running. Attempting to start Docker..."
+    echo -e "${RED}#${RESET} O Docker não está rodando. Tentando iniciá-lo..."
     sudo systemctl start docker
     if ! systemctl is-active --quiet docker; then
-      echo -e "${RED}#${RESET} Failed to start Docker. Please start Docker and try again."
+      echo -e "${RED}#${RESET} Falha ao iniciar o Docker. Inicie o Docker e tente de novo."
       exit 1
     fi
   fi
@@ -102,30 +102,30 @@ ensure_docker_installed_and_running() {
 check_docker_compose() {
   # Check if 'docker compose' (v2 plugin) is available
   if ! docker compose version &>/dev/null; then
-    echo -e "${RED}#${RESET} Docker Compose v2 is not installed or not available as a Docker plugin."
-    echo -e "${YELLOW}#${RESET} This script requires 'docker compose' (v2), not 'docker-compose' (v1)."
-    echo -e "${YELLOW}#${RESET} Please read the Docker documentation at https://docs.docker.com/compose/install/ for instructions on how to install Docker Compose v2."
+    echo -e "${RED}#${RESET} O Docker Compose v2 não está instalado ou não está disponível como plugin do Docker."
+    echo -e "${YELLOW}#${RESET} Este script precisa do 'docker compose' (v2), não do 'docker-compose' (v1)."
+    echo -e "${YELLOW}#${RESET} Veja como instalar o Docker Compose v2 na documentação do Docker: https://docs.docker.com/compose/install/"
     exit 1
   fi
 }
 
 ensure_docker_compose_file_exists() {
   if [ ! -f "/opt/project-nomad/compose.yml" ]; then
-    echo -e "${RED}#${RESET} compose.yml file not found. Please ensure it exists at /opt/project-nomad/compose.yml."
+    echo -e "${RED}#${RESET} Arquivo compose.yml não encontrado. Verifique se ele existe em /opt/project-nomad/compose.yml."
     exit 1
   fi
 }
 
 force_recreate() {
-  echo -e "${YELLOW}#${RESET} Pulling the latest Docker images..."
+  echo -e "${YELLOW}#${RESET} Baixando as imagens Docker mais recentes..."
   if ! docker compose -p project-nomad -f /opt/project-nomad/compose.yml pull; then
-    echo -e "${RED}#${RESET} Failed to pull the latest Docker images. Please check your network connection and the Docker registry status, then try again."
+    echo -e "${RED}#${RESET} Falha ao baixar as imagens Docker mais recentes. Confira a conexão de rede e o status do registro de imagens e tente de novo."
     exit 1
   fi
   
-  echo -e "${YELLOW}#${RESET} Forcing recreation of containers..."
+  echo -e "${YELLOW}#${RESET} Forçando a recriação dos containers..."
   if ! docker compose -p project-nomad -f /opt/project-nomad/compose.yml up -d --force-recreate; then
-    echo -e "${RED}#${RESET} Failed to recreate containers. Please check the Docker logs for more details."
+    echo -e "${RED}#${RESET} Falha ao recriar os containers. Confira os logs do Docker para mais detalhes."
     exit 1
   fi
 }
@@ -133,17 +133,17 @@ force_recreate() {
 get_local_ip() {
   local_ip_address=$(hostname -I | awk '{print $1}')
   if [[ -z "$local_ip_address" ]]; then
-    echo -e "${RED}#${RESET} Unable to determine local IP address. Please check your network configuration."
+    echo -e "${RED}#${RESET} Não foi possível descobrir o endereço IP local. Confira a configuração de rede."
     # Don't exit if we can't determine the local IP address, it's not critical for the installation
   fi
 }
 
 success_message() {
-  echo -e "${GREEN}#${RESET} Project NOMAD update completed successfully!\\n"
-  echo -e "${GREEN}#${RESET} Installation files are located at /opt/project-nomad\\n\n"
-  echo -e "${GREEN}#${RESET} Project NOMAD's Command Center should automatically start whenever your device reboots. However, if you need to start it manually, you can always do so by running: ${WHITE_R}${nomad_dir}/start_nomad.sh${RESET}\\n"
-  echo -e "${GREEN}#${RESET} You can now access the management interface at http://localhost:8080 or http://${local_ip_address}:8080\\n"
-  echo -e "${GREEN}#${RESET} Thank you for supporting Project NOMAD!\\n"
+  echo -e "${GREEN}#${RESET} Atualização do monolith-nomad concluída com sucesso!\\n"
+  echo -e "${GREEN}#${RESET} Os arquivos da instalação ficam em /opt/project-nomad\\n\n"
+  echo -e "${GREEN}#${RESET} A Central de Comando do monolith-nomad deve iniciar sozinha sempre que o computador reiniciar. Se precisar iniciá-la manualmente, execute: ${WHITE_R}${nomad_dir}/start_nomad.sh${RESET}\\n"
+  echo -e "${GREEN}#${RESET} Acesse a interface de gerenciamento em http://localhost:8080 ou http://${local_ip_address}:8080\\n"
+  echo -e "${GREEN}#${RESET} Obrigado por usar o monolith-nomad!\\n"
 }
 
 ###################################################################################################################################################################################################

@@ -1,4 +1,4 @@
-import logger from '@adonisjs/core/services/logger'
+import { getLogger } from './lazy_logger.js'
 import type InstalledResource from '#models/installed_resource'
 
 /**
@@ -36,6 +36,7 @@ export async function recordResourceUpdateFailure(
   resource: InstalledResource,
   reason: string
 ): Promise<void> {
+  const logger = await getLogger()
   const failures = (resource.auto_update_consecutive_failures || 0) + 1
   resource.auto_update_consecutive_failures = failures
   if (failures >= MAX_CONSECUTIVE_FAILURES) {

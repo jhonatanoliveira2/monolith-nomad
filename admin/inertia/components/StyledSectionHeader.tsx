@@ -16,7 +16,8 @@ const StyledSectionHeader = ({ title, level = 2, className }: StyledSectionHeade
         className
       )}
     >
-      <div className="w-1 h-6 bg-desert-green" />
+      {/* Nothing theme: a lit LED instead of the colour bar */}
+      <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-accent" />
       {title}
     </Heading>
   )

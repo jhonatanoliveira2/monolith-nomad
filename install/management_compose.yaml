@@ -18,7 +18,7 @@ x-logging: &default-logging
 
 services:
   admin:
-    image: ghcr.io/crosstalk-solutions/project-nomad:latest
+    image: ghcr.io/jhonatanoliveira2/project-nomad:latest
     pull_policy: always
     container_name: nomad_admin
     logging: *default-logging
@@ -44,6 +44,9 @@ services:
       - nomad-update-shared:/app/update-shared # Shared volume for update communication
     environment:
       - NODE_ENV=production
+      # Time zone for logs and the auto-update window (02:00-05:00), instead of UTC. The installer sets it
+      # to the host's zone; America/Sao_Paulo is this distribution's default (configured for Brazil).
+      - TZ=America/Sao_Paulo
       # NOMAD_STORAGE_PATH should equal the host path of the /app/storage volume above. The admin
       # normally auto-detects that mount, so this is a fallback used only if the container can't be
       # inspected. Keep it in sync anyway so the fallback never sends child apps to the wrong place.
@@ -125,7 +128,7 @@ services:
       retries: 3
   updater:
     # Updater is a lightweight sidecar container that allows the admin container to be updated from within it's own UI
-    image: ghcr.io/crosstalk-solutions/project-nomad-sidecar-updater:latest
+    image: ghcr.io/jhonatanoliveira2/project-nomad-sidecar-updater:latest
     pull_policy: always
     container_name: nomad_updater
     logging: *default-logging
@@ -137,7 +140,7 @@ services:
   disk-collector:
     # Disk Collector is a lightweight privileged container that collects disk usage information from the host system and shares it with the admin container so it can be displayed in the UI. 
     # It requires read-only access to the host filesystem and is designed to be as secure and limited in scope as possible while still providing the necessary functionality.
-    image: ghcr.io/crosstalk-solutions/project-nomad-disk-collector:latest
+    image: ghcr.io/jhonatanoliveira2/project-nomad-disk-collector:latest
     pull_policy: always
     container_name: nomad_disk_collector
     logging: *default-logging

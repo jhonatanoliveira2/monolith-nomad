@@ -52,7 +52,7 @@ export default function Switch({
           className={clsx(
             'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent',
             'transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-desert-green focus:ring-offset-2',
-            indeterminate ? 'bg-amber-400' : checked ? 'bg-desert-green' : 'bg-border-default',
+            indeterminate ? 'bg-desert-orange' : checked ? 'bg-desert-green' : 'bg-border-default',
             disabled ? 'opacity-50 cursor-not-allowed' : ''
           )}
         >

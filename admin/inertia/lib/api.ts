@@ -18,6 +18,7 @@ import { BenchmarkType, RunBenchmarkResponse, SubmitBenchmarkResponse, UpdateBui
 import type { CreateMapMarkerPayload, MapMarkerResponse, UpdateMapMarkerPayload } from '../../types/maps'
 import type { ChatSource } from '../../types/chat'
 import { chatStreamErrorMessage } from './chat_stream.js'
+import { t } from './i18n'
 
 type OllamaChatRequestWithImages = OllamaChatRequest & { images?: File[] }
 
@@ -348,7 +349,9 @@ class API {
         })
         const responseBody = await response.json().catch(() => null)
         if (!response.ok) {
-          throw new Error(responseBody?.message ?? `HTTP error: ${response.status}`)
+          throw new Error(
+            responseBody?.message ?? t('HTTP error: {{status}}', { status: response.status })
+          )
         }
         return responseBody as NomadChatResponse
       }
@@ -376,7 +379,9 @@ class API {
 
     if (!response.ok || !response.body) {
       const errorBody = await response.json().catch(() => null)
-      throw new Error(errorBody?.message ?? `HTTP error: ${response.status}`)
+      throw new Error(
+        errorBody?.message ?? t('HTTP error: {{status}}', { status: response.status })
+      )
     }
 
     const reader = response.body.getReader()
@@ -1001,12 +1006,16 @@ class API {
     } catch (error: any) {
       // For 409 Conflict errors, throw a specific error that the UI can handle
       if (error.response?.status === 409) {
-        const err = new Error(error.response?.data?.error || 'This benchmark has already been submitted to the repository')
-          ; (err as any).status = 409
+        const err = new Error(
+          error.response?.data?.error ||
+            t('This benchmark has already been submitted to the repository')
+        )
+        ;(err as any).status = 409
         throw err
       }
       // For other errors, extract the message and throw
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to submit benchmark'
+      const errorMessage =
+        error.response?.data?.error || error.message || t('Failed to submit benchmark')
       throw new Error(errorMessage)
     }
   }

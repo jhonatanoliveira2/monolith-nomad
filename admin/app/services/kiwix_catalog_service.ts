@@ -5,6 +5,7 @@ import logger from '@adonisjs/core/services/logger'
 import InstalledResource from '#models/installed_resource'
 import { isRawListRemoteZimFilesResponse } from '../../util/zim.js'
 import { KIWIX_CATALOG_BASE_URL } from '../../constants/kiwix.js'
+import { UPSTREAM_MAPS_REPO } from '../../constants/project.js'
 
 /**
  * Local, in-process freshness check for installed content (Kiwix ZIM files +
@@ -25,8 +26,8 @@ import { KIWIX_CATALOG_BASE_URL } from '../../constants/kiwix.js'
  * defensive — a malformed entry is skipped, never thrown.
  */
 
-const GITHUB_PMTILES_URL =
-  'https://api.github.com/repos/Crosstalk-Solutions/project-nomad-maps/contents/pmtiles'
+// map data is hosted by the upstream project (constants/project.ts)
+const GITHUB_PMTILES_URL = `https://api.github.com/repos/${UPSTREAM_MAPS_REPO}/contents/pmtiles`
 
 const CATALOG_TIMEOUT_MS = 15000
 /** Concurrent ZIM catalog lookups — keep small to avoid hammering the mirror. */

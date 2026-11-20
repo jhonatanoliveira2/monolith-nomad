@@ -2,6 +2,8 @@
 /// <reference path="../../config/inertia.ts" />
 
 import '../css/app.css'
+// interface language (pt-BR default) — must run before the first render
+import '~/lib/i18n'
 import { createRoot } from 'react-dom/client'
 import { createInertiaApp } from '@inertiajs/react'
 import { resolvePageComponent } from '@adonisjs/inertia/helpers'
@@ -14,7 +16,7 @@ import NotificationsProvider from '~/providers/NotificationProvider'
 import { ThemeProvider } from '~/providers/ThemeProvider'
 import { UsePageProps } from '../../types/system'
 
-const appName = import.meta.env.VITE_APP_NAME || 'Project NOMAD'
+const appName = import.meta.env.VITE_APP_NAME || 'monolith-nomad'
 const queryClient = new QueryClient()
 
 // Patch the global crypto object for non-HTTPS/localhost contexts
@@ -26,7 +28,8 @@ if (!window.crypto?.randomUUID) {
 }
 
 createInertiaApp({
-  progress: { color: '#424420' },
+  // Nothing theme: neutral grey, readable on both themes
+  progress: { color: '#a3a3a3' },
 
   title: (title) => `${title} - ${appName}`,
 

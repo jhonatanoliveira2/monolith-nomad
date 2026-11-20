@@ -2,6 +2,8 @@ import classNames from '~/lib/classNames'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { ChatMessage } from '../../../types/chat'
+import { useTranslation } from 'react-i18next'
+import { formatTime } from '~/lib/format'
 
 export interface ChatMessageBubbleProps {
   message: ChatMessage
@@ -10,6 +12,7 @@ export interface ChatMessageBubbleProps {
 }
 
 export default function ChatMessageBubble({ message, onContinue }: ChatMessageBubbleProps) {
+  const { t } = useTranslation()
   return (
     <div
       className={classNames(
@@ -30,12 +33,12 @@ export default function ChatMessageBubble({ message, onContinue }: ChatMessageBu
         </div>
       )}
       {message.isThinking && message.thinking && (
-        <div className="mb-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs">
-          <div className="mb-1 flex items-center gap-1.5 font-medium text-amber-700">
-            <span>Reasoning</span>
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse inline-block" />
+        <div className="mb-3 rounded border border-desert-orange-light bg-desert-orange-lighter px-3 py-2 text-xs">
+          <div className="mb-1 flex items-center gap-1.5 font-medium text-desert-orange-dark">
+            <span>{t('Reasoning')}</span>
+            <span className="h-1.5 w-1.5 rounded-full bg-desert-orange animate-pulse inline-block" />
           </div>
-          <div className="prose prose-xs max-w-none text-amber-900/80 max-h-32 overflow-y-auto">
+          <div className="prose prose-xs max-w-none text-desert-orange-dark/80 max-h-32 overflow-y-auto">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.thinking}</ReactMarkdown>
           </div>
         </div>
@@ -44,8 +47,8 @@ export default function ChatMessageBubble({ message, onContinue }: ChatMessageBu
         <details className="mb-3 rounded border border-border-subtle bg-surface-secondary text-xs">
           <summary className="cursor-pointer px-3 py-2 font-medium text-text-muted hover:text-text-primary select-none">
             {message.thinkingDuration !== undefined
-              ? `Thought for ${message.thinkingDuration}s`
-              : 'Reasoning'}
+              ? t('Thought for {{seconds}}s', { seconds: message.thinkingDuration })
+              : t('Reasoning')}
           </summary>
           <div className="px-3 pb-3 prose prose-xs max-w-none text-text-secondary max-h-48 overflow-y-auto border-t border-border-subtle pt-2">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.thinking}</ReactMarkdown>
@@ -67,7 +70,7 @@ export default function ChatMessageBubble({ message, onContinue }: ChatMessageBu
                 if (isInline) {
                   return (
                     <code
-                      className="bg-gray-800 text-gray-100 px-2 py-0.5 rounded font-mono text-sm"
+                      className="bg-neutral-800 text-neutral-100 px-2 py-0.5 rounded font-mono text-sm"
                       {...props}
                     >
                       {children}
@@ -76,7 +79,7 @@ export default function ChatMessageBubble({ message, onContinue }: ChatMessageBu
                 }
                 return (
                   <code
-                    className="block bg-gray-800 text-gray-100 p-3 rounded-lg overflow-x-auto font-mono text-sm my-2"
+                    className="block bg-neutral-800 text-neutral-100 p-3 rounded-lg overflow-x-auto font-mono text-sm my-2"
                     {...props}
                   >
                     {children}
@@ -118,21 +121,21 @@ export default function ChatMessageBubble({ message, onContinue }: ChatMessageBu
       </div>
       {message.role === 'assistant' && message.truncated && !message.isStreaming && (
         <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border-subtle pt-2 text-xs text-text-secondary">
-          <span>This answer hit the length limit and was cut off.</span>
+          <span>{t('This answer hit the length limit and was cut off.')}</span>
           {onContinue && (
             <button
               type="button"
               onClick={onContinue}
               className="rounded border border-border-default px-2 py-0.5 font-medium text-desert-green hover:bg-surface-primary focus:outline-none focus:ring-2 focus:ring-desert-green"
             >
-              Continue
+              {t('Continue')}
             </button>
           )}
         </div>
       )}
       {message.role === 'assistant' && message.sources && message.sources.length > 0 && (
         <div className="mt-3 border-t border-border-subtle pt-2 text-xs text-text-primary">
-          <div className="mb-1 font-medium">Sources</div>
+          <div className="mb-1 font-medium">{t('Sources')}</div>
           <ul className="space-y-0.5">
             {message.sources.map((src, idx) => (
               <li key={idx}>
@@ -149,7 +152,7 @@ export default function ChatMessageBubble({ message, onContinue }: ChatMessageBu
           message.role === 'user' ? 'text-white/70' : 'text-text-muted'
         )}
       >
-        {message.timestamp.toLocaleTimeString([], {
+        {formatTime(message.timestamp, {
           hour: '2-digit',
           minute: '2-digit',
         })}

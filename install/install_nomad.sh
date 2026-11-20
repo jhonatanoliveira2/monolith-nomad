@@ -28,12 +28,17 @@ GREEN='\033[1;32m' # Light Green.
 #                                                                                                                                                                                                 #
 ###################################################################################################################################################################################################
 
-WHIPTAIL_TITLE="Project NOMAD Installation"
+WHIPTAIL_TITLE="Instalação do monolith-nomad"
 NOMAD_DIR="/opt/project-nomad"
-MANAGEMENT_COMPOSE_FILE_URL="https://raw.githubusercontent.com/Crosstalk-Solutions/project-nomad/refs/heads/main/install/management_compose.yaml"
-START_SCRIPT_URL="https://raw.githubusercontent.com/Crosstalk-Solutions/project-nomad/refs/heads/main/install/start_nomad.sh"
-STOP_SCRIPT_URL="https://raw.githubusercontent.com/Crosstalk-Solutions/project-nomad/refs/heads/main/install/stop_nomad.sh"
-UPDATE_SCRIPT_URL="https://raw.githubusercontent.com/Crosstalk-Solutions/project-nomad/refs/heads/main/install/update_nomad.sh"
+# Where this distribution (monolith-nomad) is published. The download URLs are set by resolve_nomad_source
+# (latest published release by default; see the function), e.g. to install a pinned release or another fork:
+#   NOMAD_RELEASE_TAG=v1.36.0 NOMAD_GITHUB_REPO=owner/repo sudo -E bash install_nomad.sh
+NOMAD_GITHUB_REPO="${NOMAD_GITHUB_REPO:-jhonatanoliveira2/monolith-nomad}"
+NOMAD_RAW_BASE_URL=''
+MANAGEMENT_COMPOSE_FILE_URL=''
+START_SCRIPT_URL=''
+STOP_SCRIPT_URL=''
+UPDATE_SCRIPT_URL=''
 script_option_debug='true'
 accepted_terms='false'
 local_ip_address=''
@@ -44,6 +49,52 @@ preflight_compose_file=''
 #                                                                                           Functions                                                                                             #
 #                                                                                                                                                                                                 #
 ###################################################################################################################################################################################################
+
+# Where the files this script downloads come from. By default the latest PUBLISHED RELEASE of this distribution,
+# so the compose file and helper scripts match the images that release built (a moving branch can be ahead
+# of them). Overrides:
+#   NOMAD_RELEASE_TAG=v1.36.0   a specific release
+#   NOMAD_GITHUB_BRANCH=main    a development branch instead (explicit opt-in, not for production)
+#   NOMAD_GITHUB_REPO=dono/repo another fork
+resolve_nomad_source() {
+  local ref tag
+  if ! [[ "${NOMAD_GITHUB_REPO}" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ && "${NOMAD_GITHUB_REPO}" != *..* ]]; then
+    echo -e "${RED}#${RESET} NOMAD_GITHUB_REPO inválido: '${NOMAD_GITHUB_REPO}' (esperado: dono/repositório)." >&2
+    return 1
+  fi
+  if [[ -n "${NOMAD_GITHUB_BRANCH:-}" ]]; then
+    # git ref rules that matter here: no leading "-" or "/", no trailing "/", no "//" and no ".."
+    if ! [[ "${NOMAD_GITHUB_BRANCH}" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ && "${NOMAD_GITHUB_BRANCH}" != *..* &&
+      "${NOMAD_GITHUB_BRANCH}" != *//* && "${NOMAD_GITHUB_BRANCH}" != */ ]]; then
+      echo -e "${RED}#${RESET} NOMAD_GITHUB_BRANCH inválido: '${NOMAD_GITHUB_BRANCH}'." >&2
+      return 1
+    fi
+    echo -e "${YELLOW}#${RESET} Usando o branch de desenvolvimento '${NOMAD_GITHUB_BRANCH}', e não uma release publicada." >&2
+    ref="refs/heads/${NOMAD_GITHUB_BRANCH}"
+  else
+    tag="${NOMAD_RELEASE_TAG:-}"
+    if [[ -z "$tag" ]]; then
+      tag="$(curl -fsSL --max-time 20 --retry 3 --retry-delay 2 -H 'Accept: application/vnd.github+json' \
+        "https://api.github.com/repos/${NOMAD_GITHUB_REPO}/releases/latest" 2>/dev/null |
+        sed -n 's/^[[:space:]]*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
+      if [[ -z "$tag" ]]; then
+        echo -e "${RED}#${RESET} Nenhuma release publicada encontrada em ${NOMAD_GITHUB_REPO} (ou a API do GitHub não respondeu: sem rede, ou o limite de requisições sem autenticação, 60 por hora por IP, foi atingido)." >&2
+        echo -e "${RED}#${RESET} Fixe uma release com NOMAD_RELEASE_TAG=vX.Y.Z (não consulta a API) ou, em desenvolvimento, use NOMAD_GITHUB_BRANCH=main." >&2
+        return 1
+      fi
+    fi
+    if ! [[ "$tag" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+      echo -e "${RED}#${RESET} Tag de release inválida: '${tag}'." >&2
+      return 1
+    fi
+    ref="refs/tags/${tag}"
+  fi
+  NOMAD_RAW_BASE_URL="https://raw.githubusercontent.com/${NOMAD_GITHUB_REPO}/${ref}"
+  MANAGEMENT_COMPOSE_FILE_URL="${NOMAD_RAW_BASE_URL}/install/management_compose.yaml"
+  START_SCRIPT_URL="${NOMAD_RAW_BASE_URL}/install/start_nomad.sh"
+  STOP_SCRIPT_URL="${NOMAD_RAW_BASE_URL}/install/stop_nomad.sh"
+  UPDATE_SCRIPT_URL="${NOMAD_RAW_BASE_URL}/install/update_nomad.sh"
+}
 
 header() {
   if [[ "${script_option_debug}" != 'true' ]]; then clear; clear; fi
@@ -59,7 +110,7 @@ banner() {
   echo ""
   echo -e "${GREEN}"
   cat <<'NOMAD_ART'
-                             P R O J E C T
+                           M O N O L I T H
                     _   _  ___  __  __    _    ____
                    | \ | |/ _ \|  \/  |  / \  |  _ \
                    |  \| | | | | |\/| | / _ \ | | | |
@@ -67,18 +118,18 @@ banner() {
                    |_| \_|\___/|_|  |_/_/   \_\____/
 NOMAD_ART
   echo -e "${RESET}"
-  echo -e "${WHITE_R}                 Offline knowledge and education server${RESET}\n"
+  echo -e "${WHITE_R}              Servidor offline de conhecimento e educação${RESET}\n"
   echo -e "${GREEN}#########################################################################${RESET}\n"
 }
 
 check_has_sudo() {
   if sudo -n true 2>/dev/null; then
-    echo -e "${GREEN}#${RESET} User has sudo permissions.\\n"
+    echo -e "${GREEN}#${RESET} O usuário tem permissão de sudo.\\n"
   else
-    echo "User does not have sudo permissions"
+    echo "O usuário não tem permissão de sudo"
     header_red
-    echo -e "${RED}#${RESET} This script requires sudo permissions to run. Please run the script with sudo.\\n"
-    echo -e "${RED}#${RESET} For example: sudo bash $(basename "$0")"
+    echo -e "${RED}#${RESET} Este script precisa de permissão de sudo. Execute-o com sudo.\\n"
+    echo -e "${RED}#${RESET} Por exemplo: sudo bash $(basename "$0")"
     exit 1
   fi
 }
@@ -86,36 +137,36 @@ check_has_sudo() {
 check_is_bash() {
   if [[ -z "$BASH_VERSION" ]]; then
     header_red
-    echo -e "${RED}#${RESET} This script requires bash to run. Please run the script using bash.\\n"
-    echo -e "${RED}#${RESET} For example: bash $(basename "$0")"
+    echo -e "${RED}#${RESET} Este script precisa do bash. Execute-o com o bash.\\n"
+    echo -e "${RED}#${RESET} Por exemplo: bash $(basename "$0")"
     exit 1
   fi
-    echo -e "${GREEN}#${RESET} This script is running in bash.\\n"
+    echo -e "${GREEN}#${RESET} O script está rodando no bash.\\n"
 }
 
 check_is_debian_based() {
   if [[ ! -f /etc/debian_version ]]; then
     header_red
-    echo -e "${RED}#${RESET} This script is designed to run on Debian-based systems only.\\n"
-    echo -e "${RED}#${RESET} Please run this script on a Debian-based system and try again."
+    echo -e "${RED}#${RESET} Este script foi feito só para sistemas baseados em Debian.\\n"
+    echo -e "${RED}#${RESET} Execute-o num sistema baseado em Debian (como o Ubuntu) e tente de novo."
     exit 1
   fi
-    echo -e "${GREEN}#${RESET} This script is running on a Debian-based system.\\n"
+    echo -e "${GREEN}#${RESET} O sistema é baseado em Debian.\\n"
 }
 
 check_is_x86_64() {
   local arch
   arch="$(uname -m)"
   if [[ "${arch}" != "x86_64" && "${arch}" != "amd64" ]]; then
-    echo -e "${YELLOW}#${RESET} WARNING: Detected architecture '${arch}'. NOMAD officially supports x86_64 only.\\n"
-    echo -e "${YELLOW}#${RESET} ARM64/aarch64 support is tracked in PR #419 and is not yet ready.\\n"
-    echo -e "${YELLOW}#${RESET} Continuing on an unsupported architecture will likely fail and may leave\\n"
-    echo -e "${YELLOW}#${RESET} partial Docker images and files behind that you'll need to clean up manually.\\n"
-    echo -e "${YELLOW}#${RESET} Continuing in 10 seconds... press Ctrl+C now to abort.\\n"
+    echo -e "${YELLOW}#${RESET} AVISO: arquitetura detectada: '${arch}'. O monolith-nomad só tem suporte oficial a x86_64.\\n"
+    echo -e "${YELLOW}#${RESET} O suporte a ARM64/aarch64 ainda não está pronto (acompanhado no PR #419 do projeto original).\\n"
+    echo -e "${YELLOW}#${RESET} Continuar numa arquitetura sem suporte provavelmente vai falhar e pode deixar para trás\\n"
+    echo -e "${YELLOW}#${RESET} imagens Docker e arquivos parciais que você terá de remover manualmente.\\n"
+    echo -e "${YELLOW}#${RESET} Continuando em 10 segundos... pressione Ctrl+C agora para cancelar.\\n"
     sleep 10
     return
   fi
-  echo -e "${GREEN}#${RESET} Architecture check passed (${arch}).\\n"
+  echo -e "${GREEN}#${RESET} Arquitetura verificada (${arch}).\\n"
 }
 
 ensure_dependencies_installed() {
@@ -137,27 +188,27 @@ ensure_dependencies_installed() {
   # fi
 
   if [[ ${#missing_deps[@]} -gt 0 ]]; then
-    echo -e "${YELLOW}#${RESET} Installing required dependencies: ${missing_deps[*]}...\\n"
+    echo -e "${YELLOW}#${RESET} Instalando as dependências necessárias: ${missing_deps[*]}...\\n"
     sudo apt-get update
     sudo apt-get install -y "${missing_deps[@]}"
 
     # Verify installation
     for dep in "${missing_deps[@]}"; do
       if ! command -v "$dep" &> /dev/null; then
-        echo -e "${RED}#${RESET} Failed to install $dep. Please install it manually and try again."
+        echo -e "${RED}#${RESET} Falha ao instalar $dep. Instale manualmente e tente de novo."
         exit 1
       fi
     done
-    echo -e "${GREEN}#${RESET} Dependencies installed successfully.\\n"
+    echo -e "${GREEN}#${RESET} Dependências instaladas com sucesso.\\n"
   else
-    echo -e "${GREEN}#${RESET} All required dependencies are already installed.\\n"
+    echo -e "${GREEN}#${RESET} Todas as dependências necessárias já estão instaladas.\\n"
   fi
 }
 
 check_is_debug_mode(){
   # Check if the script is being run in debug mode
   if [[ "${script_option_debug}" == 'true' ]]; then
-    echo -e "${YELLOW}#${RESET} Debug mode is enabled, the script will not clear the screen...\\n"
+    echo -e "${YELLOW}#${RESET} Modo de depuração ativo: o script não vai limpar a tela...\\n"
   else
     clear; clear
   fi
@@ -175,7 +226,7 @@ generateRandomPass() {
 
 ensure_docker_installed() {
   if ! command -v docker &> /dev/null; then
-    echo -e "${YELLOW}#${RESET} Docker not found. Installing Docker...\\n"
+    echo -e "${YELLOW}#${RESET} Docker não encontrado. Instalando o Docker...\\n"
     
     # Update package database
     sudo apt-get update
@@ -210,26 +261,26 @@ ensure_docker_installed() {
 
     # Check if Docker was installed successfully
     if ! command -v docker &> /dev/null; then
-      echo -e "${RED}#${RESET} Docker installation failed. Please check the logs and try again."
+      echo -e "${RED}#${RESET} A instalação do Docker falhou. Confira os logs e tente de novo."
       exit 1
     fi
     
-    echo -e "${GREEN}#${RESET} Docker installation completed.\\n"
+    echo -e "${GREEN}#${RESET} Instalação do Docker concluída.\\n"
   else
-    echo -e "${GREEN}#${RESET} Docker is already installed.\\n"
+    echo -e "${GREEN}#${RESET} O Docker já está instalado.\\n"
     
     # Check if Docker service is running
     if ! systemctl is-active --quiet docker; then
-      echo -e "${YELLOW}#${RESET} Docker is installed but not running. Attempting to start Docker...\\n"
+      echo -e "${YELLOW}#${RESET} O Docker está instalado, mas não está rodando. Tentando iniciá-lo...\\n"
       sudo systemctl start docker
       if ! systemctl is-active --quiet docker; then
-        echo -e "${RED}#${RESET} Failed to start Docker. Please check the Docker service status and try again."
+        echo -e "${RED}#${RESET} Falha ao iniciar o Docker. Confira o status do serviço do Docker e tente de novo."
         exit 1
       else
-        echo -e "${GREEN}#${RESET} Docker service started successfully.\\n"
+        echo -e "${GREEN}#${RESET} Serviço do Docker iniciado com sucesso.\\n"
       fi
     else
-      echo -e "${GREEN}#${RESET} Docker service is already running.\\n"
+      echo -e "${GREEN}#${RESET} O serviço do Docker já está rodando.\\n"
     fi
   fi
 }
@@ -237,9 +288,9 @@ ensure_docker_installed() {
 check_docker_compose() {
   # Check if 'docker compose' (v2 plugin) is available
   if ! docker compose version &>/dev/null; then
-    echo -e "${RED}#${RESET} Docker Compose v2 is not installed or not available as a Docker plugin."
-    echo -e "${YELLOW}#${RESET} This script requires 'docker compose' (v2), not 'docker-compose' (v1)."
-    echo -e "${YELLOW}#${RESET} Please read the Docker documentation at https://docs.docker.com/compose/install/ for instructions on how to install Docker Compose v2."
+    echo -e "${RED}#${RESET} O Docker Compose v2 não está instalado ou não está disponível como plugin do Docker."
+    echo -e "${YELLOW}#${RESET} Este script precisa do 'docker compose' (v2), não do 'docker-compose' (v1)."
+    echo -e "${YELLOW}#${RESET} Veja como instalar o Docker Compose v2 na documentação do Docker: https://docs.docker.com/compose/install/"
     exit 1
   fi
 }
@@ -248,14 +299,14 @@ setup_nvidia_container_toolkit() {
   # This function attempts to set up NVIDIA GPU support but is non-blocking
   # Any failures will result in warnings but will NOT stop the installation process
   
-  echo -e "${YELLOW}#${RESET} Checking for NVIDIA GPU...\\n"
+  echo -e "${YELLOW}#${RESET} Procurando GPU NVIDIA...\\n"
   
   # Safely detect NVIDIA GPU
   local has_nvidia_gpu=false
   if command -v lspci &> /dev/null; then
     if lspci 2>/dev/null | grep -i nvidia &> /dev/null; then
       has_nvidia_gpu=true
-      echo -e "${GREEN}#${RESET} NVIDIA GPU detected.\\n"
+      echo -e "${GREEN}#${RESET} GPU NVIDIA detectada.\\n"
     fi
   fi
   
@@ -263,53 +314,53 @@ setup_nvidia_container_toolkit() {
   if ! $has_nvidia_gpu && command -v nvidia-smi &> /dev/null; then
     if nvidia-smi &> /dev/null; then
       has_nvidia_gpu=true
-      echo -e "${GREEN}#${RESET} NVIDIA GPU detected via nvidia-smi.\\n"
+      echo -e "${GREEN}#${RESET} GPU NVIDIA detectada pelo nvidia-smi.\\n"
     fi
   fi
   
   if ! $has_nvidia_gpu; then
-    echo -e "${YELLOW}#${RESET} No NVIDIA GPU detected. Skipping NVIDIA container toolkit installation.\\n"
+    echo -e "${YELLOW}#${RESET} Nenhuma GPU NVIDIA detectada. Pulando a instalação do NVIDIA Container Toolkit.\\n"
     return 0
   fi
   
   # Check if nvidia-container-toolkit is already installed
   if command -v nvidia-ctk &> /dev/null; then
-    echo -e "${GREEN}#${RESET} NVIDIA container toolkit is already installed.\\n"
+    echo -e "${GREEN}#${RESET} O NVIDIA Container Toolkit já está instalado.\\n"
     return 0
   fi
   
-  echo -e "${YELLOW}#${RESET} Installing NVIDIA container toolkit...\\n"
+  echo -e "${YELLOW}#${RESET} Instalando o NVIDIA Container Toolkit...\\n"
   
   # Install dependencies per https://docs.ollama.com/docker - wrapped in error handling
   if ! curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey 2>/dev/null | sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg 2>/dev/null; then
-    echo -e "${YELLOW}#${RESET} Warning: Failed to add NVIDIA container toolkit GPG key. Continuing anyway...\\n"
+    echo -e "${YELLOW}#${RESET} Aviso: falha ao adicionar a chave GPG do NVIDIA Container Toolkit. Continuando mesmo assim...\\n"
     return 0
   fi
   
   if ! curl -fsSL https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list 2>/dev/null \
       | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
       | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list > /dev/null 2>&1; then
-    echo -e "${YELLOW}#${RESET} Warning: Failed to add NVIDIA container toolkit repository. Continuing anyway...\\n"
+    echo -e "${YELLOW}#${RESET} Aviso: falha ao adicionar o repositório do NVIDIA Container Toolkit. Continuando mesmo assim...\\n"
     return 0
   fi
   
   if ! sudo apt-get update 2>/dev/null; then
-    echo -e "${YELLOW}#${RESET} Warning: Failed to update package list. Continuing anyway...\\n"
+    echo -e "${YELLOW}#${RESET} Aviso: falha ao atualizar a lista de pacotes. Continuando mesmo assim...\\n"
     return 0
   fi
   
   if ! sudo apt-get install -y nvidia-container-toolkit 2>/dev/null; then
-    echo -e "${YELLOW}#${RESET} Warning: Failed to install NVIDIA container toolkit. Continuing anyway...\\n"
+    echo -e "${YELLOW}#${RESET} Aviso: falha ao instalar o NVIDIA Container Toolkit. Continuando mesmo assim...\\n"
     return 0
   fi
   
-  echo -e "${GREEN}#${RESET} NVIDIA container toolkit installed successfully.\\n"
+  echo -e "${GREEN}#${RESET} NVIDIA Container Toolkit instalado com sucesso.\\n"
   
   # Configure Docker to use NVIDIA runtime
-  echo -e "${YELLOW}#${RESET} Configuring Docker to use NVIDIA runtime...\\n"
+  echo -e "${YELLOW}#${RESET} Configurando o Docker para usar o runtime da NVIDIA...\\n"
   
   if ! sudo nvidia-ctk runtime configure --runtime=docker 2>/dev/null; then
-    echo -e "${YELLOW}#${RESET} nvidia-ctk configure failed, attempting manual configuration...\\n"
+    echo -e "${YELLOW}#${RESET} O nvidia-ctk configure falhou. Tentando a configuração manual...\\n"
     
     # Fallback: Manually configure daemon.json
     local daemon_json="/etc/docker/daemon.json"
@@ -331,7 +382,7 @@ setup_nvidia_container_toolkit() {
           # Clean up temp file if move failed
           sudo rm -f /tmp/daemon.json.tmp 2>/dev/null || true
         else
-          echo -e "${YELLOW}#${RESET} jq not available, skipping manual daemon.json configuration...\\n"
+          echo -e "${YELLOW}#${RESET} jq indisponível. Pulando a configuração manual do daemon.json...\\n"
         fi
       else
         config_success=true  # Already configured
@@ -344,41 +395,41 @@ setup_nvidia_container_toolkit() {
     fi
     
     if ! $config_success; then
-      echo -e "${YELLOW}#${RESET} Manual daemon.json configuration unsuccessful. GPU support may require manual setup.\\n"
+      echo -e "${YELLOW}#${RESET} A configuração manual do daemon.json não funcionou. O suporte à GPU pode exigir configuração manual.\\n"
     fi
   fi
   
   # Restart Docker service
-  echo -e "${YELLOW}#${RESET} Restarting Docker service...\\n"
+  echo -e "${YELLOW}#${RESET} Reiniciando o serviço do Docker...\\n"
   if ! sudo systemctl restart docker 2>/dev/null; then
-    echo -e "${YELLOW}#${RESET} Warning: Failed to restart Docker service. You may need to restart it manually.\\n"
+    echo -e "${YELLOW}#${RESET} Aviso: falha ao reiniciar o serviço do Docker. Talvez seja preciso reiniciá-lo manualmente.\\n"
     return 0
   fi
   
   # Verify NVIDIA runtime is available
-  echo -e "${YELLOW}#${RESET} Verifying NVIDIA runtime configuration...\\n"
+  echo -e "${YELLOW}#${RESET} Verificando a configuração do runtime da NVIDIA...\\n"
   sleep 2  # Give Docker a moment to fully restart
   
   if docker info 2>/dev/null | grep -q "nvidia"; then
-    echo -e "${GREEN}#${RESET} NVIDIA runtime successfully configured and verified.\\n"
+    echo -e "${GREEN}#${RESET} Runtime da NVIDIA configurado e verificado com sucesso.\\n"
   else
-    echo -e "${YELLOW}#${RESET} Warning: NVIDIA runtime not detected in Docker info. GPU acceleration may not work.\\n"
-    echo -e "${YELLOW}#${RESET} You may need to manually configure /etc/docker/daemon.json and restart Docker.\\n"
+    echo -e "${YELLOW}#${RESET} Aviso: o runtime da NVIDIA não aparece no docker info. A aceleração por GPU pode não funcionar.\\n"
+    echo -e "${YELLOW}#${RESET} Talvez seja preciso configurar o /etc/docker/daemon.json manualmente e reiniciar o Docker.\\n"
   fi
   
-  echo -e "${GREEN}#${RESET} NVIDIA container toolkit configuration completed.\\n"
+  echo -e "${GREEN}#${RESET} Configuração do NVIDIA Container Toolkit concluída.\\n"
 }
 
 get_install_confirmation(){
-  echo -e "${YELLOW}#${RESET} This script will install Project NOMAD and its dependencies on your machine."
-  echo -e "${YELLOW}#${RESET} If you already have Project NOMAD installed with customized config or data, please be aware that running this installation script may overwrite existing files and configurations. It is highly recommended to back up any important data/configs before proceeding."
-  read -p "Are you sure you want to continue? (y/N): " choice
+  echo -e "${YELLOW}#${RESET} Este script vai instalar o monolith-nomad e as dependências dele nesta máquina."
+  echo -e "${YELLOW}#${RESET} Se o monolith-nomad já estiver instalado com configurações ou dados personalizados, saiba que este script pode sobrescrever arquivos e configurações existentes. Recomendamos fortemente fazer backup dos dados e das configurações importantes antes de continuar."
+  read -p "Tem certeza de que deseja continuar? (s/N): " choice
   case "$choice" in
-    y|Y )
-      echo -e "${GREEN}#${RESET} User chose to continue with the installation."
+    y|Y|s|S )
+      echo -e "${GREEN}#${RESET} Você escolheu continuar a instalação."
       ;;
     * )
-      echo "User chose not to continue with the installation."
+      echo "Você escolheu não continuar a instalação."
       exit 0
       ;;
   esac
@@ -386,20 +437,20 @@ get_install_confirmation(){
 
 accept_terms() {
   printf "\n\n"
-  echo "License Agreement & Terms of Use"
-  echo "__________________________"
+  echo "Contrato de Licença e Termos de Uso"
+  echo "___________________________________"
   printf "\n\n"
-  echo "Project NOMAD is licensed under the Apache License 2.0. The full license can be found at https://www.apache.org/licenses/LICENSE-2.0 or in the LICENSE file of this repository."
+  echo "O monolith-nomad é licenciado sob a Apache License 2.0 e é derivado do Project N.O.M.A.D. (Crosstalk Solutions, LLC). O texto completo da licença está em https://www.apache.org/licenses/LICENSE-2.0 e no arquivo LICENSE deste repositório."
   printf "\n"
-  echo "By accepting this agreement, you acknowledge that you have read and understood the terms and conditions of the Apache License 2.0 and agree to be bound by them while using Project NOMAD"
+  echo "Ao aceitar este contrato, você declara que leu e entendeu os termos e condições da Apache License 2.0 e que concorda em cumpri-los ao usar o monolith-nomad."
   echo -e "\n\n"
-  read -p "I have read and accept License Agreement & Terms of Use (y/N)? " choice
+  read -p "Li e aceito o Contrato de Licença e os Termos de Uso (s/N)? " choice
   case "$choice" in
-    y|Y )
+    y|Y|s|S )
       accepted_terms='true'
       ;;
     * )
-      echo "License Agreement & Terms of Use not accepted. Installation cannot continue."
+      echo "Contrato de Licença e Termos de Uso não aceitos. A instalação não pode continuar."
       exit 1
       ;;
   esac
@@ -408,13 +459,13 @@ accept_terms() {
 create_nomad_directory(){
   # Ensure the main installation directory exists
   if [[ ! -d "$NOMAD_DIR" ]]; then
-    echo -e "${YELLOW}#${RESET} Creating directory for Project NOMAD at $NOMAD_DIR...\\n"
+    echo -e "${YELLOW}#${RESET} Criando o diretório do monolith-nomad em $NOMAD_DIR...\\n"
     sudo mkdir -p "$NOMAD_DIR"
     sudo chown "$(whoami):$(whoami)" "$NOMAD_DIR"
 
-    echo -e "${GREEN}#${RESET} Directory created successfully.\\n"
+    echo -e "${GREEN}#${RESET} Diretório criado com sucesso.\\n"
   else
-    echo -e "${GREEN}#${RESET} Directory $NOMAD_DIR already exists.\\n"
+    echo -e "${GREEN}#${RESET} O diretório $NOMAD_DIR já existe.\\n"
   fi
 
   # Also ensure the directory has a /storage/logs/ subdirectory
@@ -428,19 +479,19 @@ download_management_compose_file() {
   local compose_file_path="${NOMAD_DIR}/compose.yml"
   local source_file="${1:-}"
 
-  echo -e "${YELLOW}#${RESET} Downloading docker-compose file for management...\\n"
+  echo -e "${YELLOW}#${RESET} Baixando o arquivo docker-compose de gerenciamento...\\n"
   if [[ -n "$source_file" ]]; then
     # Redirection rather than cp so the file keeps the umask-derived mode that
     # the curl path below produces; cp would copy the temp file's 0600 instead.
     if ! cat "$source_file" > "$compose_file_path"; then
-      echo -e "${RED}#${RESET} Failed to copy the preflighted docker compose file."
+      echo -e "${RED}#${RESET} Falha ao copiar o arquivo docker compose usado na checagem prévia."
       exit 1
     fi
   elif ! curl -fsSL "$MANAGEMENT_COMPOSE_FILE_URL" -o "$compose_file_path"; then
-    echo -e "${RED}#${RESET} Failed to download the docker compose file. Please check the URL and try again."
+    echo -e "${RED}#${RESET} Falha ao baixar o arquivo docker compose. Confira a URL e tente de novo."
     exit 1
   fi
-  echo -e "${GREEN}#${RESET} Docker compose file downloaded successfully to $compose_file_path.\\n"
+  echo -e "${GREEN}#${RESET} Arquivo docker compose baixado com sucesso em $compose_file_path.\\n"
 
   local app_key=$(generateRandomPass)
   local db_root_password=$(generateRandomPass)
@@ -451,20 +502,32 @@ download_management_compose_file() {
   # If stale data exists, MySQL ignores the new passwords above and uses the old ones,
   # causing "Access denied" errors when the admin container tries to connect.
   if [[ -d "${NOMAD_DIR}/mysql" ]]; then
-    echo -e "${YELLOW}#${RESET} Removing existing MySQL data directory to ensure credentials match...\\n"
+    echo -e "${YELLOW}#${RESET} Removendo o diretório de dados do MySQL existente para que as credenciais coincidam...\\n"
     sudo rm -rf "${NOMAD_DIR}/mysql"
   fi
 
   # Inject dynamic env values into the compose file
-  echo -e "${YELLOW}#${RESET} Configuring docker-compose file env variables...\\n"
+  echo -e "${YELLOW}#${RESET} Configurando as variáveis de ambiente do arquivo docker-compose...\\n"
   sed -i "s|URL=replaceme|URL=http://${local_ip_address}:8080|g" "$compose_file_path"
   sed -i "s|APP_KEY=replaceme|APP_KEY=${app_key}|g" "$compose_file_path"
   
   sed -i "s|DB_PASSWORD=replaceme|DB_PASSWORD=${db_user_password}|g" "$compose_file_path"
   sed -i "s|MYSQL_ROOT_PASSWORD=replaceme|MYSQL_ROOT_PASSWORD=${db_root_password}|g" "$compose_file_path"
   sed -i "s|MYSQL_PASSWORD=replaceme|MYSQL_PASSWORD=${db_user_password}|g" "$compose_file_path"
+
+  # Fuso horário: o do host (ex.: America/Sao_Paulo), para logs e a janela de atualização automática.
+  # Sem um nome de fuso válido, fica o padrão do compose.
+  local host_tz=''
+  host_tz=$(timedatectl show -p Timezone --value 2>/dev/null || true)
+  if [[ -z "$host_tz" && -L /etc/localtime ]]; then
+    host_tz=$(readlink /etc/localtime | sed 's|.*/zoneinfo/||')
+  fi
+  if [[ "$host_tz" =~ ^[A-Za-z_]+(/[A-Za-z0-9_+-]+)*$ ]]; then
+    sed -i "s|TZ=America/Sao_Paulo|TZ=${host_tz}|g" "$compose_file_path"
+    echo -e "${GREEN}#${RESET} Fuso horário: ${host_tz}\\n"
+  fi
   
-  echo -e "${GREEN}#${RESET} Docker compose file configured successfully.\\n"
+  echo -e "${GREEN}#${RESET} Arquivo docker compose configurado com sucesso.\\n"
 }
 
 download_helper_scripts() {
@@ -472,41 +535,41 @@ download_helper_scripts() {
   local stop_script_path="${NOMAD_DIR}/stop_nomad.sh"
   local update_script_path="${NOMAD_DIR}/update_nomad.sh"
 
-  echo -e "${YELLOW}#${RESET} Downloading helper scripts...\\n"
+  echo -e "${YELLOW}#${RESET} Baixando os scripts auxiliares...\\n"
   if ! curl -fsSL --retry 5 --retry-delay 3 "$START_SCRIPT_URL" -o "$start_script_path"; then
-    echo -e "${RED}#${RESET} Failed to download the start script. Please check the URL and try again."
+    echo -e "${RED}#${RESET} Falha ao baixar o script de inicialização (start). Confira a URL e tente de novo."
     exit 1
   fi
   chmod +x "$start_script_path"
 
   if ! curl -fsSL --retry 5 --retry-delay 3 "$STOP_SCRIPT_URL" -o "$stop_script_path"; then
-    echo -e "${RED}#${RESET} Failed to download the stop script. Please check the URL and try again."
+    echo -e "${RED}#${RESET} Falha ao baixar o script de parada (stop). Confira a URL e tente de novo."
     exit 1
   fi
   chmod +x "$stop_script_path"
 
   if ! curl -fsSL --retry 5 --retry-delay 3 "$UPDATE_SCRIPT_URL" -o "$update_script_path"; then
-    echo -e "${RED}#${RESET} Failed to download the update script. Please check the URL and try again."
+    echo -e "${RED}#${RESET} Falha ao baixar o script de atualização (update). Confira a URL e tente de novo."
     exit 1
   fi
   chmod +x "$update_script_path"
 
-  echo -e "${GREEN}#${RESET} Helper scripts downloaded successfully to $start_script_path, $stop_script_path, and $update_script_path.\\n"
+  echo -e "${GREEN}#${RESET} Scripts auxiliares baixados com sucesso: $start_script_path, $stop_script_path e $update_script_path.\\n"
 }
 
 start_management_containers() {
-  echo -e "${YELLOW}#${RESET} Starting management containers using docker compose...\\n"
+  echo -e "${YELLOW}#${RESET} Iniciando os containers de gerenciamento com o docker compose...\\n"
   if ! sudo docker compose -p project-nomad -f "${NOMAD_DIR}/compose.yml" up -d; then
-    echo -e "${RED}#${RESET} Failed to start management containers. Please check the logs and try again."
+    echo -e "${RED}#${RESET} Falha ao iniciar os containers de gerenciamento. Confira os logs e tente de novo."
     exit 1
   fi
-  echo -e "${GREEN}#${RESET} Management containers started successfully.\\n"
+  echo -e "${GREEN}#${RESET} Containers de gerenciamento iniciados com sucesso.\\n"
 }
 
 get_local_ip() {
   local_ip_address=$(hostname -I | awk '{print $1}')
   if [[ -z "$local_ip_address" ]]; then
-    echo -e "${RED}#${RESET} Unable to determine local IP address. Please check your network configuration."
+    echo -e "${RED}#${RESET} Não foi possível descobrir o endereço IP local. Confira a configuração de rede."
     exit 1
   fi
 }
@@ -583,39 +646,39 @@ run_host_preflight() {
   while IFS= read -r mount_path; do
     [[ -z "$mount_path" ]] && continue
     if ! propagation=$(mount_propagation_for_path "$mount_path"); then
-      echo -e "${RED}#${RESET} Unable to inspect mount propagation for ${mount_path}. Ensure findmnt is installed and the path exists."
+      echo -e "${RED}#${RESET} Não foi possível inspecionar a propagação de montagem (mount propagation) de ${mount_path}. Verifique se o findmnt está instalado e se o caminho existe."
       failed=true
     elif [[ "$propagation" != shared* && "$propagation" != slave* ]]; then
-      echo -e "${RED}#${RESET} Mount ${mount_path} uses '${propagation}' propagation; mount propagation must be shared or slave for the management containers."
-      echo -e "${RED}#${RESET} Configure the host mount as shared, then rerun the installer."
+      echo -e "${RED}#${RESET} A montagem ${mount_path} usa a propagação '${propagation}'; para os containers de gerenciamento, a propagação de montagem precisa ser shared ou slave."
+      echo -e "${RED}#${RESET} Configure a montagem do host como shared e rode o instalador de novo."
       failed=true
     fi
   done < <(get_propagation_mount_paths "$compose_file")
 
   if ! command -v ss &> /dev/null; then
-    echo -e "${RED}#${RESET} Unable to inspect management ports because the 'ss' command is unavailable. Install iproute2 and rerun the installer."
+    echo -e "${RED}#${RESET} Não foi possível inspecionar as portas de gerenciamento porque o comando 'ss' não está disponível. Instale o iproute2 e rode o instalador de novo."
     failed=true
   else
     while read -r port protocol; do
       [[ -z "$port" ]] && continue
       if is_port_in_use "$port" "$protocol"; then
-        echo -e "${RED}#${RESET} Port ${port}/${protocol} is already in use. Stop the listening service or free the port, then rerun the installer."
+        echo -e "${RED}#${RESET} A porta ${port}/${protocol} já está em uso. Pare o serviço que está usando a porta ou libere-a e rode o instalador de novo."
         port_conflict=true
         failed=true
       fi
     done < <(get_published_management_ports "$compose_file")
 
     if [[ "$port_conflict" == true ]]; then
-      echo -e "${RED}#${RESET} If Project NOMAD is already installed on this host, these ports are expected to be in use. Rerunning the installer is not an update path and will reset the database."
+      echo -e "${RED}#${RESET} Se o monolith-nomad já estiver instalado neste host, é normal que essas portas estejam em uso. Rodar o instalador de novo não serve para atualizar e vai zerar o banco de dados."
     fi
   fi
 
   if [[ "$failed" == true ]]; then
-    echo -e "${RED}#${RESET} Project NOMAD host preflight failed before installation resources were created."
+    echo -e "${RED}#${RESET} A checagem prévia do host do monolith-nomad falhou antes de qualquer recurso da instalação ser criado."
     exit 1
   fi
 
-  echo -e "${GREEN}#${RESET} Host mount propagation and management port checks passed.\\n"
+  echo -e "${GREEN}#${RESET} Propagação de montagem do host e portas de gerenciamento verificadas.\\n"
 }
 
 cleanup_preflight_compose_file() {
@@ -628,32 +691,32 @@ verify_gpu_setup() {
   # This function only displays GPU setup status and is completely non-blocking
   # It never exits or returns error codes - purely informational
   
-  echo -e "\\n${YELLOW}#${RESET} GPU Setup Verification\\n"
+  echo -e "\\n${YELLOW}#${RESET} Verificação da GPU\\n"
   echo -e "${YELLOW}===========================================${RESET}\\n"
   
   # Check if NVIDIA GPU is present
   if command -v nvidia-smi &> /dev/null; then
-    echo -e "${GREEN}✓${RESET} NVIDIA GPU detected:"
+    echo -e "${GREEN}✓${RESET} GPU NVIDIA detectada:"
     nvidia-smi --query-gpu=name,memory.total --format=csv,noheader 2>/dev/null | while read -r line; do
       echo -e "  ${WHITE_R}$line${RESET}"
     done
     echo ""
   else
-    echo -e "${YELLOW}○${RESET} No NVIDIA GPU detected (nvidia-smi not available)\\n"
+    echo -e "${YELLOW}○${RESET} Nenhuma GPU NVIDIA detectada (nvidia-smi indisponível)\\n"
   fi
   
   # Check if NVIDIA Container Toolkit is installed
   if command -v nvidia-ctk &> /dev/null; then
-    echo -e "${GREEN}✓${RESET} NVIDIA Container Toolkit installed: $(nvidia-ctk --version 2>/dev/null | head -n1)\\n"
+    echo -e "${GREEN}✓${RESET} NVIDIA Container Toolkit instalado: $(nvidia-ctk --version 2>/dev/null | head -n1)\\n"
   else
-    echo -e "${YELLOW}○${RESET} NVIDIA Container Toolkit not installed\\n"
+    echo -e "${YELLOW}○${RESET} NVIDIA Container Toolkit não instalado\\n"
   fi
   
   # Check if Docker has NVIDIA runtime
   if docker info 2>/dev/null | grep -q "nvidia"; then
-    echo -e "${GREEN}✓${RESET} Docker NVIDIA runtime configured\\n"
+    echo -e "${GREEN}✓${RESET} Runtime NVIDIA do Docker configurado\\n"
   else
-    echo -e "${YELLOW}○${RESET} Docker NVIDIA runtime not detected\\n"
+    echo -e "${YELLOW}○${RESET} Runtime NVIDIA do Docker não detectado\\n"
   fi
   
   # Check for AMD GPU — restrict to display controller classes to avoid false positives
@@ -663,7 +726,7 @@ verify_gpu_setup() {
   if command -v lspci &> /dev/null; then
     if lspci 2>/dev/null | grep -iE "VGA|3D controller|Display" | grep -iE "amd|radeon" &> /dev/null; then
       has_amd_gpu='true'
-      echo -e "${GREEN}✓${RESET} AMD GPU detected — ROCm acceleration will be configured automatically when AI Assistant is installed.\\n"
+      echo -e "${GREEN}✓${RESET} GPU AMD detectada: a aceleração ROCm será configurada automaticamente quando o Assistente de IA for instalado.\\n"
 
       # Map AMD codename → gfx version so the admin can pick the right HSA_OVERRIDE_GFX_VERSION.
       # gfx1030/1100/1101/1102 are on AMD's official ROCm allowlist and need NO override —
@@ -697,6 +760,13 @@ verify_gpu_setup() {
         amd_gfx_version='gfx1101'
       elif echo "${amd_devices}" | grep -iq 'Navi 33'; then
         amd_gfx_version='gfx1102'
+      elif echo "${amd_devices}" | grep -iq 'Navi 44'; then
+        # RDNA 4: Radeon RX 9060 XT / 9050. Verified: lspci "Navi 44 [Radeon RX 9050 / 9060 XT]",
+        # KFD gfx_target_version 120000. On the ollama:rocm allowlist, so the admin applies no override.
+        amd_gfx_version='gfx1200'
+      elif echo "${amd_devices}" | grep -iq 'Navi 48'; then
+        # RDNA 4: Radeon RX 9070 / 9070 XT / 9070 GRE — natively supported as well.
+        amd_gfx_version='gfx1201'
       fi
     fi
   fi
@@ -727,24 +797,24 @@ verify_gpu_setup() {
 
   # Summary
   if command -v nvidia-smi &> /dev/null && docker info 2>/dev/null | grep -q "nvidia"; then
-    echo -e "${GREEN}#${RESET} GPU acceleration is properly configured! The AI Assistant will use your GPU.\\n"
+    echo -e "${GREEN}#${RESET} A aceleração por GPU está configurada! O Assistente de IA vai usar a sua GPU.\\n"
   elif [[ "${has_amd_gpu}" == 'true' ]]; then
-    echo -e "${GREEN}#${RESET} GPU acceleration will be enabled (AMD/ROCm) when AI Assistant is installed from the dashboard.\\n"
+    echo -e "${GREEN}#${RESET} A aceleração por GPU (AMD/ROCm) será ativada quando o Assistente de IA for instalado pelo painel.\\n"
   else
-    echo -e "${YELLOW}#${RESET} GPU acceleration not detected. The AI Assistant will run in CPU-only mode.\\n"
+    echo -e "${YELLOW}#${RESET} Aceleração por GPU não detectada. O Assistente de IA vai rodar só na CPU.\\n"
     if command -v nvidia-smi &> /dev/null && ! docker info 2>/dev/null | grep -q "nvidia"; then
-      echo -e "${YELLOW}#${RESET} Tip: Your GPU is detected but Docker runtime is not configured.\\n"
-      echo -e "${YELLOW}#${RESET} Try restarting Docker: ${WHITE_R}sudo systemctl restart docker${RESET}\\n"
+      echo -e "${YELLOW}#${RESET} Dica: a GPU foi detectada, mas o runtime do Docker não está configurado.\\n"
+      echo -e "${YELLOW}#${RESET} Tente reiniciar o Docker: ${WHITE_R}sudo systemctl restart docker${RESET}\\n"
     fi
   fi
 }
 
 success_message() {
-  echo -e "${GREEN}#${RESET} Project NOMAD installation completed successfully!\\n"
-  echo -e "${GREEN}#${RESET} Installation files are located at /opt/project-nomad\\n\n"
-  echo -e "${GREEN}#${RESET} Project NOMAD's Command Center should automatically start whenever your device reboots. However, if you need to start it manually, you can always do so by running: ${WHITE_R}${NOMAD_DIR}/start_nomad.sh${RESET}\\n"
-  echo -e "${GREEN}#${RESET} You can now access the management interface at http://localhost:8080 or http://${local_ip_address}:8080\\n"
-  echo -e "${GREEN}#${RESET} Thank you for supporting Project NOMAD!\\n"
+  echo -e "${GREEN}#${RESET} Instalação do monolith-nomad concluída com sucesso!\\n"
+  echo -e "${GREEN}#${RESET} Os arquivos da instalação ficam em /opt/project-nomad\\n\n"
+  echo -e "${GREEN}#${RESET} A Central de Comando do monolith-nomad deve iniciar sozinha sempre que o computador reiniciar. Se precisar iniciá-la manualmente, execute: ${WHITE_R}${NOMAD_DIR}/start_nomad.sh${RESET}\\n"
+  echo -e "${GREEN}#${RESET} Acesse a interface de gerenciamento em http://localhost:8080 ou http://${local_ip_address}:8080\\n"
+  echo -e "${GREEN}#${RESET} Obrigado por usar o monolith-nomad!\\n"
 }
 
 ###################################################################################################################################################################################################
@@ -771,10 +841,13 @@ main() {
   setup_nvidia_container_toolkit
   get_local_ip
 
+  resolve_nomad_source || exit 1
+  echo -e "${GREEN}#${RESET} Arquivos de instalação: ${NOMAD_RAW_BASE_URL}\n"
+
   preflight_compose_file=$(mktemp)
   trap cleanup_preflight_compose_file EXIT
   if ! curl -fsSL "$MANAGEMENT_COMPOSE_FILE_URL" -o "$preflight_compose_file"; then
-    echo -e "${RED}#${RESET} Failed to download the management compose file for host preflight checks."
+    echo -e "${RED}#${RESET} Falha ao baixar o arquivo compose de gerenciamento para a checagem prévia do host."
     exit 1
   fi
   run_host_preflight "$preflight_compose_file"

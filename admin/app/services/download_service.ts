@@ -328,6 +328,8 @@ export class DownloadService {
     if (filepath) {
       try {
         await deleteFileIfExists(filepath + '.tmp')
+        // aria2c's control file for that partial (smart downloads); orphaned, it would confuse the next resume
+        await deleteFileIfExists(filepath + '.tmp.aria2')
       } catch {
         // File may not exist yet (waiting job)
       }

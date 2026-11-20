@@ -7,6 +7,8 @@ import { SERVICE_NAMES } from '../../constants/service_names'
 import { Link, router } from '@inertiajs/react'
 import { IconArrowLeft } from '@tabler/icons-react'
 import classNames from 'classnames'
+import UbuntuLogo from '~/components/UbuntuLogo'
+import { useTranslation } from 'react-i18next'
 
 export default function AppLayout({
   children,
@@ -20,6 +22,7 @@ export default function AppLayout({
    */
   compact?: boolean
 }) {
+  const { t } = useTranslation()
   const [isChatOpen, setIsChatOpen] = useState(false)
   const aiAssistantInstalled = useServiceInstalledStatus(SERVICE_NAMES.OLLAMA)
 
@@ -35,7 +38,7 @@ export default function AppLayout({
             )}
           >
             <IconArrowLeft className="mr-2" size={24} />
-            <p className="text-lg text-text-secondary">Back to Home</p>
+            <p className="text-lg text-text-secondary">{t('Back to Home')}</p>
           </Link>
         )}
       <div
@@ -45,23 +48,22 @@ export default function AppLayout({
         )}
         onClick={() => router.visit('/home')}
       >
-        <img
-          src="/nomad-primary.svg"
-          alt="Project NOMAD Logo"
-          className={compact ? 'h-12 w-12 object-contain' : 'h-40 w-40 object-contain'}
+        <UbuntuLogo
+          title="monolith-nomad"
+          className={classNames('text-text-primary', compact ? 'h-12 w-12' : 'h-32 w-32')}
         />
         <h1
           className={classNames(
-            'font-bold text-desert-green',
+            'font-dot text-text-primary uppercase',
             compact ? 'text-2xl' : 'text-5xl'
           )}
         >
-          Command Center
+          {t('Command Center')}
         </h1>
       </div>
       <hr className={
         classNames(
-          "text-desert-green font-semibold h-[1.5px] bg-desert-green border-none",
+          "h-px bg-border-default border-none",
           !compact && window.location.pathname !== '/home' ? "mt-12 md:mt-0" : "mt-0"
         )} />
       <div className="flex-1 w-full bg-desert">{children}</div>

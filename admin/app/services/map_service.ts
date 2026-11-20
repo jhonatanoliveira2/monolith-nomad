@@ -35,6 +35,7 @@ import {
   WORLD_BASEMAP_SOURCE_NAME,
   buildPmtilesExtractArgs,
 } from '../../constants/map_regions.js'
+import { UPSTREAM_MAPS_REPO } from '../../constants/project.js'
 import { CountriesService } from './countries_service.js'
 import { execFile } from 'child_process'
 import { createHash, randomBytes } from 'crypto'
@@ -108,7 +109,8 @@ export class MapService implements IMapService {
 
     const defaultTarFileURL = new URL(
       this.baseAssetsTarFile,
-      'https://github.com/Crosstalk-Solutions/project-nomad-maps/raw/refs/heads/master/'
+      // map data is hosted by the upstream project (constants/project.ts)
+      `https://github.com/${UPSTREAM_MAPS_REPO}/raw/refs/heads/master/`
     )
 
     const resolvedURL = url ? new URL(url) : defaultTarFileURL

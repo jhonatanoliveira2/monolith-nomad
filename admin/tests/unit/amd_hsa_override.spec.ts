@@ -24,6 +24,20 @@ test('RDNA 2 iGPUs (gfx1031..gfx1036, e.g. 680M) coerce to 10.3.0', () => {
   assert.equal(mapGfxToHsaOverride('gfx1036'), '10.3.0')
 })
 
+test('RDNA 4 (gfx1200 Navi 44 / RX 9060 XT, gfx1201 Navi 48) runs natively — no override', () => {
+  assert.equal(mapGfxToHsaOverride('gfx1200'), null)
+  assert.equal(mapGfxToHsaOverride('gfx1201'), null)
+  // a marker for RDNA 4 is authoritative and maps to native discovery, even if the container had one
+  assert.deepEqual(
+    pickAmdHsaOverride({
+      manual: null,
+      markerGfx: 'gfx1200',
+      containerEnv: ['HSA_OVERRIDE_GFX_VERSION=11.0.0'],
+    }),
+    { value: null, source: 'marker' }
+  )
+})
+
 test('discrete cards on the ROCm allowlist get no override', () => {
   for (const gfx of ['gfx1030', 'gfx1100', 'gfx1101', 'gfx1102']) {
     assert.equal(mapGfxToHsaOverride(gfx), null)

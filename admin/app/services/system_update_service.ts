@@ -3,6 +3,7 @@ import { readFileSync, existsSync } from 'fs'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 import KVStore from '#models/kv_store'
+import { isValidImageTag } from '../utils/image_tag.js'
 
 interface UpdateStatus {
   stage: 'idle' | 'starting' | 'pulling' | 'pulled' | 'recreating' | 'complete' | 'error'
@@ -45,6 +46,13 @@ export class SystemUpdateService {
       if (!targetTag) {
         const latestVersion = await KVStore.getValue('system.latestVersion')
         targetTag = latestVersion ? `v${latestVersion}` : 'latest'
+      }
+      // the sidecar puts the tag into a sed on the host's compose.yml (see utils/image_tag.ts)
+      if (!isValidImageTag(targetTag)) {
+        logger.warn(
+          `[SystemUpdateService]: refusing update request with invalid image tag ${JSON.stringify(targetTag)}`
+        )
+        return { success: false, message: 'Invalid target image tag' }
       }
 
       const requestData = {

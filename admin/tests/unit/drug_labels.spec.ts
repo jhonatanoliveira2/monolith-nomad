@@ -178,7 +178,8 @@ test.group('mapDrugLabelRecord', () => {
     assert.isNotNull(row.warnings)
     assert.isFalse(row.warnings!.startsWith('\n'))
     assert.isFalse(row.warnings!.endsWith('\n'))
-    assert.include(row.warnings!, '  Risk of bleeding.  \n\n\n\nDo not crush.')
+    // the whole-blob trim removes the leading spaces of the first element; inner whitespace is kept
+    assert.equal(row.warnings, 'Risk of bleeding.  \n\n\n\nDo not crush.')
   })
 
   // Case 10: over-long set_id (> 64) → null (the idempotency key can't be truncated)

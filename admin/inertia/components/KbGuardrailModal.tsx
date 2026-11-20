@@ -4,6 +4,7 @@ import { IconAlertTriangle, IconX } from '@tabler/icons-react'
 import { formatBytes } from '~/lib/util'
 import StyledButton from './StyledButton'
 import type { GuardrailVerdict } from '~/lib/kb_guardrail'
+import { useTranslation } from 'react-i18next'
 
 /**
  * One-time confirmation modal for bulk indexing actions that trip the
@@ -25,6 +26,7 @@ export default function KbGuardrailModal({
   onConfirm,
   onCancel,
 }: KbGuardrailModalProps) {
+  const { t } = useTranslation()
   // The primary number to surface — every triggered reason carries the same
   // estimateBytes, so just grab the first one. `0` is a defensive fallback
   // for the (impossible-by-construction) "open with empty verdict" case.
@@ -58,17 +60,17 @@ export default function KbGuardrailModal({
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-lg bg-surface-primary shadow-xl transition-all">
-                <div className="bg-amber-50 dark:bg-amber-950/30 px-6 py-4 border-b border-amber-200 dark:border-amber-800 flex items-start justify-between gap-3">
+                <div className="bg-desert-orange-lighter px-6 py-4 border-b border-desert-orange-light flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
-                    <IconAlertTriangle className="h-6 w-6 text-amber-600 dark:text-amber-300 flex-shrink-0 mt-0.5" />
+                    <IconAlertTriangle className="h-6 w-6 text-desert-orange-dark flex-shrink-0 mt-0.5" />
                     <Dialog.Title className="text-lg font-semibold text-text-primary">
-                      Confirm large AI indexing operation
+                      {t('Confirm large AI indexing operation')}
                     </Dialog.Title>
                   </div>
                   <button
                     onClick={onCancel}
                     className="text-text-muted hover:text-text-primary transition-colors flex-shrink-0"
-                    aria-label="Cancel"
+                    aria-label={t('Cancel')}
                   >
                     <IconX size={20} />
                   </button>
@@ -76,27 +78,28 @@ export default function KbGuardrailModal({
 
                 <div className="px-6 py-5 space-y-3">
                   <p className="text-text-primary text-sm">
-                    Indexing this batch for the AI Assistant will use approximately{' '}
-                    <strong>{formatBytes(estimateBytes, 1)}</strong> of disk space for embeddings, on top of the raw downloads.
+                    {t('Indexing this batch for the AI Assistant will use approximately')}{' '}
+                    <strong>{formatBytes(estimateBytes, 1)}</strong>{' '}
+                    {t('of disk space for embeddings, on top of the raw downloads.')}
                   </p>
 
                   {freeReason && (
                     <p className="text-text-secondary text-sm">
-                      That's more than 10% of your remaining free disk space ({formatBytes(freeReason.freeBytes, 1)} free). Embedding can take several hours and is hard to interrupt cleanly once started.
+                      {t("That's more than 10% of your remaining free disk space ({{free}} free). Embedding can take several hours and is hard to interrupt cleanly once started.", { free: formatBytes(freeReason.freeBytes, 1) })}
                     </p>
                   )}
 
                   <p className="text-text-secondary text-sm">
-                    If you'd rather review per-item before indexing, cancel here and switch your Auto-index setting to <strong>Manual</strong> from the Knowledge Base panel.
+                    {t("If you'd rather review per-item before indexing, cancel here and switch your Auto-index setting to Manual from the Knowledge Base panel.")}
                   </p>
                 </div>
 
                 <div className="bg-surface-secondary px-6 py-4 flex justify-end gap-3">
                   <StyledButton variant="outline" size="md" onClick={onCancel}>
-                    Cancel
+                    {t('Cancel')}
                   </StyledButton>
                   <StyledButton variant="primary" size="md" onClick={onConfirm}>
-                    Proceed anyway
+                    {t('Proceed anyway')}
                   </StyledButton>
                 </div>
               </Dialog.Panel>

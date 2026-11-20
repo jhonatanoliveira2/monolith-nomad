@@ -56,7 +56,8 @@ assert_failure_with() {
   fi
 }
 
-if ! grep -Fq '[[ "${BASH_SOURCE[0]}" == "$0" ]]' "$INSTALLER"; then
+# The guard became `[ "${BASH_SOURCE:-$0}" = "$0" ]` upstream (fe2f0bc) so `curl ... | bash` still runs main.
+if ! grep -Fq '[ "${BASH_SOURCE:-$0}" = "$0" ]' "$INSTALLER"; then
   fail "installer can be sourced without running main"
   exit 1
 fi
@@ -116,10 +117,10 @@ mount_propagation_for_path() { printf '%s\n' slave; }
 assert_success "slave propagation passes" run_host_preflight "$COMPOSE_FILE"
 
 mount_propagation_for_path() { printf '%s\n' private; }
-assert_failure_with "private mount reports remediation" "mount propagation must be shared or slave" run_host_preflight "$COMPOSE_FILE"
+assert_failure_with "private mount reports remediation" "a propagação de montagem precisa ser shared ou slave" run_host_preflight "$COMPOSE_FILE"
 
 mount_propagation_for_path() { return 1; }
-assert_failure_with "unavailable propagation detection fails clearly" "Unable to inspect mount propagation" run_host_preflight "$COMPOSE_FILE"
+assert_failure_with "unavailable propagation detection fails clearly" "Não foi possível inspecionar a propagação de montagem" run_host_preflight "$COMPOSE_FILE"
 
 mount_propagation_for_path() { printf '%s\n' shared; }
 command() {
@@ -128,16 +129,16 @@ command() {
   fi
   builtin command "$@"
 }
-assert_failure_with "unavailable port detection fails clearly" "Unable to inspect management ports" run_host_preflight "$COMPOSE_FILE"
+assert_failure_with "unavailable port detection fails clearly" "Não foi possível inspecionar as portas de gerenciamento" run_host_preflight "$COMPOSE_FILE"
 unset -f command
 
 is_port_in_use() { [[ "$1" == "9999" ]]; }
-assert_failure_with "occupied Dozzle port identifies the port" "Port 9999/tcp is already in use" run_host_preflight "$COMPOSE_FILE"
+assert_failure_with "occupied Dozzle port identifies the port" "A porta 9999/tcp já está em uso" run_host_preflight "$COMPOSE_FILE"
 
 is_port_in_use() { [[ "$1" == "8080" ]]; }
-assert_failure_with "occupied Admin port identifies the port" "Port 8080/tcp is already in use" run_host_preflight "$COMPOSE_FILE"
+assert_failure_with "occupied Admin port identifies the port" "A porta 8080/tcp já está em uso" run_host_preflight "$COMPOSE_FILE"
 
-assert_failure_with "occupied port warns that rerunning resets the database" "Rerunning the installer is not an update path" run_host_preflight "$COMPOSE_FILE"
+assert_failure_with "occupied port warns that rerunning resets the database" "Rodar o instalador de novo não serve para atualizar" run_host_preflight "$COMPOSE_FILE"
 
 preflight_line=$(grep -n '^[[:space:]]*run_host_preflight ' "$INSTALLER" | tail -n 1 | cut -d: -f1)
 create_line=$(grep -n '^[[:space:]]*create_nomad_directory$' "$INSTALLER" | tail -n 1 | cut -d: -f1)
@@ -170,6 +171,8 @@ rmdir "$side_effect_dir"
   check_docker_compose() { :; }
   setup_nvidia_container_toolkit() { :; }
   get_local_ip() { :; }
+  # a pinned release: resolve_nomad_source needs no network
+  export NOMAD_RELEASE_TAG=v1.36.0
   curl() { cp "$COMPOSE_FILE" "${@: -1}"; }
   mount_propagation_for_path() { printf '%s\n' private; }
   is_port_in_use() { return 1; }
@@ -178,7 +181,7 @@ rmdir "$side_effect_dir"
 main_status=$?
 if [[ "$main_status" -ne 0 ]] &&
    [[ ! -e "$side_effect_dir" ]] &&
-   grep -Fq "Project NOMAD host preflight failed" /tmp/nomad-preflight-main-test.out; then
+   grep -Fq "A checagem prévia do host do monolith-nomad falhou" /tmp/nomad-preflight-main-test.out; then
   pass "main fails preflight before creating the installation directory"
 else
   fail "main fails preflight before creating the installation directory"

@@ -2,9 +2,13 @@ import { useState, useEffect } from 'react'
 import { NotificationContext, Notification } from '../context/NotificationContext'
 import { IconExclamationCircle, IconCircleCheck, IconInfoCircle } from '@tabler/icons-react'
 import { setGlobalNotificationCallback } from '~/lib/util'
+import { useTranslation } from 'react-i18next'
+import { translateServerMessage } from '~/lib/server_messages'
 
 const NotificationsProvider = ({ children }: { children: React.ReactNode }) => {
   const [notifications, setNotifications] = useState<(Notification & { id: string })[]>([])
+  // re-renders on language change; messages are translated at display time (they are often server messages)
+  useTranslation()
 
   const addNotification = (newNotif: Notification) => {
     const { message, type, duration = 5000 } = newNotif
@@ -37,13 +41,13 @@ const NotificationsProvider = ({ children }: { children: React.ReactNode }) => {
   const Icon = ({ type }: { type: string }) => {
     switch (type) {
       case 'error':
-        return <IconExclamationCircle className="h-5 w-5 text-red-500" />
+        return <IconExclamationCircle className="h-5 w-5 text-desert-red" />
       case 'success':
-        return <IconCircleCheck className="h-5 w-5 text-green-500" />
+        return <IconCircleCheck className="h-5 w-5 text-desert-olive" />
       case 'info':
-        return <IconInfoCircle className="h-5 w-5 text-blue-500" />
+        return <IconInfoCircle className="h-5 w-5 text-text-primary" />
       default:
-        return <IconInfoCircle className="h-5 w-5 text-blue-500" />
+        return <IconInfoCircle className="h-5 w-5 text-text-primary" />
     }
   }
 
@@ -69,7 +73,7 @@ const NotificationsProvider = ({ children }: { children: React.ReactNode }) => {
                 <Icon type={notification.type} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="break-words">{notification.message}</p>
+                <p className="break-words">{translateServerMessage(notification.message)}</p>
               </div>
             </div>
           </div>

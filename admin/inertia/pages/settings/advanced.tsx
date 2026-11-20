@@ -8,6 +8,7 @@ import Input from '~/components/inputs/Input'
 import { useNotifications } from '~/context/NotificationContext'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '~/lib/api'
+import { useTranslation } from 'react-i18next'
 
 export default function AdvancedPage(props: {
   advanced: {
@@ -16,6 +17,7 @@ export default function AdvancedPage(props: {
     serviceLogsUrl: string
   }
 }) {
+  const { t } = useTranslation()
   const { addNotification } = useNotifications()
   const queryClient = useQueryClient()
   const { internetStatusTestUrlEnvOverride } = props.advanced
@@ -35,10 +37,10 @@ export default function AdvancedPage(props: {
     try {
       const url = new URL(value)
       if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-        return 'Test URL must use http or https.'
+        return t('Test URL must use http or https.')
       }
     } catch {
-      return 'Test URL must be a valid URL (e.g. "https://example.com").'
+      return t('Test URL must be a valid URL (e.g. "https://example.com").')
     }
     return null
   }
@@ -48,13 +50,13 @@ export default function AdvancedPage(props: {
       return await api.updateSetting('system.internetStatusTestUrl', value)
     },
     onSuccess: () => {
-      addNotification({ message: 'Setting updated successfully.', type: 'success' })
+      addNotification({ message: t('Setting updated successfully.'), type: 'success' })
     },
     onError: (error: any) => {
       const msg =
         error?.response?.data?.message ||
         error?.message ||
-        'There was an error updating the setting. Please try again.'
+        t('There was an error updating the setting. Please try again.')
       setTestUrlError(msg)
       addNotification({ message: msg, type: 'error' })
     },
@@ -79,15 +81,15 @@ export default function AdvancedPage(props: {
     const trimmed = value.trim()
     const isHttpUrl = /^https?:\/\//i.test(trimmed)
     if (!isHttpUrl && /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)) {
-      return 'Service logs URL must use http or https.'
+      return t('Service logs URL must use http or https.')
     }
     try {
       const url = new URL(isHttpUrl ? trimmed : `http://${trimmed}`)
       if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-        return 'Service logs URL must use http or https.'
+        return t('Service logs URL must use http or https.')
       }
     } catch {
-      return 'Service logs URL must be a valid URL (e.g. "https://logs.example.com").'
+      return t('Service logs URL must be a valid URL (e.g. "https://logs.example.com").')
     }
     return null
   }
@@ -100,13 +102,13 @@ export default function AdvancedPage(props: {
       // The sidebar reads this setting through useSystemSetting; refresh it so the
       // link picks up the new address without a page reload.
       queryClient.invalidateQueries({ queryKey: ['system-setting', 'ui.serviceLogsUrl'] })
-      addNotification({ message: 'Setting updated successfully.', type: 'success' })
+      addNotification({ message: t('Setting updated successfully.'), type: 'success' })
     },
     onError: (error: any) => {
       const msg =
         error?.response?.data?.message ||
         error?.message ||
-        'There was an error updating the setting. Please try again.'
+        t('There was an error updating the setting. Please try again.')
       setServiceLogsUrlError(msg)
       addNotification({ message: msg, type: 'error' })
     },
@@ -125,29 +127,28 @@ export default function AdvancedPage(props: {
 
   return (
     <SettingsLayout>
-      <Head title="Advanced Settings | Project NOMAD" />
+      <Head title={t('Advanced Settings')} />
       <div className="xl:pl-72 w-full">
         <main className="px-12 py-6">
-          <h1 className="text-4xl font-semibold mb-4">Advanced</h1>
+          <h1 className="text-4xl font-semibold mb-4">{t('Advanced')}</h1>
           <p className="text-text-muted mb-4">
-            Advanced configuration for operators. These settings are optional — the defaults work
-            for most deployments.
+            {t('Advanced configuration for operators. These settings are optional — the defaults work for most deployments.')}
           </p>
 
-          <StyledSectionHeader title="Connectivity" className="mt-8 mb-4" />
+          <StyledSectionHeader title={t('Connectivity')} className="mt-8 mb-4" />
           <div className="bg-surface-primary rounded-lg border-2 border-border-subtle p-6">
             <p className="text-sm text-text-secondary mb-4">
-              NOMAD periodically checks whether it can reach the internet. By default it probes
-              Cloudflare's utility endpoint with a few fallbacks. Set a custom endpoint below if your
-              network blocks the defaults. Leave blank to use the built-in defaults.
+              {t(
+                "monolith-nomad periodically checks whether it can reach the internet. By default it probes Cloudflare's utility endpoint with a few fallbacks. Set a custom endpoint below if your network blocks the defaults. Leave blank to use the built-in defaults."
+              )}
             </p>
 
             {internetStatusTestUrlEnvOverride && (
               <Alert
                 type="info"
                 variant="bordered"
-                title="Managed by environment variable"
-                message="The INTERNET_STATUS_TEST_URL environment variable is set and takes precedence over this setting. Remove it to manage the test URL here."
+                title={t('Managed by environment variable')}
+                message={t('The INTERNET_STATUS_TEST_URL environment variable is set and takes precedence over this setting. Remove it to manage the test URL here.')}
                 className="!mb-4"
               />
             )}
@@ -156,8 +157,8 @@ export default function AdvancedPage(props: {
               <div className="flex-1">
                 <Input
                   name="internetStatusTestUrl"
-                  label="Internet Status Test URL"
-                  helpText="A single http(s) URL used to check connectivity. Any HTTP response counts as online."
+                  label={t('Internet Status Test URL')}
+                  helpText={t('A single http(s) URL used to check connectivity. Any HTTP response counts as online.')}
                   placeholder="https://1.1.1.1/cdn-cgi/trace"
                   value={internetStatusTestUrl}
                   disabled={internetStatusTestUrlEnvOverride}
@@ -167,7 +168,7 @@ export default function AdvancedPage(props: {
                     setTestUrlError(null)
                   }}
                 />
-                {testUrlError && <p className="text-sm text-red-600 mt-1">{testUrlError}</p>}
+                {testUrlError && <p className="text-sm text-desert-red-dark mt-1">{testUrlError}</p>}
               </div>
               <StyledButton
                 variant="primary"
@@ -176,25 +177,25 @@ export default function AdvancedPage(props: {
                 disabled={updateTestUrlMutation.isPending || internetStatusTestUrlEnvOverride}
                 className="mb-0.5"
               >
-                Save
+                {t('Save')}
               </StyledButton>
             </div>
           </div>
 
-          <StyledSectionHeader title="Reverse Proxy" className="mt-8 mb-4" />
+          <StyledSectionHeader title={t('Reverse Proxy')} className="mt-8 mb-4" />
           <div className="bg-surface-primary rounded-lg border-2 border-border-subtle p-6">
             <p className="text-sm text-text-secondary mb-4">
-              If you reach NOMAD through a reverse proxy or a local DNS name, enter the address of
-              the &ldquo;Service Logs &amp; Metrics&rdquo; page here. Leave blank to use the default
-              (port 9999 on this server).
+              {t(
+                'If you reach monolith-nomad through a reverse proxy or a local DNS name, enter the address of the “Service Logs & Metrics” page here. Leave blank to use the default (port 9999 on this server).'
+              )}
             </p>
 
             <div className="flex items-end gap-3">
               <div className="flex-1">
                 <Input
                   name="serviceLogsUrl"
-                  label="Service Logs & Metrics URL"
-                  helpText="Where the Dozzle container is reachable, e.g. https://logs.example.com or logs.lan"
+                  label={t('Service Logs & Metrics URL')}
+                  helpText={t('Where the Dozzle container is reachable, e.g. https://logs.example.com or logs.lan')}
                   placeholder="https://logs.example.com"
                   value={serviceLogsUrl}
                   error={Boolean(serviceLogsUrlError)}
@@ -204,7 +205,7 @@ export default function AdvancedPage(props: {
                   }}
                 />
                 {serviceLogsUrlError && (
-                  <p className="text-sm text-red-600 mt-1">{serviceLogsUrlError}</p>
+                  <p className="text-sm text-desert-red-dark mt-1">{serviceLogsUrlError}</p>
                 )}
               </div>
               <StyledButton
@@ -214,7 +215,7 @@ export default function AdvancedPage(props: {
                 disabled={updateServiceLogsUrlMutation.isPending}
                 className="mb-0.5"
               >
-                Save
+                {t('Save')}
               </StyledButton>
             </div>
           </div>

@@ -2,7 +2,7 @@
 
 set -e
 
-echo "Starting entrypoint script..."
+echo "Iniciando o script de entrada (entrypoint)..."
 
 # Ensure required storage directories exist (volume may be freshly mounted)
 mkdir -p /app/storage/logs /app/storage/kb_uploads
@@ -17,31 +17,31 @@ mkdir -p /app/storage/logs /app/storage/kb_uploads
 # The real check is done by the application itself, but this provides a safety net.
 REDIS_HOST="${REDIS_HOST:-redis}"
 REDIS_PORT="${REDIS_PORT:-6379}"
-echo "Waiting for Redis at ${REDIS_HOST}:${REDIS_PORT}..."
+echo "Aguardando o Redis em ${REDIS_HOST}:${REDIS_PORT}..."
 for i in $(seq 1 60); do
   if node -e "const net=require('net');const s=net.connect(Number(process.env.REDIS_PORT||6379),process.env.REDIS_HOST||'redis');let done=false;const finish=(code)=>{if(done)return;done=true;s.destroy();process.exit(code)};s.setTimeout(1000,()=>finish(1));s.on('connect',()=>finish(0));s.on('error',()=>finish(1));" 2>/dev/null; then
-    echo "Redis is up and running!"
+    echo "O Redis está no ar!"
     break
   fi
   if [ "$i" -eq 60 ]; then
-    echo "Timed out waiting for Redis at ${REDIS_HOST}:${REDIS_PORT}" >&2
+    echo "Tempo esgotado aguardando o Redis em ${REDIS_HOST}:${REDIS_PORT}" >&2
     exit 1
   fi
   sleep 1
 done
 
 # Run AdonisJS migrations
-echo "Running AdonisJS migrations..."
+echo "Executando as migrations do AdonisJS..."
 node ace migration:run --force
 
 # Seed the database if needed
-echo "Seeding the database..."
+echo "Populando o banco de dados (seed)..."
 node ace db:seed
 
 # Start background workers for all queues
-echo "Starting background workers for all queues..."
+echo "Iniciando os workers em segundo plano de todas as filas..."
 node ace queue:work --all &
 
 # Start the AdonisJS application
-echo "Starting AdonisJS application..."
+echo "Iniciando o aplicativo AdonisJS..."
 exec node bin/server.js

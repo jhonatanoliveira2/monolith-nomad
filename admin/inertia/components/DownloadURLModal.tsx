@@ -2,6 +2,8 @@ import { useState } from 'react'
 import StyledModal, { StyledModalProps } from './StyledModal'
 import Input from './inputs/Input'
 import api from '~/lib/api'
+import { useTranslation } from 'react-i18next'
+import { formatNumber } from '~/lib/format'
 
 export type DownloadURLModalProps = Omit<
   StyledModalProps,
@@ -16,6 +18,7 @@ const DownloadURLModal: React.FC<DownloadURLModalProps> = ({
   onPreflightSuccess,
   ...modalProps
 }) => {
+  const { t } = useTranslation()
   const [url, setUrl] = useState<string>('')
   const [messages, setMessages] = useState<string[]>([])
   const [loading, setLoading] = useState<boolean>(false)
@@ -23,10 +26,10 @@ const DownloadURLModal: React.FC<DownloadURLModalProps> = ({
   async function runPreflightCheck(downloadUrl: string) {
     try {
       setLoading(true)
-      setMessages([`Running preflight check for URL: ${downloadUrl}`])
+      setMessages([t('Running preflight check for URL: {{url}}', { url: downloadUrl })])
       const res = await api.downloadRemoteMapRegionPreflight(downloadUrl)
       if (!res) {
-        throw new Error('An unknown error occurred during the preflight check.')
+        throw new Error(t('An unknown error occurred during the preflight check.'))
       }
 
       if ('message' in res) {
@@ -35,7 +38,10 @@ const DownloadURLModal: React.FC<DownloadURLModalProps> = ({
 
       setMessages((prev) => [
         ...prev,
-        `Preflight check passed. Filename: ${res.filename}, Size: ${(res.size / (1024 * 1024)).toFixed(2)} MB`,
+        t('Preflight check passed. Filename: {{filename}}, Size: {{size}} MB', {
+          filename: res.filename,
+          size: formatNumber(res.size / (1024 * 1024), { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        }),
       ])
 
       if (onPreflightSuccess) {
@@ -43,7 +49,7 @@ const DownloadURLModal: React.FC<DownloadURLModalProps> = ({
       }
     } catch (error) {
       console.error('Preflight check failed:', error)
-      setMessages((prev) => [...prev, `Preflight check failed: ${error.message}`])
+      setMessages((prev) => [...prev, t('Preflight check failed: {{message}}', { message: error.message })])
     } finally {
       setLoading(false)
     }
@@ -54,9 +60,9 @@ const DownloadURLModal: React.FC<DownloadURLModalProps> = ({
       {...modalProps}
       onConfirm={() => runPreflightCheck(url)}
       open={true}
-      confirmText="Download"
+      confirmText={t('Download')}
       confirmIcon="IconDownload"
-      cancelText="Cancel"
+      cancelText={t('Cancel')}
       confirmVariant="primary"
       confirmLoading={loading}
       cancelLoading={loading}
@@ -64,14 +70,14 @@ const DownloadURLModal: React.FC<DownloadURLModalProps> = ({
     >
       <div className="flex flex-col pb-4">
         <p className="text-text-secondary mb-8">
-          Enter the URL of the map region file you wish to download. The URL must be publicly
-          reachable and end with .pmtiles. A preflight check will be run to verify the file's
-          availability, type, and approximate size.
+          {t(
+            "Enter the URL of the map region file you wish to download. The URL must be publicly reachable and end with .pmtiles. A preflight check will be run to verify the file's availability, type, and approximate size."
+          )}
         </p>
         <Input
           name="download-url"
           label=""
-          placeholder={suggestedURL || 'Enter download URL...'}
+          placeholder={suggestedURL || t('Enter download URL...')}
           className="mb-4"
           value={url}
           onChange={(e) => setUrl(e.target.value)}

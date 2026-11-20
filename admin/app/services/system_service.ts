@@ -12,6 +12,7 @@ import {
   SystemInformationResponse,
 } from '../../types/system.js'
 import { SERVICE_NAMES } from '../../constants/service_names.js'
+import { GITHUB_RELEASES_API_URL, RELEASE_NOTES_SUBSCRIBE_URL } from '../../constants/project.js'
 import { readFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import path, { join } from 'node:path'
@@ -54,14 +55,10 @@ export class SystemService {
   async getInternetStatus(): Promise<boolean> {
     // Primary endpoint stays Cloudflare's privacy-respecting utility endpoint.
     // The fallbacks are hosts the application already contacts elsewhere
-    // (GitHub API for update checks, the Project NOMAD API for release-note
-    // subscriptions), so no new third-party services are introduced. They exist
-    // to avoid false "offline" reports on networks that block 1.1.1.1.
-    const DEFAULT_TEST_URLS = [
-      'https://1.1.1.1/cdn-cgi/trace',
-      'https://api.github.com',
-      'https://api.projectnomad.us',
-    ]
+    // (GitHub API for update checks), so no new third-party services are
+    // introduced. They exist to avoid false "offline" reports on networks that
+    // block 1.1.1.1. (The upstream project's own API is not contacted.)
+    const DEFAULT_TEST_URLS = ['https://1.1.1.1/cdn-cgi/trace', 'https://api.github.com']
     const MAX_ATTEMPTS = 3
 
     let testUrls = DEFAULT_TEST_URLS
@@ -712,17 +709,17 @@ export class SystemService {
 
       let latestVersion: string
       if (earlyAccess) {
-        const response = await axios.get(
-          'https://api.github.com/repos/Crosstalk-Solutions/project-nomad/releases',
-          { headers: { Accept: 'application/vnd.github+json' }, timeout: 5000 }
-        )
+        const response = await axios.get(GITHUB_RELEASES_API_URL, {
+          headers: { Accept: 'application/vnd.github+json' },
+          timeout: 5000,
+        })
         if (!response?.data?.length) throw new Error('No releases found')
         latestVersion = response.data[0].tag_name.replace(/^v/, '').trim()
       } else {
-        const response = await axios.get(
-          'https://api.github.com/repos/Crosstalk-Solutions/project-nomad/releases/latest',
-          { headers: { Accept: 'application/vnd.github+json' }, timeout: 5000 }
-        )
+        const response = await axios.get(`${GITHUB_RELEASES_API_URL}/latest`, {
+          headers: { Accept: 'application/vnd.github+json' },
+          timeout: 5000,
+        })
         if (!response?.data?.tag_name) throw new Error('Invalid response from GitHub API')
         latestVersion = response.data.tag_name.replace(/^v/, '').trim()
       }
@@ -757,12 +754,12 @@ export class SystemService {
   }
 
   async subscribeToReleaseNotes(email: string): Promise<{ success: boolean; message: string }> {
+    // Off unless an operator configures a list (constants/project.ts): no e-mail leaves this install by default.
+    if (!RELEASE_NOTES_SUBSCRIBE_URL) {
+      return { success: false, message: 'Release-note e-mails are not configured on this install' }
+    }
     try {
-      const response = await axios.post(
-        'https://api.projectnomad.us/api/v1/lists/release-notes/subscribe',
-        { email },
-        { timeout: 5000 }
-      )
+      const response = await axios.post(RELEASE_NOTES_SUBSCRIBE_URL, { email }, { timeout: 5000 })
 
       if (response.status === 200) {
         return {

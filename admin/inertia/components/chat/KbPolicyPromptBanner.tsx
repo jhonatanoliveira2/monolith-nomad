@@ -4,6 +4,8 @@ import { IconBrain } from '@tabler/icons-react'
 import api from '~/lib/api'
 import StyledButton from '~/components/StyledButton'
 import { useNotifications } from '~/context/NotificationContext'
+import { useTranslation } from 'react-i18next'
+import { formatNumber } from '~/lib/format'
 
 /**
  * First-chat onboarding banner (RFC #883 Phase 3 task 12).
@@ -25,6 +27,7 @@ import { useNotifications } from '~/context/NotificationContext'
  * the KB modal.
  */
 export default function KbPolicyPromptBanner() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { addNotification } = useNotifications()
   // Inertia injects `aiAssistantName` as a shared page prop on chat-mounted
@@ -32,7 +35,7 @@ export default function KbPolicyPromptBanner() {
   // "AI Assistant" when accessed outside that context (no-op for chat pages,
   // but keeps the component safe for future reuse elsewhere).
   const aiAssistantName =
-    usePage<{ aiAssistantName?: string }>().props?.aiAssistantName || 'AI Assistant'
+    usePage<{ aiAssistantName?: string }>().props?.aiAssistantName || t('AI Assistant')
 
   const { data: promptState } = useQuery({
     queryKey: ['kbPolicyPromptState'],
@@ -48,7 +51,7 @@ export default function KbPolicyPromptBanner() {
     onSuccess: () => {
       addNotification({
         type: 'success',
-        message: `${aiAssistantName} will index your existing content. You can track progress in the Knowledge Base panel.`,
+        message: t('{{name}} will index your existing content. You can track progress in the Knowledge Base panel.', { name: aiAssistantName }),
       })
       queryClient.invalidateQueries({ queryKey: ['kbPolicyPromptState'] })
       queryClient.invalidateQueries({ queryKey: ['ingestPolicy'] })
@@ -58,7 +61,7 @@ export default function KbPolicyPromptBanner() {
     onError: (error: any) => {
       addNotification({
         type: 'error',
-        message: error?.message || 'Could not start indexing. Try again from the Knowledge Base panel.',
+        message: error?.message || t('Could not start indexing. Try again from the Knowledge Base panel.'),
       })
     },
   })
@@ -68,7 +71,7 @@ export default function KbPolicyPromptBanner() {
     onSuccess: () => {
       addNotification({
         type: 'success',
-        message: 'Your content stays unindexed for now. You can opt in any time from the Knowledge Base panel.',
+        message: t('Your content stays unindexed for now. You can opt in any time from the Knowledge Base panel.'),
       })
       queryClient.invalidateQueries({ queryKey: ['kbPolicyPromptState'] })
       queryClient.invalidateQueries({ queryKey: ['ingestPolicy'] })
@@ -76,7 +79,7 @@ export default function KbPolicyPromptBanner() {
     onError: (error: any) => {
       addNotification({
         type: 'error',
-        message: error?.message || 'Could not save your choice. Try again.',
+        message: error?.message || t('Could not save your choice. Try again.'),
       })
     },
   })
@@ -87,17 +90,17 @@ export default function KbPolicyPromptBanner() {
   const isBusy = indexNowMutation.isPending || maybeLaterMutation.isPending
 
   return (
-    <div className="px-6 py-3 bg-blue-50 dark:bg-blue-950/30 border-b border-blue-200 dark:border-blue-800 flex-shrink-0">
+    <div className="px-6 py-3 bg-surface-secondary border-b border-border-default flex-shrink-0">
       <div className="flex items-center gap-3">
-        <IconBrain className="h-6 w-6 text-blue-600 dark:text-blue-300 flex-shrink-0" />
+        <IconBrain className="h-6 w-6 text-text-primary flex-shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="text-sm text-text-primary">
             <strong>
               {fileCount === 1
-                ? `Index your existing file for ${aiAssistantName}?`
-                : `Index your ${fileCount.toLocaleString()} existing files for ${aiAssistantName}?`}
+                ? t('Index your existing file for {{name}}?', { name: aiAssistantName })
+                : t('Index your {{count}} existing files for {{name}}?', { count: formatNumber(fileCount), name: aiAssistantName })}
             </strong>
-            {' '}When indexed, {aiAssistantName} can reference them while answering your questions.
+            {' '}{t('When indexed, {{name}} can reference them while answering your questions.', { name: aiAssistantName })}
           </p>
         </div>
         <div className="flex gap-2 flex-shrink-0">
@@ -108,7 +111,7 @@ export default function KbPolicyPromptBanner() {
             disabled={isBusy}
             loading={indexNowMutation.isPending}
           >
-            Index existing content
+            {t('Index existing content')}
           </StyledButton>
           <StyledButton
             onClick={() => maybeLaterMutation.mutate()}
@@ -117,7 +120,7 @@ export default function KbPolicyPromptBanner() {
             disabled={isBusy}
             loading={maybeLaterMutation.isPending}
           >
-            Maybe later
+            {t('Maybe later')}
           </StyledButton>
         </div>
       </div>

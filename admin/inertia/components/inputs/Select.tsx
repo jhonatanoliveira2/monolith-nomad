@@ -60,7 +60,7 @@ const Select = <T,>({
               className={classNames(
                 "flex items-center w-full rounded-md bg-surface-primary px-3 py-2 text-base border border-border-default focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-primary sm:text-sm/6 text-left",
                 selectedOption ? "text-text-primary" : "text-text-muted",
-                error ? "!border-red-500 focus:outline-red-500 !bg-red-100" : "",
+                error ? "!border-desert-red focus:outline-desert-red !bg-desert-red-lighter" : "",
                 disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
                 selectClassName
               )}

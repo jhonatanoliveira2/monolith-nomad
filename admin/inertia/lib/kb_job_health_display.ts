@@ -1,10 +1,12 @@
 import { computeJobHealth, type JobHealthStatus } from '../../app/utils/kb_job_health.js'
 
 export { computeJobHealth, type JobHealthStatus } from '../../app/utils/kb_job_health.js'
+import { t } from './i18n'
 
 /**
  * Visual presentation for each health status — pill color, dot color, and the
- * short label rendered alongside the dot. Kept in one place so backend health
+ * short label rendered alongside the dot (English; translated at render with
+ * t()). Kept in one place so backend health
  * decisions (`computeJobHealth`) and frontend rendering stay in sync.
  */
 export const JOB_HEALTH_DISPLAY: Record<
@@ -12,27 +14,27 @@ export const JOB_HEALTH_DISPLAY: Record<
   { dot: string; label: string; ariaLabel: string }
 > = {
   waiting: {
-    dot: 'bg-gray-400 dark:bg-gray-500',
+    dot: 'bg-desert-stone',
     label: 'Waiting',
     ariaLabel: 'Job is queued and waiting to start',
   },
   healthy: {
-    dot: 'bg-green-500',
+    dot: 'bg-desert-olive',
     label: 'Active',
     ariaLabel: 'Job is embedding at a normal rate',
   },
   slow: {
-    dot: 'bg-yellow-500',
+    dot: 'bg-desert-orange',
     label: 'Slow',
     ariaLabel: 'Job has not made progress for at least 2 minutes',
   },
   stalled: {
-    dot: 'bg-red-500',
+    dot: 'bg-desert-red/60',
     label: 'Stalled',
     ariaLabel: 'Job has not made progress for at least 5 minutes',
   },
   failed: {
-    dot: 'bg-red-700',
+    dot: 'bg-desert-red ring-2 ring-desert-red/40',
     label: 'Failed',
     ariaLabel: 'Job failed',
   },
@@ -44,12 +46,12 @@ export const JOB_HEALTH_DISPLAY: Record<
  */
 export function formatTimeAgo(timestampMs: number, now: number): string {
   const seconds = Math.max(0, Math.floor((now - timestampMs) / 1000))
-  if (seconds < 5) return 'just now'
-  if (seconds < 60) return `${seconds}s ago`
+  if (seconds < 5) return t('just now')
+  if (seconds < 60) return t('{{count}}s ago', { count: seconds })
   const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
+  if (minutes < 60) return t('{{count}}m ago', { count: minutes })
   const hours = Math.floor(minutes / 60)
-  return `${hours}h ago`
+  return t('{{count}}h ago', { count: hours })
 }
 
 /**

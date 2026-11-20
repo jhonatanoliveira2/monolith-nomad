@@ -9,7 +9,7 @@ export function visionAttachmentGuidance(capability: ModelVisionCapability): str
   }
 
   if (capability === 'unknown') {
-    return `NOMAD cannot confirm whether this model accepts images. You can try an image, but the request will fail if the model is text-only. ${TEMPORARY_IMAGE_NOTICE}`
+    return `monolith-nomad cannot confirm whether this model accepts images. You can try an image, but the request will fail if the model is text-only. ${TEMPORARY_IMAGE_NOTICE}`
   }
 
   return TEMPORARY_IMAGE_NOTICE

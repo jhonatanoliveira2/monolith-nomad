@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { IconBug, IconCopy, IconCheck } from '@tabler/icons-react'
 import StyledModal from './StyledModal'
 import api from '~/lib/api'
+import { useProject } from '~/hooks/useProject'
+import { useTranslation } from 'react-i18next'
 
 interface DebugInfoModalProps {
   open: boolean
@@ -9,6 +11,8 @@ interface DebugInfoModalProps {
 }
 
 export default function DebugInfoModal({ open, onClose }: DebugInfoModalProps) {
+  const { issuesUrl } = useProject()
+  const { t } = useTranslation()
   const [debugText, setDebugText] = useState('')
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -24,11 +28,11 @@ export default function DebugInfoModal({ open, onClose }: DebugInfoModalProps) {
         const browserLine = `Browser: ${navigator.userAgent}`
         setDebugText(text + '\n' + browserLine)
       } else {
-        setDebugText('Failed to load debug info. Please try again.')
+        setDebugText(t('Failed to load debug info. Please try again.'))
       }
       setLoading(false)
     }).catch(() => {
-      setDebugText('Failed to load debug info. Please try again.')
+      setDebugText(t('Failed to load debug info. Please try again.'))
       setLoading(false)
     })
   }, [open])
@@ -52,22 +56,23 @@ export default function DebugInfoModal({ open, onClose }: DebugInfoModalProps) {
     <StyledModal
       open={open}
       onClose={onClose}
-      title="Debug Info"
+      title={t('Debug Info')}
       icon={<IconBug className="size-8 text-desert-green" />}
-      cancelText="Close"
+      cancelText={t('Close')}
       onCancel={onClose}
     >
-      <p className="text-sm text-gray-500 mb-3 text-left">
-        This is non-sensitive system info you can share when reporting issues.
-        No passwords, IPs, or API keys are included.
+      <p className="text-sm text-text-muted mb-3 text-left">
+        {t(
+          'This is non-sensitive system info you can share when reporting issues. No passwords, IPs, or API keys are included.'
+        )}
       </p>
 
       <textarea
         id="debug-info-text"
         readOnly
-        value={loading ? 'Loading...' : debugText}
+        value={loading ? t('Loading...') : debugText}
         rows={18}
-        className="w-full font-mono text-xs text-black bg-gray-50 border border-gray-200 rounded-md p-3 resize-none focus:outline-none text-left"
+        className="w-full font-mono text-xs text-black bg-surface-secondary border border-border-default rounded-md p-3 resize-none focus:outline-none text-left"
       />
 
       <div className="mt-3 flex items-center justify-between">
@@ -79,23 +84,23 @@ export default function DebugInfoModal({ open, onClose }: DebugInfoModalProps) {
           {copied ? (
             <>
               <IconCheck className="size-4" />
-              Copied!
+              {t('Copied!')}
             </>
           ) : (
             <>
               <IconCopy className="size-4" />
-              Copy to Clipboard
+              {t('Copy to Clipboard')}
             </>
           )}
         </button>
 
         <a
-          href="https://github.com/Crosstalk-Solutions/project-nomad/issues"
+          href={issuesUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="text-sm text-desert-green hover:underline"
         >
-          Open a GitHub Issue
+          {t('Open a GitHub Issue')}
         </a>
       </div>
     </StyledModal>

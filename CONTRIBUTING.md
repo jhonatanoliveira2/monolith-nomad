@@ -1,218 +1,262 @@
-# Contributing to Project NOMAD
+# Como contribuir com o monolith-nomad
 
-Thank you for your interest in contributing to Project NOMAD! Community contributions are what keep this project growing and improving. Please read this guide fully before getting started — it will save you (and the maintainers) a lot of time.
+Obrigado pelo interesse em contribuir! Leia este guia inteiro antes de começar: ele economiza o seu tempo e o do mantenedor.
 
-> **Note:** Acceptance of contributions is not guaranteed. All pull requests are evaluated based on quality, relevance, and alignment with the project's goals. The maintainers of Project NOMAD ("NOMAD") reserve the right to accept, deny, or modify any pull request at their sole discretion.
+O monolith-nomad é uma distribuição independente e não oficial, derivada do Project N.O.M.A.D. (Crosstalk Solutions, LLC, Apache-2.0). Contribuições feitas aqui valem para esta distribuição. Mudanças que fazem sentido para o projeto original também podem ser propostas lá, seguindo as regras dele.
 
----
-
-## Table of Contents
-
-- [Code of Conduct](#code-of-conduct)
-- [Before You Start](#before-you-start)
-- [Getting Started](#getting-started)
-- [Development Workflow](#development-workflow)
-- [UI Consistency](#ui-consistency)
-- [Commit Messages](#commit-messages)
-- [Release Notes](#release-notes)
-- [Versioning](#versioning)
-- [Submitting a Pull Request](#submitting-a-pull-request)
-- [Feedback & Community](#feedback--community)
+> **Observação:** a aceitação de contribuições não é garantida. Cada pull request é avaliado pela qualidade, pela relevância e pelo alinhamento com os objetivos do projeto. O mantenedor pode aceitar, recusar ou modificar qualquer pull request, a critério dele.
 
 ---
 
-## Code of Conduct
+## Sumário
 
-Please read and review our full [Code of Conduct](https://github.com/Crosstalk-Solutions/project-nomad/blob/main/CODE_OF_CONDUCT.md) before contributing. In short: please be respectful and considerate in all interactions with maintainers and other contributors.
-
-We are committed to providing a welcoming environment for everyone. Disrespectful or abusive behavior will not be tolerated. 
-
----
-
-## Before You Start
-
-**Open an issue first.** Before writing any code for a non-trivial change, you must [open an issue](../../issues/new) to discuss your proposed change. This helps avoid duplicate work and ensures your contribution aligns with the project's direction. **Pull requests submitted without a corresponding issue may be closed at the maintainers' discretion.**
-
-**Trivial fixes are exempt** and may be submitted directly as a PR. Examples:
-- Typo and grammar corrections
-- Documentation clarifications
-- Small one-line bug fixes with an obvious cause
-
-If you're not sure whether your change qualifies as trivial, open an issue first.
-
-When opening an issue:
-- Use a clear, descriptive title
-- Describe the problem you're solving or the feature you want to add
-- If it's a bug, include steps to reproduce it and as much detail about your environment as possible
-- Ensure you redact any personal or sensitive information in any logs, configs, etc.
+- [Código de Conduta](#código-de-conduta)
+- [Antes de começar](#antes-de-começar)
+- [Primeiros passos](#primeiros-passos)
+- [Fluxo de desenvolvimento](#fluxo-de-desenvolvimento)
+- [Regras desta distribuição](#regras-desta-distribuição)
+- [Traduções](#traduções)
+- [Consistência da interface](#consistência-da-interface)
+- [Mensagens de commit](#mensagens-de-commit)
+- [Notas de versão](#notas-de-versão)
+- [Versionamento](#versionamento)
+- [Enviando um pull request](#enviando-um-pull-request)
 
 ---
 
-## Getting Started with Contributing
-**Please note**: this is the Getting Started guide for developing and contributing to NOMAD, NOT [installing NOMAD](https://github.com/Crosstalk-Solutions/project-nomad/blob/main/README.md) for regular use! 
+## Código de Conduta
 
-### Prerequisites
+Leia o [Código de Conduta](CODE_OF_CONDUCT.md) antes de contribuir. Em resumo: seja respeitoso e atencioso em todas as interações com o mantenedor e com outras pessoas que contribuem. Comportamento desrespeitoso ou abusivo não será tolerado.
 
-- A Debian-based OS (Ubuntu 26.04 LTS recommended)
-- `sudo`/root privileges
-- Docker installed and running
-- A stable internet connection (required for dependency downloads)
-- Node.js (for frontend/admin work)
+---
 
-### Fork & Clone
+## Antes de começar
 
-1. Click **Fork** at the top right of this repository
-2. Clone your fork locally:
+**Abra uma issue primeiro.** Antes de escrever código para uma mudança que não seja trivial, [abra uma issue](https://github.com/jhonatanoliveira2/monolith-nomad/issues/new/choose) para discutir a proposta. Isso evita trabalho duplicado e garante que a contribuição combina com a direção do projeto. **Pull requests sem issue correspondente podem ser fechados.**
+
+**Correções triviais não precisam de issue** e podem ir direto como PR. Exemplos:
+
+- correções de digitação e gramática;
+- esclarecimentos na documentação;
+- correções pequenas, de uma linha, com causa óbvia.
+
+Na dúvida se a sua mudança é trivial, abra uma issue.
+
+Ao abrir uma issue:
+
+- use um título claro e descritivo;
+- descreva o problema que você quer resolver ou o recurso que quer adicionar;
+- se for bug, inclua os passos para reproduzir e o máximo de detalhes sobre o seu ambiente;
+- remova informações pessoais ou sensíveis de logs, configurações etc.
+
+Vulnerabilidades de segurança **não** vão em issue: siga o [`SECURITY.md`](SECURITY.md).
+
+---
+
+## Primeiros passos
+
+**Atenção:** este é o guia para desenvolver e contribuir, **não** para [instalar o monolith-nomad](README.md#instalação) para uso normal.
+
+### Pré-requisitos
+
+- Sistema baseado em Debian (Ubuntu 24.04 ou 26.04 LTS recomendado) para testar o instalador e a instalação real
+- Privilégios de `sudo`/root
+- Docker instalado e rodando
+- Conexão estável com a internet (para baixar as dependências)
+- Node.js 22 (para trabalhar no `admin/`)
+
+Você pode desenvolver em outro sistema Linux, mas o produto continua tendo o Ubuntu como alvo. Não troque pacotes, caminhos, comandos ou serviços do Ubuntu por equivalentes de outra distribuição. Para testar a instalação fora do Ubuntu, use uma VM ou um container com Ubuntu.
+
+### Fork e clone
+
+1. Clique em **Fork** no canto superior direito deste repositório.
+2. Clone o seu fork:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/project-nomad.git
-   cd project-nomad
+   git clone https://github.com/SEU_USUARIO/monolith-nomad.git
+   cd monolith-nomad
    ```
-3. Add the upstream remote so you can stay in sync:
+3. Adicione este repositório como remoto `upstream`, para manter o seu fork em dia:
    ```bash
-   git remote add upstream https://github.com/Crosstalk-Solutions/project-nomad.git
+   git remote add upstream https://github.com/jhonatanoliveira2/monolith-nomad.git
    ```
 
-### Avoid Installing a Release Version Locally
-Because NOMAD relies heavily on Docker, we actually recommend against installing a release version of the project on the same local machine where you are developing. This can lead to conflicts with ports, volumes, and other resources. Instead, you can run your development version in a separate Docker environment while keeping your local machine clean. It certainly __can__ be done, but it adds complexity to your setup and workflow. If you choose to install a release version locally, please ensure you have a clear strategy for managing potential conflicts and resource usage.
+### Evite instalar uma versão publicada na mesma máquina
+
+Como o monolith-nomad depende muito do Docker, não recomendamos instalar uma versão publicada na mesma máquina em que você desenvolve. Isso pode causar conflitos de portas (`8080`, `9999`), volumes e outros recursos. Rode a versão de desenvolvimento num ambiente Docker separado. **Dá** para fazer, mas complica a configuração e o fluxo de trabalho; se fizer, tenha um plano claro para lidar com os conflitos.
 
 ---
 
-## Development Workflow
+## Fluxo de desenvolvimento
 
-1. **Sync with upstream** before starting any new work. We prefer rebasing over merge commits to keep a clean, linear git history as much as possible (this also makes it easier for maintainers to review and merge your changes). To sync with upstream:
+1. **Sincronize com o `upstream`** antes de começar. Preferimos rebase a commits de merge, para manter o histórico do git limpo e linear (isso também facilita a revisão):
    ```bash
    git fetch upstream
-   git checkout dev
-   git rebase upstream/dev
+   git checkout main
+   git rebase upstream/main
    ```
 
-2. **Create a feature branch** off `dev` with a descriptive name:
+2. **Crie uma branch** a partir da `main`, com nome descritivo:
    ```bash
    git checkout -b fix/issue-123
-   # or
-   git checkout -b feature/add-new-tool
+   # ou
+   git checkout -b feature/nova-ferramenta
    ```
 
-3. **Make your changes.** Follow existing code style and conventions. Test your changes locally against a running NOMAD instance before submitting.
+3. **Faça as mudanças.** Siga o estilo e as convenções do código existente. Teste localmente, contra uma instância rodando, antes de enviar.
 
-4. **If you touched the AI Assistant or RAG, measure it.** Anything affecting
-   chunking, embedding, retrieval, reranking, thresholds, the system prompts, or
-   context assembly should be backed by numbers rather than a spot check —
-   "it seemed better in the chat window" is how a regression ships. From `admin/`:
+4. **Rode as verificações** a partir de `admin/`:
+   ```bash
+   npm run typecheck
+   npm run lint
+   npm run test:unit    # specs puros (node --test), sem serviços: rápido
+   npm run test:app     # specs que inicializam o app (Japa): precisa de MySQL migrado e Redis
+   ```
+   A suíte completa, no mesmo ambiente da imagem (Node 22.23.5, addons nativos compilados), com MySQL e Redis
+   descartáveis, a partir da raiz do repositório:
+   ```bash
+   bash scripts/test-in-docker.sh        # all | unit | app
+   ```
+   Se mexeu no instalador (`install/`), rode também:
+   ```bash
+   bash -n install/install_nomad.sh
+   bash install/tests/install_nomad_preflight_test.sh   # precisa terminar com "all tests passed"
+   bash install/tests/install_source_test.sh            # origem dos arquivos (release/tag/branch)
+   ```
+   Se adicionou, alterou ou removeu arquivos, regenere o aviso da Apache-2.0 §4(b):
+   ```bash
+   bash scripts/list-modifications.sh > MODIFICATIONS.md
+   ```
+
+5. **Se mexeu no Assistente de IA ou no RAG, meça.** Mudanças em chunking, embeddings, recuperação, reranking, limiares, prompts de sistema ou montagem de contexto precisam de números, não de uma olhada rápida. "Pareceu melhor na janela do chat" é como uma regressão chega à produção. A partir de `admin/`:
 
    ```bash
-   node ace eval:corpus --ingest        # once; safe, never touches your real knowledge base
-   node ace eval:retrieval --ablate     # seconds, deterministic, no chat model
-   node ace eval:generation --model=<your model> --all-modes
+   node ace eval:corpus --ingest        # uma vez; seguro, nunca mexe na sua Base de Conhecimento real
+   node ace eval:retrieval --ablate     # segundos, determinístico, sem modelo de chat
+   node ace eval:generation --model=<seu modelo> --all-modes
    ```
 
-   Include the before/after numbers in your pull request. See
-   [`admin/tests/eval/README.md`](admin/tests/eval/README.md) for what the
-   metrics mean, how the three generation modes separate a code bug from a model
-   that is simply too small, and the harness's known limitations.
+   Inclua os números de antes e depois no pull request. Veja em [`admin/tests/eval/README.md`](admin/tests/eval/README.md) o que cada métrica significa, como os três modos de geração separam um bug no código de um modelo pequeno demais e as limitações conhecidas.
 
-5. **Commit your changes** using [Conventional Commits](#commit-messages).
+6. **Faça os commits** seguindo os [Conventional Commits](#mensagens-de-commit).
 
-6. **Push your branch** and open a pull request.
+7. **Envie a branch** e abra um pull request.
 
 ---
 
-## UI Consistency
+## Regras desta distribuição
 
-NOMAD's guiding principle is that **user-friendliness is paramount**: a control that looks or behaves differently from the rest of the app reads as broken to a non-technical user. New frontend (inertia/React) work should be visually and behaviorally uniform with what is already there. Before adding a UI element, look at its neighbors and reuse the shared building blocks rather than hand-rolling a one-off.
-
-**Reuse the shared components** in `admin/inertia/components/` (and `.../components/inputs/`):
-
-| Need | Use | Not |
-|------|-----|-----|
-| Binary on/off setting | `Switch` | a raw `<input type="checkbox">` |
-| Explanatory hover help | `InfoTooltip` | a raw `title=` attribute or a bespoke tooltip |
-| Modal / confirmation dialog | `StyledModal` | a hand-built overlay |
-| Text field | `Input` | a bare `<input>` |
-| Section heading | `StyledSectionHeader` | ad-hoc heading markup |
-
-Grep for an existing component before building a new one.
-
-**Match the neighbors.** Copy the exact classes and conventions of adjacent elements:
-
-- **Labels:** match punctuation and casing of sibling labels. If the field beside yours reads `Model:` (with a colon), yours should read `Thinking:`, not `Thinking`. Reuse the same typography tokens (e.g. `text-sm text-text-secondary`).
-- **Theme:** use design tokens (`text-*`, `bg-*`, `border-*`) so the element works in light and dark mode. Never hardcode colors.
-- **Placement:** make sure popovers and tooltips are not clipped or crushed against a viewport edge, including when the trigger sits near an edge of the screen.
-
-**When a raw control is fine.** These conventions are about matching intent, not banning primitives. A raw checkbox is appropriate for a multi-select list or a consent box; radio groups and native selects are fine where a shared component does not exist. The point is to reach for the shared component when your case matches its intent (a binary setting toggle should be a `Switch`), not to eliminate primitives.
-
-**Test UI changes in a real browser.** Most of these conventions are judgment calls that tooling cannot fully enforce, so the single most important habit is to load your change in a browser against a running instance before submitting. Several classes of issue (clipped or cramped tooltips, layout breaking at different window widths, blank-screen render errors) are invisible to type-checking and only show up when you actually look at the page. Check the states that should appear *and* the states that should be hidden, and try more than one window width when layout or positioning is involved.
+- **Independência do fork.** Instalador, compose, atualizador, CI, verificação de atualizações e catálogos precisam apontar para este repositório e para as imagens do fork, nunca de volta para o projeto original. O teste [`admin/tests/unit/fork_independence.spec.ts`](admin/tests/unit/fork_independence.spec.ts) garante isso e falha se uma URL fixa do upstream voltar (por exemplo, num merge do projeto original). Ao trazer mudanças do upstream, rode esse teste. Detalhes em [`docs/distribuicao.md`](docs/distribuicao.md).
+- **Identificadores técnicos não mudam.** `/opt/project-nomad`, os containers `nomad_*`, o projeto compose `project-nomad`, os nomes das imagens `project-nomad*` e os cabeçalhos `X-NOMAD-*` ficam como estão, para não quebrar instalações e atualizações existentes. Nos **textos**, use "monolith-nomad".
+- **Ubuntu continua sendo o alvo.** Não altere pacotes, comandos, caminhos ou nomes de serviço do instalador sem uma necessidade justificada.
+- **AMD primeiro, sem quebrar NVIDIA.** Evite dependências desnecessárias de NVIDIA/CUDA. O suporte a NVIDIA existente deve continuar funcionando.
+- **Downloads.** Mudanças em `admin/app/utils/` (mirrors, aria2c, SHA-256) devem manter as regras de [`docs/downloads.md`](docs/downloads.md): URL canônica, credenciais só para a origem, nada parcial instalado e só mirrors verificados. Não invente números de benchmark: documente medições reais.
+- **Créditos e licenças.** Preserve os avisos de copyright e as licenças. Créditos de terceiros ficam centralizados em [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 ---
 
-## Commit Messages
+## Traduções
 
-This project uses [Conventional Commits](https://www.conventionalcommits.org/). All commit messages must follow this format:
+O idioma padrão é o **pt-BR**, e o inglês é o idioma-fonte. Antes de mexer em textos da interface, leia [`admin/inertia/locales/README.md`](admin/inertia/locales/README.md). Em resumo:
+
+- a chave é o texto em inglês (`t('Settings')`), e os catálogos são JSON planos em `admin/inertia/locales/<idioma>/<área>.json`;
+- todo texto novo na interface deve passar por `t()` e ganhar a tradução em `pt-BR/`;
+- datas e números usam os helpers de `~/lib/format`, nunca `toLocaleString()` sem idioma;
+- não traduza nomes de produtos (Kiwix, Ollama, Docker…), comandos, caminhos nem valores técnicos;
+- siga o glossário e o tom (direto, em "você", frases curtas) do README de traduções.
+
+Mensagens do instalador e dos scripts em `install/` também ficam em pt-BR. Prompts de confirmação aceitam `s`/`S` e também `y`/`Y`.
+
+---
+
+## Consistência da interface
+
+O princípio da interface é: **facilidade de uso em primeiro lugar**. Um controle que parece ou se comporta diferente do resto do app soa como defeito para um usuário não técnico. Todo trabalho novo no frontend (Inertia/React) deve ser visual e funcionalmente uniforme com o que já existe, incluindo o tema Nothing. Antes de adicionar um elemento, olhe os vizinhos e reaproveite os componentes compartilhados em vez de criar um avulso.
+
+**Reaproveite os componentes compartilhados** em `admin/inertia/components/` (e `.../components/inputs/`):
+
+| Necessidade | Use | Não use |
+|---|---|---|
+| Configuração liga/desliga | `Switch` | um `<input type="checkbox">` cru |
+| Ajuda ao passar o mouse | `InfoTooltip` | um atributo `title=` cru ou um tooltip próprio |
+| Modal / diálogo de confirmação | `StyledModal` | uma sobreposição feita à mão |
+| Campo de texto | `Input` | um `<input>` cru |
+| Título de seção | `StyledSectionHeader` | marcação de título improvisada |
+
+Procure um componente existente antes de criar um novo.
+
+**Siga os vizinhos.** Copie as classes e convenções dos elementos ao lado:
+
+- **Rótulos:** siga a pontuação e a capitalização dos rótulos irmãos. Se o campo ao lado diz `Modelo:` (com dois-pontos), o seu deve dizer `Raciocínio:`, e não `Raciocínio`. Reaproveite os mesmos tokens de tipografia (por exemplo `text-sm text-text-secondary`).
+- **Tema:** use os tokens de design (`text-*`, `bg-*`, `border-*`) para o elemento funcionar nos modos claro e escuro. Nunca fixe cores no código.
+- **Posição:** garanta que popovers e tooltips não fiquem cortados ou espremidos na borda da tela, inclusive quando o gatilho está perto da borda.
+
+**Quando um controle cru é aceitável.** Essas convenções são sobre seguir a intenção, não sobre proibir elementos básicos. Uma caixa de seleção crua serve para uma lista de múltipla escolha ou um aceite; grupos de rádio e selects nativos servem onde não existe componente compartilhado. A ideia é usar o componente compartilhado quando o seu caso combina com a intenção dele (uma configuração liga/desliga deve ser um `Switch`).
+
+**Teste mudanças de interface num navegador de verdade.** A maioria dessas convenções depende de julgamento, e as ferramentas não conseguem garantir tudo. O hábito mais importante é abrir a mudança no navegador, contra uma instância rodando, antes de enviar. Vários problemas (tooltips cortados ou apertados, layout quebrando em larguras diferentes, telas em branco por erro de renderização) não aparecem na checagem de tipos, só quando você olha a página. Confira os estados que devem aparecer *e* os que devem ficar ocultos, nos temas claro e escuro, e teste mais de uma largura de janela quando houver layout ou posicionamento envolvido.
+
+---
+
+## Mensagens de commit
+
+Este projeto usa [Conventional Commits](https://www.conventionalcommits.org/pt-br/). Todas as mensagens de commit devem seguir o formato:
 
 ```
-<type>(<scope>): <description>
+<tipo>(<escopo>): <descrição>
 ```
 
-**Common types:**
+O tipo e o escopo ficam em inglês (são lidos pelo `semantic-release`). A descrição pode ser em português.
 
-| Type | When to use |
-|------|-------------|
-| `feat` | A new user-facing feature |
-| `fix` | A bug fix |
-| `docs` | Documentation changes only |
-| `refactor` | Code change that isn't a fix or feature and does not affect functionality |
-| `chore` | Build process, dependency updates, tooling |
-| `test` | Adding or updating tests |
+**Tipos mais comuns:**
 
-**Scope** is optional but encouraged — use it to indicate the area of the codebase affected (e.g., `api`, `ui`, `maps`).
+| Tipo | Quando usar |
+|---|---|
+| `feat` | Um recurso novo para o usuário |
+| `fix` | Correção de bug |
+| `docs` | Só documentação |
+| `refactor` | Mudança de código que não é correção nem recurso e não altera o funcionamento |
+| `chore` | Build, atualização de dependências, ferramentas |
+| `test` | Adição ou atualização de testes |
 
-**Examples:**
+O **escopo** é opcional, mas recomendado: indica a área afetada (por exemplo `api`, `ui`, `maps`, `downloads`, `i18n`, `install`).
+
+**Exemplos:**
+
 ```
-feat(ui): add dark mode toggle to Command Center
-fix(api): resolve container status not updating after restart
-docs: update hardware requirements in README
-chore(deps): bump docker-compose to v2.24
+feat(ui): adiciona alternância de tema escuro na Central de Comando
+fix(api): corrige status do container que não atualizava após reiniciar
+docs: atualiza requisitos de hardware no README
+chore(deps): atualiza o docker-compose para a v2.24
 ```
 
 ---
 
-## Release Notes
+## Notas de versão
 
-Human-readable release notes live in [`admin/docs/release-notes.md`](admin/docs/release-notes.md) and are displayed directly in the Command Center UI.
+As notas de versão legíveis ficam em [`admin/docs/release-notes.md`](admin/docs/release-notes.md) e aparecem direto na Central de Comando.
 
-If your PR is merged in, the maintainers will update the release notes with a summary of your contribution and credit you as the author. You do not need to add this yourself in the PR (please don't, as it may cause merge conflicts), but you can include a suggested note in the PR description if you like.
-
----
-
-## Versioning
-
-This project uses [Semantic Versioning](https://semver.org/). Versions are managed in the root `package.json` and updated automatically by `semantic-release`. The `project-nomad` Docker image uses this version. The `admin/package.json` version stays at `0.0.0` and should not be changed manually.
+Se o seu PR for aceito, o mantenedor atualiza as notas de versão com um resumo da contribuição e o crédito para você. Não edite esse arquivo no PR (isso pode gerar conflitos de merge), mas você pode sugerir um texto na descrição do PR.
 
 ---
 
-## Submitting a Pull Request
+## Versionamento
 
-1. Push your branch to your fork:
+Este projeto usa [Versionamento Semântico](https://semver.org/lang/pt-BR/). A versão fica no `package.json` da raiz e é atualizada automaticamente pelo `semantic-release` nas branches `main` e `rc`. A imagem Docker `project-nomad` usa essa versão. A versão em `admin/package.json` fica em `0.0.0` e não deve ser alterada à mão.
+
+---
+
+## Enviando um pull request
+
+1. Envie a branch para o seu fork:
    ```bash
-   git push origin your-branch-name
+   git push origin nome-da-sua-branch
    ```
-2. Open a pull request against the `dev` branch of this repository
-3. In the PR description:
-   - Summarize what your changes do and why
-   - Reference the related issue (e.g., `Closes #123`) — required for non-trivial changes
-   - Note any relevant testing steps or environment details
-4. Be responsive to feedback — maintainers may request changes. Pull requests with no activity for an extended period may be closed.
+2. Abra um pull request contra a branch `main` deste repositório.
+3. Na descrição do PR:
+   - resuma o que as mudanças fazem e por quê;
+   - cite a issue relacionada (por exemplo `Closes #123`), obrigatório para mudanças não triviais;
+   - informe os passos de teste e os detalhes de ambiente relevantes (inclusive os resultados das verificações acima).
+4. Responda aos comentários: o mantenedor pode pedir mudanças. Pull requests parados por muito tempo podem ser fechados.
 
 ---
 
-## Feedback & Community
-
-Have questions or want to discuss ideas before opening an issue? Join the community:
-
-- **Discord:** [Join the Crosstalk Solutions server](https://discord.com/invite/crosstalksolutions) — the best place to get help, share your builds, and talk with other NOMAD users
-- **Website:** [www.projectnomad.us](https://www.projectnomad.us)
-- **Benchmark Leaderboard:** [benchmark.projectnomad.us](https://benchmark.projectnomad.us)
-
----
-
-*Project NOMAD is licensed under the [Apache License 2.0](LICENSE).*
+*O monolith-nomad é licenciado sob a [Apache License 2.0](LICENSE). Ao contribuir, você concorda que a sua contribuição será distribuída sob a mesma licença (seção 5 da Apache License 2.0).*

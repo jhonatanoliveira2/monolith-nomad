@@ -16,10 +16,11 @@ import {
   type Blocker,
   type PreflightResult,
 } from '../utils/image_disk_preflight.js'
+import { GITHUB_RELEASES_API_URL, NOMAD_IMAGE_REPO } from '../../constants/project.js'
 
 /** Docker image repository for the NOMAD admin/core image (tag applied per-release). */
-const NOMAD_IMAGE_REPO = 'ghcr.io/crosstalk-solutions/project-nomad'
-const RELEASES_URL = 'https://api.github.com/repos/Crosstalk-Solutions/project-nomad/releases'
+// This fork's image and releases (constants/project.ts), never the upstream project's.
+const RELEASES_URL = GITHUB_RELEASES_API_URL
 
 /** Defaults for user-configurable settings (server-local time window + cool-off). */
 const DEFAULT_WINDOW_START = '02:00'

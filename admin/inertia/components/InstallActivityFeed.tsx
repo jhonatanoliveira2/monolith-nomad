@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { IconCircleCheck, IconCircleX } from '@tabler/icons-react'
 import classNames from '~/lib/classNames'
+import { useTranslation } from 'react-i18next'
+import { formatTime } from '~/lib/format'
 
 export type InstallActivityFeedProps = {
   activity: Array<{
@@ -45,6 +47,7 @@ export type InstallActivityFeedProps = {
 }
 
 const InstallActivityFeed: React.FC<InstallActivityFeedProps> = ({ activity, className, withHeader = false }) => {
+  const { t } = useTranslation()
   const listRef = useRef<HTMLUListElement>(null)
 
   useEffect(() => {
@@ -55,7 +58,7 @@ const InstallActivityFeed: React.FC<InstallActivityFeedProps> = ({ activity, cla
 
   return (
     <div className={classNames('bg-surface-primary shadow-sm rounded-lg p-6', className)}>
-      {withHeader && <h2 className="text-lg font-semibold text-text-primary">Installation Activity</h2>}
+      {withHeader && <h2 className="text-lg font-semibold text-text-primary">{t('Installation Activity')}</h2>}
       <ul ref={listRef} role="list" className={classNames("space-y-6 text-desert-green max-h-[400px] overflow-y-auto scroll-smooth", withHeader ? 'mt-6' : '')}>
         {activity.map((activityItem, activityItemIdx) => (
           <li key={activityItem.timestamp} className="relative flex gap-x-4">
@@ -70,9 +73,9 @@ const InstallActivityFeed: React.FC<InstallActivityFeedProps> = ({ activity, cla
             <>
               <div className="relative flex size-6 flex-none items-center justify-center bg-transparent">
                 {activityItem.type === 'completed' || activityItem.type === 'update-complete' ? (
-                  <IconCircleCheck aria-hidden="true" className="size-6 text-indigo-600" />
+                  <IconCircleCheck aria-hidden="true" className="size-6 text-text-primary" />
                 ) : activityItem.type === 'error' || activityItem.type === 'update-rollback' || activityItem.type === 'preinstall-error' ? (
-                  <IconCircleX aria-hidden="true" className="size-6 text-red-500" />
+                  <IconCircleX aria-hidden="true" className="size-6 text-desert-red" />
                 ) : (
                   <div className="size-1.5 rounded-full bg-surface-secondary ring-1 ring-border-default" />
                 )}
@@ -85,7 +88,7 @@ const InstallActivityFeed: React.FC<InstallActivityFeedProps> = ({ activity, cla
                 dateTime={activityItem.timestamp}
                 className="flex-none py-0.5 text-xs/5 text-text-muted"
               >
-                {activityItem.timestamp}
+                {formatTime(activityItem.timestamp, { timeStyle: 'medium' }) || activityItem.timestamp}
               </time>
             </>
           </li>

@@ -5,10 +5,12 @@ import {
 import axios from 'axios'
 import { Transform } from 'stream'
 import { deleteFileIfExists, ensureDirectoryExists, getFileStatsIfExists } from './fs.js'
-import { createWriteStream } from 'fs'
+import { createReadStream, createWriteStream } from 'fs'
 import { rename } from 'fs/promises'
+import { createHash, type Hash } from 'node:crypto'
 import path from 'path'
-import logger from '@adonisjs/core/services/logger'
+import { getLogger } from './lazy_logger.js'
+import { computeBackoffDelay, sleep } from './backoff.js'
 import {
   checkDownloadedSize,
   DOWNLOAD_FREE_SPACE_HEADROOM_BYTES,
@@ -50,52 +52,104 @@ export class InsufficientDiskSpaceError extends Error {
   }
 }
 
+/** The downloaded bytes do not match the SHA-256 published for the file. The partial file is deleted. */
+export class ChecksumMismatchError extends Error {
+  constructor(
+    message: string,
+    readonly expected: string,
+    readonly actual: string
+  ) {
+    super(message)
+    this.name = 'ChecksumMismatchError'
+  }
+}
+
 // Some upstream mirrors reject requests with a missing or generic User-Agent.
 // Notably, download.kiwix.org routes the large Wikimedia-family ZIMs (Wikipedia,
 // Wikiversity, Wikibooks — including the flagship full Wikipedia) to
 // dumps.wikimedia.org, which returns HTTP 403 for a default `axios/x` (or empty)
-// User-Agent per Wikimedia's UA policy. Identify ourselves descriptively so
-// those downloads succeed.
-const DOWNLOAD_HEADERS: Record<string, string> = {
-  'User-Agent': 'ProjectNOMAD/1.0 (+https://projectnomad.us)',
+// User-Agent per Wikimedia's UA policy. Identify ourselves descriptively (name,
+// version and where the software comes from) so those downloads succeed.
+export const DOWNLOAD_USER_AGENT =
+  'monolith-nomad/1.0 (+https://github.com/jhonatanoliveira2/monolith-nomad)'
+export const DOWNLOAD_HEADERS: Record<string, string> = {
+  'User-Agent': DOWNLOAD_USER_AGENT,
+}
+
+/** Lower-case hex SHA-256 of a file, streamed (constant memory). */
+export async function sha256File(filepath: string, signal?: AbortSignal): Promise<string> {
+  const hash = createHash('sha256')
+  await new Promise<void>((resolve, reject) => {
+    const stream = createReadStream(filepath, { highWaterMark: 4 * 1024 * 1024 })
+    const onAbort = () => stream.destroy(new Error('Download aborted'))
+    signal?.addEventListener('abort', onAbort, { once: true })
+    stream.on('data', (chunk) => hash.update(chunk))
+    stream.on('error', (err) => {
+      signal?.removeEventListener('abort', onAbort)
+      reject(err)
+    })
+    stream.on('end', () => {
+      signal?.removeEventListener('abort', onAbort)
+      resolve()
+    })
+  })
+  return hash.digest('hex')
+}
+
+/** Verify `tempPath` against `expected` (when given); a mismatch deletes the file and throws. */
+async function verifyChecksum(
+  tempPath: string,
+  expected: string | null | undefined,
+  computed: string | null,
+  signal?: AbortSignal
+): Promise<void> {
+  if (!expected) return
+  const actual = computed ?? (await sha256File(tempPath, signal))
+  if (actual !== expected.toLowerCase()) {
+    await deleteFileIfExists(tempPath)
+    throw new ChecksumMismatchError(
+      `SHA-256 mismatch for ${path.basename(tempPath.replace(/\.tmp$/, ''))}: expected ${expected}, got ${actual}`,
+      expected,
+      actual
+    )
+  }
+}
+
+/** A MIME type outside the caller's allowlist (typically an HTML error page instead of the file). */
+export class DisallowedMimeTypeError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'DisallowedMimeTypeError'
+  }
+}
+
+export type DownloadPreflight = {
+  contentType: string
+  totalBytes: number
+  supportsRangeRequests: boolean
 }
 
 /**
- * Perform a resumable download with progress tracking
- * @param param0 - Download parameters. Leave allowedMimeTypes empty to skip mime type checking.
- * Otherwise, mime types should be in the format "application/pdf", "image/png", etc.
- * @returns Path to the downloaded file
+ * HEAD probe shared by both download engines: size, range support and the MIME allowlist, with a gated
+ * source's 401/403 translated to GatedContentAuthError.
  */
-export async function doResumableDownload({
+export async function preflightDownload({
   url,
-  filepath,
-  timeout = 30000,
+  headers,
+  timeout,
   signal,
-  onProgress,
-  onComplete,
-  forceNew = false,
   allowedMimeTypes,
-  requestHeaders,
-}: DoResumableDownloadParams): Promise<string> {
-  const dirname = path.dirname(filepath)
-  await ensureDirectoryExists(dirname)
-
-  // Stage download to a .tmp file so consumers (e.g. Kiwix) never see a partial file
-  const tempPath = filepath + '.tmp'
-
-  // Check if partial .tmp file exists for resume
-  let startByte = 0
-  let appendMode = false
-
-  const existingStats = await getFileStatsIfExists(tempPath)
-  if (existingStats && !forceNew) {
-    startByte = Number(existingStats.size)
-    appendMode = true
-  }
-
-  // Merge default headers with any caller-supplied headers (e.g. Creator Packs' Authorization)
-  const headers: Record<string, string> = { ...DOWNLOAD_HEADERS, ...requestHeaders }
-
+  lookup,
+  beforeRedirect,
+}: {
+  url: string
+  headers: Record<string, string>
+  timeout: number
+  signal?: AbortSignal
+  allowedMimeTypes?: string[]
+  lookup?: DoResumableDownloadParams['lookup']
+  beforeRedirect?: DoResumableDownloadParams['beforeRedirect']
+}): Promise<DownloadPreflight> {
   // Get file info with HEAD request first. Gated sources (Creator Packs) require
   // the auth header on the HEAD too, or the probe 401s before the GET is reached.
   let headResponse
@@ -104,17 +158,19 @@ export async function doResumableDownload({
       signal,
       timeout,
       headers,
+      ...(lookup && { lookup }),
+      ...(beforeRedirect && { beforeRedirect }),
     })
   } catch (error: any) {
     // A 401/403 from a gated source is not a network problem and the raw axios
     // message ("Request failed with status code 401") reads like our server is
     // broken. Translate it, because the actual cause is almost always a build
-    // without the entitlement key baked in — i.e. not an official release.
+    // without the entitlement key baked in.
     // failedReason is surfaced verbatim on the downloads UI.
     const status = error?.response?.status
     if (status === 401 || status === 403) {
       throw new GatedContentAuthError(
-        'This content is hosted by Project NOMAD and requires an official release build. ' +
+        'This content requires credentials that this install does not have. ' +
           `The download server rejected this install's credentials (HTTP ${status}).`
       )
     }
@@ -136,9 +192,64 @@ export async function doResumableDownload({
   if (allowedMimeTypes && allowedMimeTypes.length > 0) {
     const isMimeTypeAllowed = allowedMimeTypes.some((mimeType) => contentType.includes(mimeType))
     if (!isMimeTypeAllowed) {
-      throw new Error(`MIME type ${contentType} is not allowed`)
+      throw new DisallowedMimeTypeError(`MIME type ${contentType} is not allowed`)
     }
   }
+
+  return { contentType, totalBytes, supportsRangeRequests }
+}
+
+export { getFreeBytesAt }
+
+/**
+ * Perform a resumable download with progress tracking
+ * @param param0 - Download parameters. Leave allowedMimeTypes empty to skip mime type checking.
+ * Otherwise, mime types should be in the format "application/pdf", "image/png", etc.
+ * @returns Path to the downloaded file
+ */
+export async function doResumableDownload({
+  url,
+  filepath,
+  timeout = 30000,
+  signal,
+  onProgress,
+  onComplete,
+  forceNew = false,
+  allowedMimeTypes,
+  requestHeaders,
+  expectedSha256,
+  lookup,
+  beforeRedirect,
+}: DoResumableDownloadParams): Promise<string> {
+  const logger = await getLogger()
+  const dirname = path.dirname(filepath)
+  await ensureDirectoryExists(dirname)
+
+  // Stage download to a .tmp file so consumers (e.g. Kiwix) never see a partial file
+  const tempPath = filepath + '.tmp'
+
+  // Check if partial .tmp file exists for resume
+  let startByte = 0
+  let appendMode = false
+
+  const existingStats = await getFileStatsIfExists(tempPath)
+  if (existingStats && !forceNew) {
+    startByte = Number(existingStats.size)
+    appendMode = true
+  }
+
+  // Merge default headers with any caller-supplied headers (e.g. Creator Packs' Authorization)
+  const headers: Record<string, string> = { ...DOWNLOAD_HEADERS, ...requestHeaders }
+
+  const { totalBytes, supportsRangeRequests } = await preflightDownload({
+    url,
+    headers,
+    timeout,
+    signal,
+    allowedMimeTypes,
+    lookup,
+    beforeRedirect,
+  })
 
   // If final file already exists at correct size, return early (idempotent)
   const finalFileStats = await getFileStatsIfExists(filepath)
@@ -148,6 +259,7 @@ export async function doResumableDownload({
 
   // If .tmp file is already at correct size (complete but never renamed), just rename it
   if (startByte === totalBytes && totalBytes > 0 && !forceNew) {
+    await verifyChecksum(tempPath, expectedSha256, null, signal)
     await rename(tempPath, filepath)
     if (onComplete) {
       await onComplete(url, filepath)
@@ -201,6 +313,8 @@ export async function doResumableDownload({
       headers,
       signal,
       timeout,
+      ...(lookup && { lookup }),
+      ...(beforeRedirect && { beforeRedirect }),
     })
 
   let response = await fetchStream(headers)
@@ -236,6 +350,8 @@ export async function doResumableDownload({
     let downloadedBytes = startByte
     let lastProgressTime = Date.now()
     let lastDownloadedBytes = startByte
+    // A download from byte 0 is hashed on the fly; a resumed one is hashed from disk once complete.
+    const streamHash: Hash | null = expectedSha256 && startByte === 0 ? createHash('sha256') : null
 
     // Stall detection: if no data arrives for 5 minutes, abort the download
     const STALL_TIMEOUT_MS = 5 * 60 * 1000
@@ -259,6 +375,7 @@ export async function doResumableDownload({
     const progressStream = new Transform({
       transform(chunk: Buffer, _: any, callback: Function) {
         downloadedBytes += chunk.length
+        streamHash?.update(chunk)
         resetStallTimer()
 
         // Update progress tracking
@@ -317,6 +434,17 @@ export async function doResumableDownload({
         return
       }
       try {
+        await verifyChecksum(
+          tempPath,
+          expectedSha256,
+          streamHash ? streamHash.digest('hex') : null,
+          signal
+        )
+      } catch (checksumError) {
+        reject(checksumError)
+        return
+      }
+      try {
         // Atomically move the completed .tmp file to the final path
         await rename(tempPath, filepath)
       } catch (renameError) {
@@ -361,6 +489,7 @@ export async function doResumableDownloadWithRetry({
   retry_delay = 2000,
   onAttemptError,
   allowedMimeTypes,
+  expectedSha256,
 }: DoResumableDownloadWithRetryParams): Promise<string> {
   const dirname = path.dirname(filepath)
   await ensureDirectoryExists(dirname)
@@ -377,6 +506,7 @@ export async function doResumableDownloadWithRetry({
         timeout,
         allowedMimeTypes,
         onProgress,
+        expectedSha256,
       })
 
       return result // return on success
@@ -394,7 +524,8 @@ export async function doResumableDownloadWithRetry({
       }
 
       if (attempt < max_retries && isNetworkError) {
-        await delay(retry_delay)
+        // exponential backoff with full jitter, starting at retry_delay (default 2 s), capped at 60 s
+        await sleep(computeBackoffDelay(attempt, { baseMs: retry_delay, maxMs: 60_000 }), signal)
         continue
       }
 
@@ -407,8 +538,4 @@ export async function doResumableDownloadWithRetry({
 
   // should not reach here, but TypeScript needs a return
   throw lastError || new Error('Unknown error during download')
-}
-
-async function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
 }

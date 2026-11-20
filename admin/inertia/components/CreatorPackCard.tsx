@@ -9,6 +9,7 @@ import {
   IconMovie,
   IconTrash,
 } from '@tabler/icons-react'
+import { useTranslation } from 'react-i18next'
 
 export interface CreatorPackCardProps {
   pack: CreatorPackWithStatus
@@ -20,6 +21,7 @@ export interface CreatorPackCardProps {
 }
 
 const CreatorPackCard: React.FC<CreatorPackCardProps> = ({ pack, selected, onClick, onUninstall }) => {
+  const { t } = useTranslation()
   const isInstalled = pack.status === 'installed'
   const isDownloading = pack.status === 'downloading'
   const hasUpdate = !!pack.available_update_version
@@ -36,23 +38,23 @@ const CreatorPackCard: React.FC<CreatorPackCardProps> = ({ pack, selected, onCli
   const bannerSrc = pack.banner_url || `/creator-packs/${pack.id}.webp`
 
   const statusBadge = selected ? (
-    <span className="flex items-center text-lime-600 dark:text-lime-400 text-sm font-medium">
+    <span className="flex items-center text-desert-olive-dark text-sm font-medium">
       <IconCircleCheck className="w-5 h-5 mr-1" />
-      Selected
+      {t('Selected')}
     </span>
   ) : isDownloading ? (
-    <span className="flex items-center text-lime-600 dark:text-lime-400 text-sm font-medium">
+    <span className="flex items-center text-desert-olive-dark text-sm font-medium">
       <IconLoader2 className="w-5 h-5 mr-1 animate-spin" />
-      Downloading
+      {t('Downloading')}
     </span>
   ) : isInstalled ? (
-    <span className="flex items-center text-lime-600 dark:text-lime-400 text-sm font-medium">
+    <span className="flex items-center text-desert-olive-dark text-sm font-medium">
       <IconCircleCheck className="w-5 h-5 mr-1" />
-      Installed
+      {t('Installed')}
     </span>
   ) : (
     <span className="flex items-center text-text-muted text-sm font-medium">
-      Install
+      {t('Install')}
       <IconChevronRight className="w-5 h-5 ml-1" />
     </span>
   )
@@ -61,7 +63,7 @@ const CreatorPackCard: React.FC<CreatorPackCardProps> = ({ pack, selected, onCli
     <div
       className={classNames(
         'flex flex-col rounded-lg overflow-hidden bg-surface-primary border shadow-sm transition-shadow',
-        highlighted ? 'border-lime-400 border-2' : 'border-border-subtle',
+        highlighted ? 'border-desert-olive border-2' : 'border-border-subtle',
         clickable ? 'cursor-pointer hover:shadow-lg' : 'opacity-70 cursor-not-allowed'
       )}
       onClick={() => {
@@ -86,11 +88,11 @@ const CreatorPackCard: React.FC<CreatorPackCardProps> = ({ pack, selected, onCli
       <div className="flex items-center justify-between gap-3 px-5 py-3">
         <div className="min-w-0">
           <p className="text-sm text-text-secondary truncate">
-            {pack.video_count} videos &middot; {formatBytes(sizeBytes, 0)}
+            {t('{{count}} videos', { count: pack.video_count })} &middot; {formatBytes(sizeBytes, 0)}
           </p>
           {hasUpdate && (
-            <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded bg-lime-500/20 text-lime-700 dark:text-lime-300">
-              Update available
+            <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded bg-desert-olive/20 text-desert-olive-dark ">
+              {t('Update available')}
             </span>
           )}
         </div>
@@ -99,9 +101,9 @@ const CreatorPackCard: React.FC<CreatorPackCardProps> = ({ pack, selected, onCli
           {onUninstall && isInstalled && (
             <button
               type="button"
-              title="Uninstall pack"
-              aria-label="Uninstall pack"
-              className="p-1 rounded text-text-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
+              title={t('Uninstall pack')}
+              aria-label={t('Uninstall pack')}
+              className="p-1 rounded text-text-muted hover:text-desert-red hover:bg-desert-red/10 transition-colors"
               onClick={(e) => {
                 e.stopPropagation()
                 onUninstall(pack)

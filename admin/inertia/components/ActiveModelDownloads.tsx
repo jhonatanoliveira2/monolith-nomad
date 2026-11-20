@@ -7,12 +7,14 @@ import api from '~/lib/api'
 import { useModals } from '~/context/ModalContext'
 import { formatBytes } from '~/lib/util'
 import { formatSpeed } from '../../app/utils/misc'
+import { useTranslation } from 'react-i18next'
 
 interface ActiveModelDownloadsProps {
     withHeader?: boolean
 }
 
 const ActiveModelDownloads = ({ withHeader = false }: ActiveModelDownloadsProps) => {
+    const { t } = useTranslation()
     const { downloads, removeDownload } = useOllamaModelDownloads()
     const { openModal, closeAllModals } = useModals()
     const [cancellingModels, setCancellingModels] = useState<Set<string>>(new Set())
@@ -81,24 +83,22 @@ const ActiveModelDownloads = ({ withHeader = false }: ActiveModelDownloadsProps)
 
         openModal(
             <StyledModal
-                title="Cancel Download?"
+                title={t('Cancel Download?')}
                 onConfirm={() => {
                     closeAllModals()
                     runCancel(download)
                 }}
                 onCancel={closeAllModals}
                 open={true}
-                confirmText="Cancel Download"
-                cancelText="Keep Downloading"
+                confirmText={t('Cancel Download')}
+                cancelText={t('Keep Downloading')}
             >
                 <div className="space-y-3 text-text-primary">
                     <p>
-                        Stop downloading <span className="font-mono font-semibold">{download.model}</span>?
+                        {t('Stop downloading')} <span className="font-mono font-semibold">{download.model}</span>?
                     </p>
                     <p className="text-sm text-text-muted">
-                        Any data already downloaded will remain on disk. If you re-download
-                        this model later, it will resume from where it left off rather than
-                        starting over.
+                        {t('Any data already downloaded will remain on disk. If you re-download this model later, it will resume from where it left off rather than starting over.')}
                     </p>
                 </div>
             </StyledModal>,
@@ -108,7 +108,7 @@ const ActiveModelDownloads = ({ withHeader = false }: ActiveModelDownloadsProps)
 
     return (
         <>
-            {withHeader && <StyledSectionHeader title="Active Model Downloads" className="mt-12 mb-4" />}
+            {withHeader && <StyledSectionHeader title={t('Active Model Downloads')} className="mt-12 mb-4" />}
             <div className="space-y-4">
                 {downloads && downloads.length > 0 ? (
                     downloads.map((download) => {
@@ -122,18 +122,18 @@ const ActiveModelDownloads = ({ withHeader = false }: ActiveModelDownloadsProps)
                                 key={download.model}
                                 className={`rounded-lg p-4 border shadow-sm hover:shadow-lg transition-shadow ${
                                     download.error
-                                        ? 'bg-surface-primary border-red-300'
+                                        ? 'bg-surface-primary border-desert-red-light'
                                         : 'bg-surface-primary border-default'
                                 }`}
                             >
                                 {download.error ? (
                                     <div className="flex items-center gap-2">
-                                        <IconAlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                                        <IconAlertTriangle className="w-5 h-5 text-desert-red flex-shrink-0" />
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium text-text-primary truncate">
                                                 {download.model}
                                             </p>
-                                            <p className="text-xs text-red-600 mt-0.5">{download.error}</p>
+                                            <p className="text-xs text-desert-red-dark mt-0.5">{download.error}</p>
                                         </div>
                                     </div>
                                 ) : (
@@ -154,10 +154,11 @@ const ActiveModelDownloads = ({ withHeader = false }: ActiveModelDownloadsProps)
                                                 ) : (
                                                     <button
                                                         onClick={() => confirmCancel(download)}
-                                                        className="flex-shrink-0 p-1 rounded hover:bg-red-100 transition-colors"
-                                                        title="Cancel download"
+                                                        className="flex-shrink-0 p-1 rounded hover:bg-desert-red-lighter transition-colors"
+                                                        title={t('Cancel download')}
+                                                        aria-label={t('Cancel download')}
                                                     >
-                                                        <IconX className="w-4 h-4 text-text-muted hover:text-red-500" />
+                                                        <IconX className="w-4 h-4 text-text-muted hover:text-desert-red" />
                                                     </button>
                                                 )
                                             )}
@@ -193,9 +194,9 @@ const ActiveModelDownloads = ({ withHeader = false }: ActiveModelDownloadsProps)
 
                                         {/* Status indicator */}
                                         <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                                            <div className="w-2 h-2 rounded-full bg-desert-olive animate-pulse" />
                                             <span className="text-xs text-text-muted">
-                                                Downloading...{speed > 0 ? ` ${formatSpeed(speed)}` : ''}
+                                                {t('Downloading...')}{speed > 0 ? ` ${formatSpeed(speed)}` : ''}
                                             </span>
                                         </div>
                                     </div>
@@ -204,7 +205,7 @@ const ActiveModelDownloads = ({ withHeader = false }: ActiveModelDownloadsProps)
                         )
                     })
                 ) : (
-                    <p className="text-text-muted">No active model downloads</p>
+                    <p className="text-text-muted">{t('No active model downloads')}</p>
                 )}
             </div>
         </>

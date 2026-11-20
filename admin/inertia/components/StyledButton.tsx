@@ -49,80 +49,60 @@ const StyledButton: React.FC<StyledButtonProps> = ({
     }
   }
 
+  // Nothing theme: pill buttons, no shadows, quick press feedback. The main action is inverted
+  // (ink on void); danger uses the alert red, the only colour reserved for destructive actions.
   const getVariantClasses = () => {
-    const baseTransition = 'transition-all duration-200 ease-in-out'
-    const baseHover = 'hover:shadow-md active:scale-[0.98]'
-
+    const baseTransition = 'transition-[background-color,color,border-color,transform] duration-[140ms] ease-[cubic-bezier(0.2,0,0,1)]'
+    const basePress = 'active:scale-[0.97]'
     switch (variant) {
       case 'primary':
-        return clsx(
-          'bg-desert-green text-white',
-          'hover:bg-btn-green-hover hover:shadow-lg',
-          'active:bg-btn-green-active',
-          'disabled:bg-desert-green-light disabled:text-desert-stone-light',
-          baseTransition,
-          baseHover
-        )
-
-      case 'secondary':
-        return clsx(
-          'bg-desert-tan text-white',
-          'hover:bg-desert-tan-dark hover:shadow-lg',
-          'active:bg-desert-tan-dark',
-          'disabled:bg-desert-tan-lighter disabled:text-desert-stone-light',
-          baseTransition,
-          baseHover
-        )
-
-      case 'danger':
-        return clsx(
-          'bg-desert-red text-white',
-          'hover:bg-desert-red-dark hover:shadow-lg',
-          'active:bg-desert-red-dark',
-          'disabled:bg-desert-red-lighter disabled:text-desert-stone-light',
-          baseTransition,
-          baseHover
-        )
-
       case 'action':
         return clsx(
-          'bg-desert-orange text-white',
-          'hover:bg-desert-orange-light hover:shadow-lg',
-          'active:bg-desert-orange-dark',
-          'disabled:bg-desert-orange-lighter disabled:text-desert-stone-light',
+          'bg-accent text-accent-contrast border border-accent',
+          'hover:opacity-90',
+          'disabled:bg-desert-green-light disabled:text-desert-stone-light disabled:border-desert-green-light',
           baseTransition,
-          baseHover
+          basePress
         )
-
+      case 'secondary':
+        return clsx(
+          'bg-surface-elevated text-text-primary border border-border-default',
+          'hover:border-text-secondary',
+          'disabled:text-desert-stone-light',
+          baseTransition,
+          basePress
+        )
+      case 'danger':
+        return clsx(
+          'bg-alert text-white border border-alert',
+          'hover:bg-desert-red-hover hover:border-desert-red-hover',
+          'disabled:bg-desert-red-lighter disabled:text-desert-stone-light',
+          baseTransition,
+          basePress
+        )
       case 'success':
         return clsx(
-          'bg-desert-olive text-white',
-          'hover:bg-desert-olive-dark hover:shadow-lg',
-          'active:bg-desert-olive-dark',
+          'bg-desert-olive text-white border border-desert-olive',
+          'hover:bg-desert-olive-hover hover:border-desert-olive-hover',
           'disabled:bg-desert-olive-lighter disabled:text-desert-stone-light',
           baseTransition,
-          baseHover
+          basePress
         )
-
       case 'ghost':
         return clsx(
-          'bg-transparent text-desert-green',
-          'hover:bg-desert-sand hover:text-desert-green-dark',
-          'active:bg-desert-green-lighter',
+          'bg-transparent text-text-primary border border-transparent',
+          'hover:bg-surface-elevated',
           'disabled:text-desert-stone-light',
           baseTransition
         )
-
       case 'outline':
         return clsx(
-          'bg-transparent border-2 border-desert-green text-desert-green',
-          'hover:bg-desert-green hover:text-white hover:border-btn-green-hover',
-          'active:bg-btn-green-hover active:border-btn-green-active',
-          'disabled:border-desert-green-lighter disabled:text-desert-stone-light',
+          'bg-transparent text-text-primary border border-text-primary',
+          'hover:bg-accent hover:text-accent-contrast hover:border-accent',
+          'disabled:border-border-default disabled:text-desert-stone-light',
           baseTransition,
-          baseHover
+          basePress
         )
-
       default:
         return ''
     }
@@ -153,7 +133,7 @@ const StyledButton: React.FC<StyledButtonProps> = ({
         getSizeClasses(),
         getVariantClasses(),
         isDisabled ? 'pointer-events-none opacity-60' : 'cursor-pointer',
-        'items-center justify-center rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-desert-green-light focus:ring-offset-2 focus:ring-offset-desert-sand disabled:cursor-not-allowed disabled:shadow-none',
+        'items-center justify-center rounded-full font-medium tracking-wide focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-desert-sand disabled:cursor-not-allowed',
         className
       )}
       {...props}

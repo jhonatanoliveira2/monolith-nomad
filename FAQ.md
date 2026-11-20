@@ -1,108 +1,120 @@
-# Frequently Asked Questions (FAQ)
+# Perguntas frequentes (FAQ)
 
-Find answers to some of the most common questions about Project NOMAD
+Respostas para as dúvidas mais comuns sobre o monolith-nomad.
 
-## Can I customize the port(s) that NOMAD uses?
+> O monolith-nomad é uma distribuição independente e não oficial, derivada do Project N.O.M.A.D. Dúvidas sobre esta distribuição devem ir para as [issues deste repositório](https://github.com/jhonatanoliveira2/monolith-nomad/issues), não para o projeto original.
 
-Yes, you can customize the ports that NOMAD's core services (Command Center, MySQL, Redis) use. Please refer to the [Advanced Installation](README.md#advanced-installation) section of the README for more details on how to do this.
+## Posso mudar as portas que o monolith-nomad usa?
 
-Note: As of 3/24/2026, only the core services defined in the `docker-compose.yml` file currently support port customization - the installable applications (e.g. Ollama, Kiwix, etc.) do not yet support this, but we have multiple PR's in the works to add this feature for all installable applications in a future release.
+Sim, você pode mudar as portas dos serviços principais (Central de Comando, MySQL, Redis). Veja a seção [Instalação avançada](README.md#instalação-avançada) do README.
 
-## Can I customize the storage location for NOMAD's data?
+As portas padrão publicadas no host são `8080` (Central de Comando) e `9999` (logs dos containers, via Dozzle).
 
-Yes, you can customize the storage location for NOMAD's content by modifying the `docker-compose.yml` file to adjust the appropriate bind mounts to point to your desired storage location on your host machine. Please refer to the [Advanced Installation](README.md#advanced-installation) section of the README for more details on how to do this.
+Observação: só os serviços principais, definidos no arquivo `docker-compose.yml`, aceitam portas personalizadas. Os apps instaláveis (Ollama, Kiwix etc.) ainda não aceitam.
 
-## Can I store NOMAD's data on an external drive or network storage?
+## Posso mudar o local onde os dados ficam guardados?
 
-Short answer: yes, but we can't do it for you (and we recommend a local drive for best performance).
+Sim. Edite o `docker-compose.yml` (na instalação padrão, `/opt/project-nomad/compose.yml`) e ajuste os bind mounts para apontar para o local desejado no host. Veja a seção [Instalação avançada](README.md#instalação-avançada) do README.
 
-Long answer: Custom storage paths, mount points, and external drives (like iSCSI or SMB/NFS volumes) **are possible**, but this will be up to your individual configuration on the host before NOMAD starts, and then passed in via the compose.yml as this is a *host-level concern*, not a NOMAD-level concern (see above for details). NOMAD itself can't configure this for you, nor could we support all possible configurations in the install script.
+## Posso guardar os dados num disco externo ou num armazenamento de rede?
 
-## Can I run NOMAD on MAC, WSL2, or a non-Debian-based Distro?
+Resposta curta: sim, mas não fazemos isso por você (e recomendamos um disco local, pelo desempenho).
 
-**WSL2 on Windows** is community-supported via the [WSL2 install guide](https://www.projectnomad.us/install/wsl2) — covers two install paths (native Docker and Docker Desktop) with all known gotchas documented and empirical performance numbers comparing WSL2 to bare-metal.
+Resposta longa: caminhos personalizados, pontos de montagem e discos externos (como volumes iSCSI ou SMB/NFS) **são possíveis**, mas dependem da configuração do seu host antes de o monolith-nomad iniciar. Depois, basta passá-los pelo `compose.yml`. Isso é uma questão do *host*, não do monolith-nomad. Ele não tem como configurar isso por você, e o script de instalação não tem como prever todas as configurações possíveis.
 
-**macOS and other non-Debian Linux distros** aren't officially supported. See [Why does NOMAD require a Debian-based OS?](#why-does-nomad-require-a-debian-based-os) for details.
+## Posso rodar no macOS, no WSL2 ou numa distro que não seja baseada em Debian?
 
-## Why does NOMAD require a Debian-based OS?
+Não oficialmente. O sistema de referência é o Ubuntu (24.04 ou 26.04 LTS), e o instalador só roda em sistemas baseados em Debian. Veja [Por que é preciso um sistema baseado em Debian?](#por-que-é-preciso-um-sistema-baseado-em-debian)
 
-Project NOMAD is currently designed to run on Debian-based Linux distributions (with Ubuntu 26.04 LTS being the recommended version) because our installation scripts and Docker configurations are optimized for this environment. While it's technically possible to run the Docker containers on other operating systems that support Docker, we have not tested or optimized the installation process for non-Debian-based systems, so we cannot guarantee a smooth experience on those platforms at this time.
+O projeto original mantém um guia comunitário para WSL2 no Windows. Ele pode servir de referência, mas esta distribuição não testa nem dá suporte a esse caminho.
 
-Support for other operating systems will come in the future, but because our development resources are limited as a free and open-source project, we needed to prioritize our efforts and focus on a narrower set of supported platforms for the initial release. We chose Debian-based Linux as our starting point because it's widely used, easy to spin up, and provides a stable environment for running Docker containers.
+## Por que é preciso um sistema baseado em Debian?
 
-For Windows users, the [WSL2 install guide](https://www.projectnomad.us/install/wsl2) provides a community-supported path. Community members have also published guides for other platforms (e.g. macOS) in our Discord community and [Github Discussions](https://github.com/Crosstalk-Solutions/project-nomad/discussions), so if you're interested in running NOMAD on a non-Debian-based system, we recommend checking there for any available resources or guides. However, keep in mind that if you choose to run NOMAD on a non-Debian-based system, you may encounter issues that we won't be able to provide support for, and you may need to have a higher level of technical expertise to troubleshoot and resolve any problems that arise.
+O monolith-nomad mantém a mesma base do projeto original: os scripts de instalação e as configurações do Docker foram feitos e otimizados para distribuições Linux baseadas em Debian, com o Ubuntu como referência. Tecnicamente, dá para rodar os containers em outros sistemas que tenham Docker, mas o processo de instalação não foi testado nem otimizado para eles, então não há garantia de que vai funcionar bem.
 
-## Can I run NOMAD on a Raspberry Pi or other ARM-based device?
-Project NOMAD is currently designed to run on x86-64 architecture, and we have not yet tested or optimized it for ARM-based devices like the Raspberry Pi (and have not published any official images for ARM architecture).
+O Linux baseado em Debian foi escolhido por ser muito usado, fácil de instalar e estável para rodar containers Docker.
 
-Support for ARM-based devices is on our roadmap, but our initial focus was on x86-64 hardware due to its widespread use and compatibility with a wide range of applications.
+Se você decidir rodar em outro sistema, pode encontrar problemas sem suporte e vai precisar de mais conhecimento técnico para resolvê-los.
 
-Community members have forked and published their own ARM-compatible images and installation guides for running NOMAD on Raspberry Pi and other ARM-based devices in our Discord community and [Github Discussions](https://github.com/Crosstalk-Solutions/project-nomad/discussions), but these are not officially supported by the core development team, and we cannot guarantee their functionality or provide support for any issues that arise when using these community-created resources.
+## Posso rodar num Raspberry Pi ou em outro dispositivo ARM?
 
-## What are the hardware requirements for running NOMAD?
+Não oficialmente. O monolith-nomad foi feito para a arquitetura x86-64 e não há imagens publicadas para ARM. O instalador avisa e espera 10 segundos antes de continuar numa arquitetura sem suporte, e a instalação provavelmente vai falhar.
 
-Project NOMAD itself is quite lightweight and can run on even modest x86-64 hardware, but the tools and resources you choose to install with NOMAD will determine the specs required for your unique deployment. Please see the [Hardware Guide](https://www.projectnomad.us/hardware) for detailed build recommendations at various price points.
+Membros da comunidade do projeto original publicaram imagens e guias próprios para ARM, mas eles não têm suporte oficial e não foram testados com esta distribuição.
 
-## Does NOMAD support languages other than English?
+## Quais são os requisitos de hardware?
 
-As of March 2026, Project NOMAD's UI is only available in English, and the majority of the tools and resources available through NOMAD are also primarily in English. However, we have multi-language support on our roadmap for a future release, and we are actively working on adding support for additional languages both in the UI and in the available tools/resources. If you're interested in contributing to this effort, please check out our [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to get involved.
+O monolith-nomad em si é leve e roda até em hardware x86-64 modesto, mas as ferramentas e os conteúdos que você instalar é que definem os requisitos. Veja a seção [Requisitos](README.md#requisitos) do README.
 
-## What technologies is NOMAD built with?
+## O monolith-nomad tem outros idiomas além do inglês?
 
-Project NOMAD is built using a combination of technologies, including:
-- **Docker:** for containerization of the Command Center and its dependencies
-- **Node.js & TypeScript:** for the backend of the Command Center, particularly the [AdonisJS](https://adonisjs.com/) framework
-- **React:** for the frontend of the Command Center, utilizing [Vite](https://vitejs.dev/) and [Inertia.js](https://inertiajs.com/) under the hood
-- **MySQL:** for the Command Center's database
-- **Redis:** for various caching, background jobs, "cron" tasks, and other internal processes within the Command Center
+Sim. A interface, o instalador e a documentação estão em **português brasileiro (pt-BR)**, que é o idioma padrão, com datas e números no formato brasileiro. A estrutura de tradução (i18next) permite adicionar outros idiomas. As convenções estão em [`admin/inertia/locales/README.md`](admin/inertia/locales/README.md).
 
-NOMAD makes use of the Docker-outside-of-Docker ("DooD") pattern, which allows the Command Center to manage and orchestrate other Docker containers on the host machine without needing to run Docker itself inside a container. This approach provides better performance and compatibility with a wider range of host environments while still allowing for powerful container management capabilities through the Command Center's UI.
+O conteúdo das ferramentas e dos acervos (Wikipédia, cursos, e-books) depende de cada fonte. Boa parte está em inglês, mas há acervos em português, como a Wikipédia em português no Kiwix.
 
-## Can I run NOMAD if I have existing Docker containers on my machine?
-Yes, you can safely run Project NOMAD on a machine that already has existing Docker containers. NOMAD is designed to coexist with other Docker containers and will not interfere with them as long as there are no port conflicts or resource constraints.
+## Com quais tecnologias o monolith-nomad é feito?
 
-All of NOMAD's containers are prefixed with `nomad_` in their names, so they can be easily identified and managed separately from any other containers you may have running. Just make sure to review the ports that NOMAD's core services (Command Center, MySQL, Redis) use during installation and adjust them if necessary to avoid conflicts with your existing containers.
+- **Docker:** containers da Central de Comando e das dependências dela
+- **Node.js e TypeScript:** backend da Central de Comando, com o framework [AdonisJS](https://adonisjs.com/)
+- **React:** frontend da Central de Comando, com [Vite](https://vitejs.dev/) e [Inertia.js](https://inertiajs.com/)
+- **MySQL:** banco de dados da Central de Comando
+- **Redis:** cache, tarefas em segundo plano, tarefas agendadas e outros processos internos
+- **aria2c:** downloads segmentados e com vários mirrors ([`docs/downloads.md`](docs/downloads.md))
 
-## Why does NOMAD require access to the Docker socket?
+O monolith-nomad usa o padrão Docker-outside-of-Docker ("DooD"): a Central de Comando gerencia e orquestra outros containers Docker no host sem precisar rodar o Docker dentro de um container. Isso dá melhor desempenho e compatibilidade com mais ambientes, e ainda permite gerenciar os containers pela interface.
 
-See [What technologies is NOMAD built with?](#what-technologies-is-nomad-built-with)
+## Posso rodar o monolith-nomad numa máquina que já tem containers Docker?
 
-## Can I use any AI models?
-NOMAD by default uses Ollama inside of a docker container to run LLM Models for the AI Assistant. So if you find a model on HuggingFace for example, you won't be able to use that model in NOMAD. The list of available models in the AI Assistant settings (/settings/models) may not show all of the models you are looking for. If you found a model from https://ollama.com/search that you'd like to try and its not in the settings page, you can use a curl command to download the model.  
-`curl -X POST -H "Content-Type: application/json" -d '{"model":"MODEL_NAME_HERE"}' http://localhost:8080/api/ollama/models` replacing MODEL_NAME_HERE with the model name from whats in the ollama website.
+Sim. Ele foi feito para conviver com outros containers e não interfere neles, desde que não haja conflito de portas ou falta de recursos.
 
-## Do I have to install the AI features in NOMAD?
+Todos os containers do monolith-nomad têm o prefixo `nomad_` no nome, então são fáceis de identificar e gerenciar separadamente. Confira as portas dos serviços principais antes de instalar e ajuste-as se for preciso. O instalador verifica se as portas estão livres e para antes de criar qualquer coisa se alguma estiver ocupada.
 
-No, the AI features in NOMAD (Ollama, Qdrant, custom RAG pipeline, etc.) are all optional and not required to use the core functionality of NOMAD.
+## Por que o monolith-nomad precisa de acesso ao socket do Docker?
 
-## Is NOMAD actually free? Are there any hidden costs?
-Yes, Project NOMAD is completely free and open-source software licensed under the Apache License 2.0. There are no hidden costs or fees associated with using NOMAD itself, and we don't have any plans to introduce "premium" features or paid tiers.
+Veja [Com quais tecnologias o monolith-nomad é feito?](#com-quais-tecnologias-o-monolith-nomad-é-feito)
 
-Aside from the cost of the hardware you choose to run it on, there are no costs associated with using NOMAD.
+## Posso usar qualquer modelo de IA?
 
-## Do you sell hardware or pre-built devices with NOMAD pre-installed?
+Por padrão, o Assistente de IA roda os modelos com o Ollama, num container Docker. Por isso, um modelo encontrado no Hugging Face, por exemplo, não funciona diretamente. A lista de modelos nas configurações do Assistente de IA (`/settings/models`) pode não mostrar todos os que você procura. Se você encontrou em <https://ollama.com/search> um modelo que não aparece na página de configurações, baixe-o com o comando abaixo, trocando `MODEL_NAME_HERE` pelo nome do modelo no site do Ollama:
 
-No, we do not sell hardware or pre-built devices with NOMAD pre-installed at this time. Project NOMAD is a free and open-source software project, and we provide detailed installation instructions and hardware recommendations for users to set up their own NOMAD instances on compatible hardware of their choice. The tradeoff to this DIY approach is some additional setup time and technical know-how required on the user's end, but it also allows for greater flexibility and customization in terms of hardware selection and configuration to best suit each user's unique needs, budget, and preferences.
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"model":"MODEL_NAME_HERE"}' http://localhost:8080/api/ollama/models
+```
 
-## How quickly are issues resolved when reported?
+Também é possível usar um servidor compatível com a API da OpenAI (LM Studio, llama.cpp), inclusive em outro computador. Veja [IA em outro computador](README.md#ia-em-outro-computador).
 
-We strive to address and resolve issues as quickly as possible, but please keep in mind that Project NOMAD is a free and open-source project maintained by a small team of volunteers. We prioritize issues based on their severity, impact on users, and the resources required to resolve them. Critical issues that affect a large number of users are typically addressed more quickly, while less severe issues may take longer to resolve. Aside from the development efforts needed to address the issue, we do our best to conduct thorough testing and validation to ensure that any fix we implement doesn't introduce new issues or regressions, which also adds to the time it takes to resolve an issue.
+## A IA funciona com GPU AMD?
 
-We also encourage community involvement in troubleshooting and resolving issues, so if you encounter a problem, please consider checking our Discord community and Github Discussions for potential solutions or workarounds while we work on an official fix.
+Sim. O instalador detecta GPUs AMD (e o modelo gfx da placa) e grava essa informação para a Central de Comando. A aceleração ROCm é configurada automaticamente quando você instala o Assistente de IA. Não é preciso NVIDIA nem CUDA. GPUs NVIDIA continuam com suporte, pelo NVIDIA Container Toolkit.
 
-## How often are new features added or updates released?
+## Sou obrigado a instalar os recursos de IA?
 
-We aim to release updates and new features on a regular basis, but the exact timing can vary based on the complexity of the features being developed, the resources available to our volunteer development team, and the feedback and needs of our community. We typically release smaller "patch" versions more frequently to address bugs and make minor improvements, while larger feature releases may take more time to develop and test before they're ready for release.
+Não. Os recursos de IA (Ollama, Qdrant, o pipeline de RAG etc.) são opcionais, e o resto do monolith-nomad funciona sem eles.
 
-## I opened a PR to contribute a new feature or fix a bug. How long does it usually take for PRs to be reviewed and merged?
-We appreciate all contributions to the project and strive to review and merge pull requests (PRs) as quickly as possible. The time it takes for a PR to be reviewed and merged can vary based on several factors, including the complexity of the changes, the current workload of our maintainers, and the need for any additional testing or revisions.
+## O monolith-nomad é gratuito mesmo? Tem custos escondidos?
 
-Because NOMAD is still a young project, some PRs (particularly those for new features) may take longer to review and merge as we prioritize building out the core functionality and ensuring stability before adding new features. However, we do our best to provide timely feedback on all PRs and keep contributors informed about the status of their contributions.
+Sim, é software livre e de código aberto, sob a Apache License 2.0, como o projeto original. Não há custos nem taxas para usá-lo, e não há planos de recursos "premium" ou pagos. O único custo é o do hardware em que você escolher rodá-lo.
 
-## I have a question that isn't answered here. Where can I ask for help?
+## Os downloads são mais rápidos aqui?
 
-If you have a question that isn't answered in this FAQ, please feel free to ask for help in our Discord community (https://discord.com/invite/crosstalksolutions) or on our Github Discussions page (https://github.com/Crosstalk-Solutions/project-nomad/discussions).
+O monolith-nomad mede os mirrors oficiais antes de baixar e escolhe pelo desempenho medido, não só pela distância. Usa o aria2c com download segmentado, retoma downloads interrompidos e confere o SHA-256 de cada arquivo antes de instalá-lo. Só são usados mirrors da lista oficial do Kiwix. As medições reais e os limites estão em [`docs/downloads.md`](docs/downloads.md).
 
-## I have a suggestion for a new feature or improvement. How can I share it?
+## O monolith-nomad envia dados para algum servidor?
 
-We welcome and encourage suggestions for new features and improvements! We highly encourage sharing your ideas (or upvoting existing suggestions) on our public roadmap at https://roadmap.projectnomad.us, where we track new feature requests. This is the best way to ensure that your suggestion is seen by the development team and the community, and it also allows other community members to upvote and show support for your idea, which can help prioritize it for future development.
+Não há telemetria. Os serviços online do projeto original (leaderboard de benchmark, newsletter, lista curada de modelos) ficam desligados por padrão. A lista completa e como religar cada um estão em [`docs/distribuicao.md`](docs/distribuicao.md).
+
+## Com que rapidez os problemas reportados são resolvidos?
+
+O monolith-nomad é mantido de forma independente, sem prazo garantido. Problemas graves, que afetam muita gente ou a segurança, têm prioridade. Antes de publicar uma correção, ela é testada para não introduzir novos problemas, o que também leva tempo.
+
+## Encontrei um problema ou tenho uma dúvida que não está aqui. Onde peço ajuda?
+
+Abra uma issue em <https://github.com/jhonatanoliveira2/monolith-nomad/issues>, usando o modelo de relato de bug. Para vulnerabilidades de segurança, **não** abra issue pública: siga o [`SECURITY.md`](SECURITY.md).
+
+## Tenho uma sugestão de recurso ou melhoria. Como envio?
+
+Abra uma issue em <https://github.com/jhonatanoliveira2/monolith-nomad/issues> com o modelo de sugestão de recurso. Antes, procure se já existe uma sugestão parecida.
+
+## Abri um PR. Quanto tempo leva para ser revisado?
+
+Depende da complexidade da mudança, da necessidade de testes ou ajustes e do tempo disponível do mantenedor. Seguir o [`CONTRIBUTING.md`](CONTRIBUTING.md) (issue antes, testes, commits convencionais) agiliza a revisão.

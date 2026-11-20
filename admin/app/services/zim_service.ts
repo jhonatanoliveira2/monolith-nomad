@@ -35,6 +35,7 @@ import { RunDownloadJob } from '#jobs/run_download_job'
 import { DownloadDrugDataJob } from '#jobs/download_drug_data_job'
 import { DrugReferenceService } from './drug_reference_service.js'
 import { SERVICE_NAMES } from '../../constants/service_names.js'
+import { GITHUB_RAW_BASE_URL } from '../../constants/project.js'
 import { CollectionManifestService } from './collection_manifest_service.js'
 import { KiwixCatalogService } from './kiwix_catalog_service.js'
 import { KiwixLibraryService } from './kiwix_library_service.js'
@@ -48,7 +49,7 @@ import { getHostedContentHeaders } from '../utils/hosted_content_auth.js'
 import { KIWIX_CATALOG_BASE_URL } from '../../constants/kiwix.js'
 
 const ZIM_MIME_TYPES = ['application/x-zim', 'application/x-openzim', 'application/octet-stream']
-const WIKIPEDIA_OPTIONS_URL = 'https://raw.githubusercontent.com/Crosstalk-Solutions/project-nomad/refs/heads/main/collections/wikipedia.json'
+const WIKIPEDIA_OPTIONS_URL = `${GITHUB_RAW_BASE_URL}/collections/wikipedia.json`
 
 @inject()
 export class ZimService {

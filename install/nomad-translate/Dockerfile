@@ -27,7 +27,7 @@ ENV MODELS=/models \
     KIWIX=http://nomad_kiwix_server:8080 \
     PORT=8391 \
     WORKERS=8 \
-    TRANSLATE_LANGS=fr,es,de
+    TRANSLATE_LANGS=pt,es,fr,de
 
 EXPOSE 8391
 

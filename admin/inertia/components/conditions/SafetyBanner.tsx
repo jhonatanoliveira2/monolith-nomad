@@ -1,4 +1,5 @@
 import { IconAlertTriangle } from '@tabler/icons-react'
+import { Trans, useTranslation } from 'react-i18next'
 
 /**
  * "When to use what" — top-of-page safety banner.
@@ -9,28 +10,40 @@ import { IconAlertTriangle } from '@tabler/icons-react'
  * It leads the page (not a footnote) so the caveat is read before any result.
  */
 export default function SafetyBanner() {
+  const { t } = useTranslation()
   return (
-    <div role="alert" className="mb-6 rounded-lg border-2 border-amber-400 bg-amber-50 p-4">
+    <div
+      role="alert"
+      className="mb-6 rounded-lg border-2 border-desert-orange bg-desert-orange-lighter p-4"
+    >
       <div className="flex items-start gap-3">
         <IconAlertTriangle
           size={22}
-          className="mt-0.5 flex-shrink-0 text-amber-600"
+          className="mt-0.5 flex-shrink-0 text-desert-orange-dark"
           aria-hidden="true"
         />
-        <div className="text-sm text-amber-900">
-          <p className="font-bold mb-1">Informational reference only — not medical advice.</p>
-          <ul className="list-disc pl-5 space-y-0.5 text-amber-800">
+        <div className="text-sm text-desert-orange-dark">
+          <p className="font-bold mb-1">
+            {t('Informational reference only — not medical advice.')}
+          </p>
+          <ul className="list-disc pl-5 space-y-0.5 text-desert-orange-dark">
             <li>
-              These results match FDA drug-label indications to a situation. They are{' '}
-              <strong>not a recommendation</strong> and <strong>not an FDA endorsement</strong>.
+              <Trans
+                i18nKey="These results match FDA drug-label indications to a situation. They are <strong>not a recommendation</strong> and <strong>not an FDA endorsement</strong>."
+                components={{ strong: <strong /> }}
+              />
             </li>
             <li>
-              This is <strong>not a drug-interaction checker</strong>. Read each label&rsquo;s full
-              warnings, and check with a pharmacist or clinician before combining medicines.
+              <Trans
+                i18nKey="This is <strong>not a drug-interaction checker</strong>. Read each label’s full warnings, and check with a pharmacist or clinician before combining medicines."
+                components={{ strong: <strong /> }}
+              />
             </li>
             <li>
-              In an emergency, or if symptoms are severe or worsening,{' '}
-              <strong>contact a medical professional or call emergency services</strong>.
+              <Trans
+                i18nKey="In an emergency, or if symptoms are severe or worsening, <strong>contact a medical professional or call emergency services</strong>."
+                components={{ strong: <strong /> }}
+              />
             </li>
           </ul>
         </div>
