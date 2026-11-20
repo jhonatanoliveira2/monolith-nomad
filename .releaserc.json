@@ -1,24 +1,48 @@
 {
   "branches": [
     "main",
-    { "name": "rc", "prerelease": "rc" }
+    {
+      "name": "rc",
+      "prerelease": "rc"
+    }
   ],
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
-    ["@semantic-release/npm", {
-      "npmPublish": false
-    }],
-    ["@semantic-release/git", {
-      "assets": ["package.json"],
-      "message": "chore(release): ${nextRelease.version} [skip ci]"
-    }],
-    ["@semantic-release/github", {
-      "assets": [
-        { "path": "install/install_nomad.sh", "label": "install_nomad.sh" },
-        { "path": "install/uninstall_nomad.sh", "label": "uninstall_nomad.sh" },
-        { "path": "install/management_compose.yaml", "label": "management_compose.yaml" }
-      ]
-    }]
+    [
+      "@semantic-release/npm",
+      {
+        "npmPublish": false
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "package.json"
+        ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]"
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "install/install_nomad.sh",
+            "label": "install_nomad.sh"
+          },
+          {
+            "path": "install/uninstall_nomad.sh",
+            "label": "uninstall_nomad.sh"
+          },
+          {
+            "path": "install/management_compose.yaml",
+            "label": "management_compose.yaml"
+          }
+        ],
+        "releaseBodyTemplate": "<% var notes = nextRelease.notes || ''; var max = 100000; %><%= notes.length > max ? notes.slice(0, max) + '\\n\\n… notas truncadas (o GitHub aceita até 125.000 caracteres): a lista completa de mudanças está no CHANGELOG.md.' : notes %>"
+      }
+    ]
   ]
 }

@@ -156,3 +156,20 @@ test('every release ships the installer files, and the README installs from the 
     'no install command from a moving branch'
   )
 })
+
+test('the GitHub release body is capped below the API limit (125,000 characters)', async () => {
+  // same engine as @semantic-release/github (lodash template)
+  const { default: template } = await import('lodash/template.js')
+  const releaserc = JSON.parse(read('.releaserc.json')) as { plugins: unknown[] }
+  const github = releaserc.plugins.find(
+    (p) => Array.isArray(p) && p[0] === '@semantic-release/github'
+  ) as [string, { releaseBodyTemplate?: string }]
+  const body = github[1].releaseBodyTemplate
+  assert.ok(body, 'releaseBodyTemplate set (the default is the raw notes)')
+  const render = (notes: string) => template(body)({ nextRelease: { notes } })
+  // the first release of the fork had 888 upstream commits in its notes (HttpError: body is too long)
+  const huge = render('* fix: something\n'.repeat(20_000))
+  assert.ok(huge.length < 125_000, `body has ${huge.length} characters`)
+  assert.match(huge, /CHANGELOG\.md/)
+  assert.equal(render('* fix: short notes'), '* fix: short notes')
+})

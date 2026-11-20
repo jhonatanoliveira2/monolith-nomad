@@ -8,7 +8,7 @@ removidos pelo mantenedor do monolith-nomad** em relação ao commit `f633b36` d
 O que mudou e por quê está descrito no [`CHANGELOG.md`](CHANGELOG.md) e em [`docs/`](docs/). Créditos e licenças de
 terceiros: [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
-Gerado por `scripts/list-modifications.sh` (não edite à mão): 192 modificados, 73
+Gerado por `scripts/list-modifications.sh` (não edite à mão): 193 modificados, 73
 adicionados, 5 removidos.
 
 | Situação | Arquivo |
@@ -277,6 +277,7 @@ adicionados, 5 removidos.
 | Adicionado | `install/tests/install_source_test.sh` |
 | Modificado | `install/uninstall_nomad.sh` |
 | Modificado | `install/update_nomad.sh` |
+| Modificado | `package.json` |
 | Modificado | `README.md` |
 | Modificado | `.releaserc.json` |
 | Adicionado | `scripts/list-modifications.sh` |

@@ -4,7 +4,9 @@ Mudanças desta distribuição em relação ao Project N.O.M.A.D. (base `1.35.2-
 
 O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
-## [Não lançado]
+## [1.0.0] - 2026-11-20
+
+Primeira versão do monolith-nomad. A numeração própria começa em 1.0.0; a base é o Project N.O.M.A.D. 1.35.2-rc.1.
 
 ### Adicionado
 
