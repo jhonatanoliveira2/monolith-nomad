@@ -173,3 +173,23 @@ test('the GitHub release body is capped below the API limit (125,000 characters)
   assert.match(huge, /CHANGELOG\.md/)
   assert.equal(render('* fix: short notes'), '* fix: short notes')
 })
+
+test('no workflow depends on a secret or identity of the original project; publishing is owner-only', () => {
+  for (const name of workflows) {
+    const text = read(`.github/workflows/${name}`)
+    for (const forbidden of [
+      'DEPLOYMENT_AUTHORIZED_USERS',
+      'COSMISTACKBOT',
+      'cosmistack',
+      'NOMAD_API_KEY',
+    ]) {
+      // an undefined secret is an empty string: the check silently skipped every image build
+      assert.ok(!text.includes(forbidden), `${name} still uses ${forbidden}`)
+    }
+    if (/check_authorization:/.test(text)) {
+      assert.match(text, /ACTOR: \$\{\{ github\.triggering_actor \}\}/, `${name}: actor via env`)
+      assert.match(text, /OWNER: \$\{\{ github\.repository_owner \}\}/, `${name}: owner via env`)
+      assert.match(text, /"\$ACTOR" == "\$OWNER"/, `${name}: only the repository owner`)
+    }
+  }
+})

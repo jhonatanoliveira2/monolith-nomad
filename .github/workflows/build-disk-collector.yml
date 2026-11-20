@@ -20,9 +20,14 @@ jobs:
     outputs:
       isAuthorized: ${{ steps.check-auth.outputs.is_authorized }}
     steps:
+      # only the repository owner publishes images (values through env, never interpolated into the script)
       - name: check-auth
         id: check-auth
-        run: echo "is_authorized=${{ contains(secrets.DEPLOYMENT_AUTHORIZED_USERS, github.triggering_actor) }}" >> $GITHUB_OUTPUT
+        env:
+          ACTOR: ${{ github.triggering_actor }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          if [[ "$ACTOR" == "$OWNER" ]]; then echo "is_authorized=true"; else echo "is_authorized=false"; fi >> "$GITHUB_OUTPUT"
   build:
     name: Build disk-collector image
     needs: check_authorization
