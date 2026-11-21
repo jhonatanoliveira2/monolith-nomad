@@ -10,15 +10,16 @@ import CategoryCard from '~/components/CategoryCard'
 import CreatorPackCard from '~/components/CreatorPackCard'
 import TierSelectionModal from '~/components/TierSelectionModal'
 import WikipediaSelector from '~/components/WikipediaSelector'
+import LanguageBadge from '~/components/LanguageBadge'
 import LoadingSpinner from '~/components/LoadingSpinner'
 import Alert from '~/components/Alert'
 import { IconCheck, IconCpu, IconBooks } from '@tabler/icons-react'
 import StorageProjectionBar from '~/components/StorageProjectionBar'
-import { useNotifications } from '~/context/NotificationContext'
-import useInternetStatus from '~/hooks/useInternetStatus'
-import useCreatorPacks from '~/hooks/useCreatorPacks'
-import { useSystemInfo } from '~/hooks/useSystemInfo'
-import { getPrimaryDiskInfo } from '~/hooks/useDiskDisplayData'
+import { useNotifications } from '~/context/notification_context'
+import useInternetStatus from '~/hooks/use_internet_status'
+import useCreatorPacks from '~/hooks/use_creator_packs'
+import { useSystemInfo } from '~/hooks/use_system_info'
+import { getPrimaryDiskInfo } from '~/hooks/use_disk_display_data'
 import classNames from 'classnames'
 import type { CategoryWithStatus, SpecTier, SpecResource } from '../../../types/collections'
 import { resolveTierResources } from '~/lib/collections'
@@ -1319,6 +1320,7 @@ export default function EasySetupWizard(props: {
                         {resources.map((resource, idx) => (
                           <li key={idx} className="text-sm text-text-secondary">
                             {resource.title}
+                            <LanguageBadge language={resource.language} />
                           </li>
                         ))}
                       </ul>

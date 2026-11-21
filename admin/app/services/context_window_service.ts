@@ -46,7 +46,8 @@ export class ContextWindowService {
    * process return the identical number, which is what keeps the model loaded.
    */
   async windowFor(model: string): Promise<number> {
-    return (await this.decisionFor(model)).contextWindow
+    const decision = await this.decisionFor(model)
+    return decision.contextWindow
   }
 
   async decisionFor(model: string): Promise<ContextWindowDecision> {

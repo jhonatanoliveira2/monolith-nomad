@@ -72,9 +72,7 @@ export function assertNotPrivateUrl(urlString: string): void {
 // Compared after `ipaddr.toNormalizedString()`, which expands IPv6 to its
 // fully-zero-padded form (e.g. `fd00:ec2::254` → `fd00:ec2:0:0:0:0:0:254`).
 const BLOCKED_METADATA_IPV4 = new Set(['169.254.169.254'])
-const BLOCKED_METADATA_IPV6 = new Set([
-  ipaddr.parse('fd00:ec2::254').toNormalizedString(),
-])
+const BLOCKED_METADATA_IPV6 = new Set([ipaddr.parse('fd00:ec2::254').toNormalizedString()])
 
 export function assertNotCloudMetadataUrl(urlString: string): void {
   const parsed = new URL(urlString)
@@ -103,8 +101,7 @@ export function assertNotCloudMetadataUrl(urlString: string): void {
 
   const canonical = addr.toNormalizedString()
 
-  const blocked =
-    addr.kind() === 'ipv4' ? BLOCKED_METADATA_IPV4 : BLOCKED_METADATA_IPV6
+  const blocked = addr.kind() === 'ipv4' ? BLOCKED_METADATA_IPV4 : BLOCKED_METADATA_IPV6
   if (blocked.has(canonical)) {
     throw new Error(`URL must not point to the cloud instance metadata endpoint: ${canonical}`)
   }
@@ -186,9 +183,7 @@ export const applyContentUpdateValidator = vine.compile(resourceUpdateInfoBase)
 
 export const applyAllContentUpdatesValidator = vine.compile(
   vine.object({
-    updates: vine
-      .array(resourceUpdateInfoBase)
-      .minLength(1),
+    updates: vine.array(resourceUpdateInfoBase).minLength(1),
   })
 )
 

@@ -165,7 +165,10 @@ export function numericGroundedness(
 }
 
 /** Which of a golden's patterns matched, using case-insensitive regex semantics. */
-export function matchPatterns(answer: string, patterns: string[]): { matched: string[]; missed: string[] } {
+export function matchPatterns(
+  answer: string,
+  patterns: string[]
+): { matched: string[]; missed: string[] } {
   const matched: string[] = []
   const missed: string[] = []
   for (const pattern of patterns) {

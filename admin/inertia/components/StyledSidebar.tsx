@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from '@headlessui/react'
-import classNames from '~/lib/classNames'
+import classNames from '~/lib/class_names'
 import { IconArrowLeft, IconBug } from '@tabler/icons-react'
 import { Link, usePage } from '@inertiajs/react'
 import { UsePageProps } from '../../types/system'

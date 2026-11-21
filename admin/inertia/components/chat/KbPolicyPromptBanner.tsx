@@ -3,7 +3,7 @@ import { usePage } from '@inertiajs/react'
 import { IconBrain } from '@tabler/icons-react'
 import api from '~/lib/api'
 import StyledButton from '~/components/StyledButton'
-import { useNotifications } from '~/context/NotificationContext'
+import { useNotifications } from '~/context/notification_context'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '~/lib/format'
 

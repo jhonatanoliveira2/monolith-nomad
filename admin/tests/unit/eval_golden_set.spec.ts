@@ -70,7 +70,10 @@ test('rejects malformed JSON with the line number', () => {
 })
 
 test('rejects a missing query', () => {
-  assert.throws(() => parseGoldens(JSON.stringify({ id: 'a', relevantDocIds: ['d'] })), /missing "query"/)
+  assert.throws(
+    () => parseGoldens(JSON.stringify({ id: 'a', relevantDocIds: ['d'] })),
+    /missing "query"/
+  )
 })
 
 test('rejects an empty query', () => {
@@ -121,13 +124,21 @@ test('accepts alternation, which is how one entry covers "3 minutes" and "three 
 
 test('accepts multi-turn history', () => {
   const [g] = parseGoldens(
-    line({ turns: [{ role: 'user', content: 'first' }, { role: 'assistant', content: 'reply' }] })
+    line({
+      turns: [
+        { role: 'user', content: 'first' },
+        { role: 'assistant', content: 'reply' },
+      ],
+    })
   )
   assert.equal(g.turns.length, 2)
 })
 
 test('rejects a turn with a bogus role', () => {
-  assert.throws(() => parseGoldens(line({ turns: [{ role: 'system', content: 'x' }] })), /"turns" must be/)
+  assert.throws(
+    () => parseGoldens(line({ turns: [{ role: 'system', content: 'x' }] })),
+    /"turns" must be/
+  )
 })
 
 test('rejects an empty golden file rather than silently reporting a perfect score', () => {
@@ -167,7 +178,10 @@ const inputs = (over: Record<string, unknown> = {}) => ({
 })
 
 test('fingerprint is stable across runs', () => {
-  assert.equal(computeCorpusFingerprint(inputs(), fakeHash), computeCorpusFingerprint(inputs(), fakeHash))
+  assert.equal(
+    computeCorpusFingerprint(inputs(), fakeHash),
+    computeCorpusFingerprint(inputs(), fakeHash)
+  )
 })
 
 test('fingerprint ignores document insertion order', () => {
@@ -177,17 +191,37 @@ test('fingerprint ignores document insertion order', () => {
       ['a', 'alpha'],
     ]),
   })
-  assert.equal(computeCorpusFingerprint(inputs(), fakeHash), computeCorpusFingerprint(reversed, fakeHash))
+  assert.equal(
+    computeCorpusFingerprint(inputs(), fakeHash),
+    computeCorpusFingerprint(reversed, fakeHash)
+  )
 })
 
 test('fingerprint changes when a document changes', () => {
-  const edited = inputs({ documents: new Map([['a', 'alpha!'], ['b', 'beta']]) })
-  assert.notEqual(computeCorpusFingerprint(inputs(), fakeHash), computeCorpusFingerprint(edited, fakeHash))
+  const edited = inputs({
+    documents: new Map([
+      ['a', 'alpha!'],
+      ['b', 'beta'],
+    ]),
+  })
+  assert.notEqual(
+    computeCorpusFingerprint(inputs(), fakeHash),
+    computeCorpusFingerprint(edited, fakeHash)
+  )
 })
 
 test('fingerprint changes when a document is added', () => {
-  const added = inputs({ documents: new Map([['a', 'alpha'], ['b', 'beta'], ['c', 'gamma']]) })
-  assert.notEqual(computeCorpusFingerprint(inputs(), fakeHash), computeCorpusFingerprint(added, fakeHash))
+  const added = inputs({
+    documents: new Map([
+      ['a', 'alpha'],
+      ['b', 'beta'],
+      ['c', 'gamma'],
+    ]),
+  })
+  assert.notEqual(
+    computeCorpusFingerprint(inputs(), fakeHash),
+    computeCorpusFingerprint(added, fakeHash)
+  )
 })
 
 test('fingerprint changes when the chunk size changes', () => {
@@ -221,7 +255,17 @@ test('fingerprint is short enough to paste into a filename', () => {
 
 test('document contents cannot collide by concatenation', () => {
   // Naive joining lets {a: "xy", b: ""} hash the same as {a: "x", b: "y"}.
-  const one = inputs({ documents: new Map([['a', 'xy'], ['b', '']]) })
-  const two = inputs({ documents: new Map([['a', 'x'], ['b', 'y']]) })
+  const one = inputs({
+    documents: new Map([
+      ['a', 'xy'],
+      ['b', ''],
+    ]),
+  })
+  const two = inputs({
+    documents: new Map([
+      ['a', 'x'],
+      ['b', 'y'],
+    ]),
+  })
   assert.notEqual(computeCorpusFingerprint(one, fakeHash), computeCorpusFingerprint(two, fakeHash))
 })

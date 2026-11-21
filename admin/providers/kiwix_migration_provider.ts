@@ -19,7 +19,7 @@ export default class KiwixMigrationProvider {
     // Defer past synchronous boot so DB connections and all providers are fully ready
     setImmediate(async () => {
       try {
-        const Service = (await import('#models/service')).default
+        const { default: Service } = await import('#models/service')
         const { SERVICE_NAMES } = await import('../constants/service_names.js')
         const { DockerService } = await import('#services/docker_service')
         const { KiwixLibraryService } = await import('#services/kiwix_library_service')
@@ -49,7 +49,9 @@ export default class KiwixMigrationProvider {
           return
         }
 
-        logger.info('[KiwixMigrationProvider] Kiwix on legacy config — running automatic migration to library mode.')
+        logger.info(
+          '[KiwixMigrationProvider] Kiwix on legacy config — running automatic migration to library mode.'
+        )
         await dockerService.migrateKiwixToLibraryMode()
         logger.info('[KiwixMigrationProvider] Startup migration complete.')
       } catch (err: any) {

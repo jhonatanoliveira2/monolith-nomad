@@ -3,12 +3,12 @@ import {
   DoResumableDownloadWithRetryParams,
 } from '../../types/downloads.js'
 import axios from 'axios'
-import { Transform } from 'stream'
+import { Transform } from 'node:stream'
 import { deleteFileIfExists, ensureDirectoryExists, getFileStatsIfExists } from './fs.js'
-import { createReadStream, createWriteStream } from 'fs'
-import { rename } from 'fs/promises'
+import { createReadStream, createWriteStream } from 'node:fs'
+import { rename } from 'node:fs/promises'
 import { createHash, type Hash } from 'node:crypto'
-import path from 'path'
+import path from 'node:path'
 import { getLogger } from './lazy_logger.js'
 import { computeBackoffDelay, sleep } from './backoff.js'
 import {
@@ -18,7 +18,7 @@ import {
   hasRoomForDownload,
   isMatchingResume,
 } from './download_integrity.js'
-import { statfs } from 'fs/promises'
+import { statfs } from 'node:fs/promises'
 
 async function getFreeBytesAt(dir: string): Promise<number | null> {
   try {
@@ -183,9 +183,8 @@ export async function preflightDownload({
   // already in every binary-content allowlist we use (ZIM, PMTILES, base assets).
   // Without this default, the validator below throws `MIME type  is not allowed`
   // and breaks all downloads from kiwix's primary host (#848).
-  const contentType =
-    headResponse.headers['content-type']?.toString() || 'application/octet-stream'
-  const totalBytes = parseInt(headResponse.headers['content-length']?.toString() || '0', 10)
+  const contentType = headResponse.headers['content-type']?.toString() || 'application/octet-stream'
+  const totalBytes = Number.parseInt(headResponse.headers['content-length']?.toString() || '0', 10)
   const supportsRangeRequests = headResponse.headers['accept-ranges'] === 'bytes'
 
   // If allowedMimeTypes is provided, check content type
@@ -307,10 +306,10 @@ export async function doResumableDownload({
     headers.Range = `bytes=${startByte}-`
   }
 
-  const fetchStream = (headers: Record<string, string>) =>
+  const fetchStream = (streamHeaders: Record<string, string>) =>
     axios.get(url, {
       responseType: 'stream',
-      headers,
+      headers: streamHeaders,
       signal,
       timeout,
       ...(lookup && { lookup }),

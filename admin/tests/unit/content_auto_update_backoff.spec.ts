@@ -76,7 +76,10 @@ test('success is a no-op (no save) when already clean', async () => {
 })
 
 test('success still resets when a stray reason lingers at zero failures', async () => {
-  const r = makeResource({ auto_update_consecutive_failures: 0, auto_update_disabled_reason: 'stale' })
+  const r = makeResource({
+    auto_update_consecutive_failures: 0,
+    auto_update_disabled_reason: 'stale',
+  })
   await recordResourceUpdateSuccess(r)
   assert.equal(r.auto_update_disabled_reason, null)
   assert.equal(r.saveCount, 1)

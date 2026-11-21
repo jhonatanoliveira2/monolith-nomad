@@ -10,8 +10,8 @@ import {
 } from '@tabler/icons-react'
 
 import { useTranslation } from 'react-i18next'
-import { PIN_COLORS } from '~/hooks/useMapMarkers'
-import type { MapMarker } from '~/hooks/useMapMarkers'
+import { PIN_COLORS } from '~/hooks/use_map_markers'
+import type { MapMarker } from '~/hooks/use_map_markers'
 
 interface MarkerPanelProps {
   markers: MapMarker[]

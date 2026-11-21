@@ -17,7 +17,8 @@ import { isWithinWindow } from '../../app/utils/update_window.js'
  */
 export default class ContentAutoUpdateDryRun extends BaseCommand {
   static commandName = 'content-auto-update:dry-run'
-  static description = 'Dry-run the content auto-update decision pipeline (never dispatches a download)'
+  static description =
+    'Dry-run the content auto-update decision pipeline (never dispatches a download)'
 
   @flags.boolean({ description: 'Run the built-in deterministic scenario suite and exit' })
   declare scenarios: boolean
@@ -85,7 +86,9 @@ export default class ContentAutoUpdateDryRun extends BaseCommand {
       `  Data cap        : ${d.config.maxBytesPerWindow > 0 ? d.config.maxBytesPerWindow + ' bytes' : 'unlimited'}`
     )
     this.logger.log(`  Eligible        : ${d.eligibleCount}`)
-    this.logger.log(`  Would start     : ${d.selection.selected.map((c) => c.resource.resource_id).join(', ') || '—'}`)
+    this.logger.log(
+      `  Would start     : ${d.selection.selected.map((c) => c.resource.resource_id).join(', ') || '—'}`
+    )
     this.logger.log(
       `  Skipped (cap)   : ${d.selection.skippedOversize.map((c) => c.resource.resource_id).join(', ') || '—'}`
     )

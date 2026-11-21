@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import StyledModal from '../StyledModal'
 import StyledButton from '~/components/StyledButton'
-import { useNotifications } from '~/context/NotificationContext'
+import { useNotifications } from '~/context/notification_context'
 import api from '~/lib/api'
 import { useTranslation } from 'react-i18next'
 

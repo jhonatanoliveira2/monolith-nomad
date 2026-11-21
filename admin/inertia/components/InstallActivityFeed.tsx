@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { IconCircleCheck, IconCircleX } from '@tabler/icons-react'
-import classNames from '~/lib/classNames'
+import classNames from '~/lib/class_names'
 import { useTranslation } from 'react-i18next'
 import { formatTime } from '~/lib/format'
 

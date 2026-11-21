@@ -14,7 +14,12 @@
 |
 */
 import { SystemService } from '#services/system_service'
-import { getDocRegistry, type AnyValidator, type DocDescriptor, type ResponseDoc } from './documented.js'
+import {
+  getDocRegistry,
+  type AnyValidator,
+  type DocDescriptor,
+  type ResponseDoc,
+} from './documented.js'
 
 type JsonObject = Record<string, any>
 
@@ -41,7 +46,9 @@ export function buildOpenApiDocument(force = false): JsonObject {
   for (const [route, descriptor] of getDocRegistry()) {
     const json = route.toJSON()
     const oaPath = toOpenApiPath(json.pattern)
-    const methods = json.methods.map((m) => m.toLowerCase()).filter((m) => DOCUMENTED_METHODS.has(m))
+    const methods = json.methods
+      .map((m) => m.toLowerCase())
+      .filter((m) => DOCUMENTED_METHODS.has(m))
 
     for (const method of methods) {
       const operation = buildOperation(descriptor, oaPath, method)
@@ -193,20 +200,14 @@ function unwrapParamsSchema(paramsValidator: AnyValidator): JsonObject {
  *   `/api/files/*`         → `/api/files/{wildcard}`
  */
 function toOpenApiPath(pattern: string): string {
-  return pattern
-    .replace(/:([A-Za-z0-9_]+)\??/g, '{$1}')
-    .replace(/\*/g, '{wildcard}')
+  return pattern.replace(/:([A-Za-z0-9_]+)\??/g, '{$1}').replace(/\*/g, '{wildcard}')
 }
 
 /**
  * Derive a stable operationId, e.g. `get_api_zim_list`.
  */
 function operationId(method: string, oaPath: string): string {
-  const slug = oaPath
-    .replace(/[{}]/g, '')
-    .split('/')
-    .filter(Boolean)
-    .join('_')
+  const slug = oaPath.replace(/[{}]/g, '').split('/').filter(Boolean).join('_')
   return slug ? `${method}_${slug}` : `${method}_root`
 }
 

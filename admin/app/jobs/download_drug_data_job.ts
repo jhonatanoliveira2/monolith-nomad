@@ -207,7 +207,9 @@ export class DownloadDrugDataJob {
             lastProgressTime: Date.now(),
           })
           .catch(() => {})
-        void job.updateData({ ...job.data, bytesDownloaded: progress.downloadedBytes }).catch(() => {})
+        void job
+          .updateData({ ...job.data, bytesDownloaded: progress.downloadedBytes })
+          .catch(() => {})
       },
     })
     logger.info(`[DownloadDrugDataJob] Download complete: ${zipPath} (${partBytes} bytes)`)
@@ -332,7 +334,7 @@ export class DownloadDrugDataJob {
     totalParts: number,
     parts: DownloadStateMarker['parts']
   ): Promise<void> {
-    const KVStore = (await import('#models/kv_store')).default
+    const { default: KVStore } = await import('#models/kv_store')
     const marker: DownloadStateMarker = {
       export_date: manifest.export_date,
       totalParts,

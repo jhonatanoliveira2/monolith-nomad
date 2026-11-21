@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import classNames from '~/lib/classNames'
+import classNames from '~/lib/class_names'
 
 interface CircularGaugeProps {
   value: number // percentage
@@ -23,7 +23,6 @@ export default function CircularGauge({
   label,
   icon,
   size = 'md',
-  variant = 'default',
   subtext,
   animated = true,
   muted = false,

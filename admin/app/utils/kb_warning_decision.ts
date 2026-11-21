@@ -43,10 +43,7 @@ export function decideWarnings(inputs: WarningInputs): FileWarning[] {
 
   // Warning A: file is large but produced nothing. Almost always a video-only
   // or image-only ZIM; AI Assistant literally cannot reference this content.
-  if (
-    inputs.chunksInQdrant === 0 &&
-    inputs.fileSizeBytes > ZERO_CHUNKS_MIN_SIZE_BYTES
-  ) {
+  if (inputs.chunksInQdrant === 0 && inputs.fileSizeBytes > ZERO_CHUNKS_MIN_SIZE_BYTES) {
     warnings.push({ kind: 'zero_chunks', fileSizeBytes: inputs.fileSizeBytes })
   }
 

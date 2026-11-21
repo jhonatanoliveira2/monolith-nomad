@@ -16,7 +16,7 @@ export default class extends BaseSchema {
 
   async up() {
     await this.db.rawQuery(
-      "ALTER TABLE installed_resources MODIFY COLUMN resource_type " +
+      'ALTER TABLE installed_resources MODIFY COLUMN resource_type ' +
         "enum('zim','map','dataset') NOT NULL"
     )
   }
@@ -27,8 +27,7 @@ export default class extends BaseSchema {
     // (or fail outright under STRICT_TRANS_TABLES).
     await this.db.rawQuery("DELETE FROM installed_resources WHERE resource_type = 'dataset'")
     await this.db.rawQuery(
-      "ALTER TABLE installed_resources MODIFY COLUMN resource_type " +
-        "enum('zim','map') NOT NULL"
+      'ALTER TABLE installed_resources MODIFY COLUMN resource_type ' + "enum('zim','map') NOT NULL"
     )
   }
 }

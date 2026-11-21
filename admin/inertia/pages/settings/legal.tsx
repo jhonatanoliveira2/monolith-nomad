@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react'
 import { Trans, useTranslation } from 'react-i18next'
 import SettingsLayout from '~/layouts/SettingsLayout'
-import { useProject } from '~/hooks/useProject'
+import { useProject } from '~/hooks/use_project'
 
 const LINK_CLASS = 'text-text-primary underline underline-offset-2 hover:text-text-secondary'
 const strong = { strong: <strong /> }

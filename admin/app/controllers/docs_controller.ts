@@ -5,9 +5,7 @@ import { LOCALE_COOKIE, resolveLocale } from '../utils/locale.js'
 
 @inject()
 export default class DocsController {
-    constructor(
-        private docsService: DocsService
-    ) { }
+  constructor(private docsService: DocsService) {}
 
   /** Interface language chosen in the browser (cookie set by inertia/lib/i18n.ts); pt-BR by default. */
   private locale({ request }: HttpContext) {

@@ -1,91 +1,90 @@
-
 export const KV_STORE_SCHEMA = {
-  'chat.suggestionsEnabled':    'boolean',
-  'chat.lastModel':             'string',
-  'rag.docsEmbedded':           'boolean',
-  'rag.defaultIngestPolicy':    'string',
+  'chat.suggestionsEnabled': 'boolean',
+  'chat.lastModel': 'string',
+  'rag.docsEmbedded': 'boolean',
+  'rag.defaultIngestPolicy': 'string',
   // Master switch for chat-time knowledge base retrieval. Unset/null means ON —
   // the pre-existing behaviour. Turning it off skips the whole retrieval
   // pipeline (hasDocuments, the query-rewrite LLM call, and the Qdrant search),
   // which matters on small hardware and when the KB is small or empty.
-  'rag.enabled':                'boolean',
+  'rag.enabled': 'boolean',
   // Relevance floor for retrieved chunks, as a stringified number in [0,1]
   // ("0.6"). Unset means "use RAG_MIN_FINAL_SCORE"; "0" explicitly means off.
   // Stored as the number rather than a preset name so retuning the presets in
   // Settings > Models cannot invalidate a value someone already saved.
-  'rag.minRelevance':           'string',
+  'rag.minRelevance': 'string',
   // Whether a model double-checks that retrieved chunks are about the question
   // before they are injected and cited (#1341). Unset means OFF: the check costs
   // a model call per turn and only pays off on ~8B-class models.
-  'rag.relevanceCheck':         'boolean',
-  'system.updateAvailable':     'boolean',
-  'system.latestVersion':       'string',
-  'system.earlyAccess':         'boolean',
+  'rag.relevanceCheck': 'boolean',
+  'system.updateAvailable': 'boolean',
+  'system.latestVersion': 'string',
+  'system.earlyAccess': 'boolean',
   'system.internetStatusTestUrl': 'string',
-  'autoUpdate.enabled':         'boolean',
-  'autoUpdate.windowStart':     'string',
-  'autoUpdate.windowEnd':       'string',
-  'autoUpdate.cooloffHours':    'string',
-  'autoUpdate.lastAttemptAt':   'string',
-  'autoUpdate.lastError':       'string',
-  'autoUpdate.lastResult':      'string',
+  'autoUpdate.enabled': 'boolean',
+  'autoUpdate.windowStart': 'string',
+  'autoUpdate.windowEnd': 'string',
+  'autoUpdate.cooloffHours': 'string',
+  'autoUpdate.lastAttemptAt': 'string',
+  'autoUpdate.lastError': 'string',
+  'autoUpdate.lastResult': 'string',
   'autoUpdate.consecutiveFailures': 'string',
-  'autoUpdate.autoDisabledReason':  'string',
-  'appAutoUpdate.enabled':          'boolean',
-  'appAutoUpdate.lastAttemptAt':    'string',
-  'appAutoUpdate.lastResult':       'string',
-  'contentAutoUpdate.enabled':           'boolean',
-  'contentAutoUpdate.windowStart':       'string',
-  'contentAutoUpdate.windowEnd':         'string',
-  'contentAutoUpdate.cooloffHours':      'string',
+  'autoUpdate.autoDisabledReason': 'string',
+  'appAutoUpdate.enabled': 'boolean',
+  'appAutoUpdate.lastAttemptAt': 'string',
+  'appAutoUpdate.lastResult': 'string',
+  'contentAutoUpdate.enabled': 'boolean',
+  'contentAutoUpdate.windowStart': 'string',
+  'contentAutoUpdate.windowEnd': 'string',
+  'contentAutoUpdate.cooloffHours': 'string',
   'contentAutoUpdate.maxBytesPerWindow': 'string',
-  'contentAutoUpdate.lastAttemptAt':     'string',
-  'contentAutoUpdate.lastResult':        'string',
-  'contentAutoUpdate.lastError':         'string',
+  'contentAutoUpdate.lastAttemptAt': 'string',
+  'contentAutoUpdate.lastResult': 'string',
+  'contentAutoUpdate.lastError': 'string',
   'contentAutoUpdate.consecutiveFailures': 'string',
-  'contentAutoUpdate.autoDisabledReason':  'string',
-  'contentAutoUpdate.windowBytesUsed':   'string',
-  'contentAutoUpdate.windowResetAt':     'string',
-  'ui.hasVisitedEasySetup':     'boolean',
-  'ui.theme':                   'string',
+  'contentAutoUpdate.autoDisabledReason': 'string',
+  'contentAutoUpdate.windowBytesUsed': 'string',
+  'contentAutoUpdate.windowResetAt': 'string',
+  'ui.hasVisitedEasySetup': 'boolean',
+  'ui.theme': 'string',
   // Reverse-proxy / local-DNS override for the Settings sidebar's "Service Logs &
   // Metrics" entry. Dozzle is a management-compose container, not a `services` row,
   // so the per-app `custom_url` column (#991) has nothing to attach to and the link
   // would otherwise always resolve to http://<current-host>:9999 — unreachable for
   // anyone serving NOMAD behind a proxy or a DNS name. Null keeps the port default.
-  'ui.serviceLogsUrl':          'string',
-  'ai.assistantCustomName':     'string',
-  'gpu.type':                   'string',
-  'ai.remoteOllamaUrl':         'string',
-  'ai.ollamaFlashAttention':    'boolean',
-  'ai.autoThinking':            'boolean',
+  'ui.serviceLogsUrl': 'string',
+  'ai.assistantCustomName': 'string',
+  'gpu.type': 'string',
+  'ai.remoteOllamaUrl': 'string',
+  'ai.ollamaFlashAttention': 'boolean',
+  'ai.autoThinking': 'boolean',
   // Model used for ancillary AI work (chat titles, chat suggestions) instead of
   // whatever chat model the user last used. Unset/null keeps the previous
   // behaviour: titles use the chat model, suggestions use chat.lastModel.
-  'ai.tasksModel':              'string',
+  'ai.tasksModel': 'string',
   // Learned per-model token-estimator corrections, as a JSON object keyed by
   // model name ({"llama3:8b":1.02,"qwen2.5:0.5b":1.26}). One row rather than a
   // key per model, since KVStoreKey is a closed union. Written by
   // TokenCalibrationService from the `prompt_eval_count` every chat response
   // already reports; safe to delete, it just re-learns.
-  'ai.tokenRatios':             'string',
+  'ai.tokenRatios': 'string',
   // User cap on the chat context window, in tokens ("4096".."131072"), or
   // "auto"/unset to let ContextWindowResolver size it from the model and the
   // hardware. A cap only ever lowers the resolved value.
-  'ai.contextWindow':           'string',
+  'ai.contextWindow': 'string',
   // How long Ollama keeps a chat model (and its KV cache) resident after a
   // request, in Ollama's duration format ("10m"). Unset inherits Ollama's 5m.
-  'ai.keepAlive':               'string',
+  'ai.keepAlive': 'string',
   // Sampler profile for chat replies: 'auto' | 'focused' | 'creative' | 'off'.
   // Unset resolves to 'auto', which is NOMAD's baseline with any sampler values
   // the model's author baked into their modelfile layered over it. 'off' sends
   // no sampler settings at all, the behaviour from before the setting existed.
-  'ai.responseStyle':           'string',
-  'ai.amdGpuAcceleration':      'boolean',
-  'ai.amdHsaOverride':          'string',
-  'ai.autoFixGpuPassthrough':   'boolean',
-  'gpu.autoRemediatedAt':       'string',
-  'apps.homebox.apiKeyPepper':  'string',
+  'ai.responseStyle': 'string',
+  'ai.amdGpuAcceleration': 'boolean',
+  'ai.amdHsaOverride': 'string',
+  'ai.autoFixGpuPassthrough': 'boolean',
+  'gpu.autoRemediatedAt': 'string',
+  'apps.homebox.apiKeyPepper': 'string',
   'benchmark.rerunBannerDismissed': 'boolean',
   // Drug Reference v1 — export_date of the last successfully completed
   // openFDA drug-label ingest (e.g. "2026-06-06"). Written by

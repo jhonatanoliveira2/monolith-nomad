@@ -21,7 +21,11 @@ export function parseContentRange(header: string | undefined | null): ContentRan
  * publisher replacing the file under the same name) can answer with a different range or file;
  * appending that would splice two files together.
  */
-export function isMatchingResume(header: string | undefined | null, startByte: number, totalBytes: number): boolean {
+export function isMatchingResume(
+  header: string | undefined | null,
+  startByte: number,
+  totalBytes: number
+): boolean {
   const range = parseContentRange(header)
   if (!range || range.start !== startByte) return false
   return !(totalBytes > 0 && range.total !== null && range.total !== totalBytes)
@@ -30,7 +34,10 @@ export function isMatchingResume(header: string | undefined | null, startByte: n
 export type DownloadCompleteness = 'complete' | 'short' | 'oversized'
 
 /** Classify a finished stream. An unknown size (0, no Content-Length) cannot be checked. */
-export function checkDownloadedSize(downloadedBytes: number, totalBytes: number): DownloadCompleteness {
+export function checkDownloadedSize(
+  downloadedBytes: number,
+  totalBytes: number
+): DownloadCompleteness {
   if (totalBytes <= 0 || downloadedBytes === totalBytes) return 'complete'
   return downloadedBytes < totalBytes ? 'short' : 'oversized'
 }

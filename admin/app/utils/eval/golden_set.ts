@@ -66,7 +66,8 @@ export function parseGoldens(jsonl: string, sourceName = 'goldens'): Golden[] {
     }
 
     const id = req('id')
-    if (typeof id !== 'string' || !id) throw new GoldenSetError(`${where}: "id" must be a non-empty string`)
+    if (typeof id !== 'string' || !id)
+      throw new GoldenSetError(`${where}: "id" must be a non-empty string`)
     if (seen.has(id)) throw new GoldenSetError(`${where}: duplicate id "${id}"`)
     seen.add(id)
 
@@ -91,13 +92,17 @@ export function parseGoldens(jsonl: string, sourceName = 'goldens'): Golden[] {
       try {
         new RegExp(pattern, 'i')
       } catch (err) {
-        throw new GoldenSetError(`${where}: invalid regex ${JSON.stringify(pattern)} — ${(err as Error).message}`)
+        throw new GoldenSetError(
+          `${where}: invalid regex ${JSON.stringify(pattern)} — ${(err as Error).message}`
+        )
       }
     }
 
     const turns = (parsed.turns ?? []) as GoldenTurn[]
     if (!Array.isArray(turns) || turns.some((t) => t?.role !== 'user' && t?.role !== 'assistant')) {
-      throw new GoldenSetError(`${where}: "turns" must be an array of {role: user|assistant, content}`)
+      throw new GoldenSetError(
+        `${where}: "turns" must be an array of {role: user|assistant, content}`
+      )
     }
 
     const expectRefusal = Boolean(parsed.expectRefusal)

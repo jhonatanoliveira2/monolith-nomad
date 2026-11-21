@@ -1,5 +1,5 @@
 import { useState, Fragment } from 'react'
-import { ModalContext } from '~/context/ModalContext'
+import { ModalContext } from '~/context/modal_context'
 
 export interface ModalsProviderProps {
   children: React.ReactNode

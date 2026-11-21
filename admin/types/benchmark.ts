@@ -143,22 +143,26 @@ export type BenchmarkResultsResponse = {
   total: number
 }
 
-export type SubmitBenchmarkResponse = {
-  success: true
-  repository_id: string
-  percentile: number
-} | {
-  success: false
-  error: string
-}
+export type SubmitBenchmarkResponse =
+  | {
+      success: true
+      repository_id: string
+      percentile: number
+    }
+  | {
+      success: false
+      error: string
+    }
 
-export type UpdateBuilderTagResponse = {
-  success: true,
-  builder_tag: string | null
-} | {
-  success: false,
-  error: string
-}
+export type UpdateBuilderTagResponse =
+  | {
+      success: true
+      builder_tag: string | null
+    }
+  | {
+      success: false
+      error: string
+    }
 
 // NOMAD Score v2 raw channels captured from a full benchmark run (all present
 // and > 0). cpu_events_multi is measured at cpu_benchmark_threads; memory at

@@ -26,7 +26,8 @@ export function buildPmtilesExtractArgs(opts: PmtilesExtractArgOptions): string[
   if (opts.regionFilepath) args.push(`--region=${opts.regionFilepath}`)
   if (typeof opts.maxzoom === 'number') args.push(`--maxzoom=${opts.maxzoom}`)
   if (opts.dryRun) args.push('--dry-run')
-  if (typeof opts.downloadThreads === 'number') args.push(`--download-threads=${opts.downloadThreads}`)
+  if (typeof opts.downloadThreads === 'number')
+    args.push(`--download-threads=${opts.downloadThreads}`)
   if (typeof opts.overfetch === 'number') args.push(`--overfetch=${opts.overfetch}`)
   return args
 }

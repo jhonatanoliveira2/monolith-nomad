@@ -218,6 +218,37 @@ test('native: when every source is corrupt the download fails and nothing is ins
   assert.deepEqual(await readdir(path.dirname(file)), [])
 })
 
+test('native: a SHA-256 pinned by the caller (library manifest, no metalink) is enforced', async () => {
+  // Library documents have no metalink: RunDownloadJob passes the hash from collections/library.json.
+  const good = await target('pinned-ok')
+  await smartDownload({
+    url: u('127.0.0.1', 'ok'),
+    filepath: good,
+    timeout: 5000,
+    allowedMimeTypes: [],
+    expectedSha256: SHA,
+    preferences: prefs({ engine: 'native' }),
+    deps: deps([source(u('127.0.0.1', 'ok'), 'origin')], null),
+  })
+  assert.equal(await sha(good), SHA)
+
+  const bad = await target('pinned-changed')
+  await assert.rejects(
+    smartDownload({
+      url: u('127.0.0.1', 'ok'),
+      filepath: bad,
+      timeout: 5000,
+      allowedMimeTypes: [],
+      // the publisher replaced the file: the bytes no longer match what the catalog pinned
+      expectedSha256: 'f'.repeat(64),
+      preferences: prefs({ engine: 'native' }),
+      deps: deps([source(u('127.0.0.1', 'ok'), 'origin')], null),
+    }),
+    ChecksumMismatchError
+  )
+  assert.deepEqual(await readdir(path.dirname(bad)), [], 'nothing installed, no partial left')
+})
+
 test('native: a partial .tmp is resumed from another mirror with a Range request', async () => {
   const file = await target('resume')
   await smartDownload({

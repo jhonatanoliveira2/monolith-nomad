@@ -104,17 +104,14 @@ export function getPrimaryDiskInfo(
     const diskWithRoot = validDisks.find((d) =>
       d.filesystems?.some((fs) => fs.mount === '/' || fs.mount === '/storage')
     )
-    const primary =
-      diskWithRoot || validDisks.reduce((a, b) => (b.totalSize > a.totalSize ? b : a))
+    const primary = diskWithRoot || validDisks.reduce((a, b) => (b.totalSize > a.totalSize ? b : a))
     return { totalSize: primary.totalSize, totalUsed: primary.totalUsed }
   }
 
   if (fsSize && fsSize.length > 0) {
     const realDevices = fsSize.filter((fs) => fs.fs.startsWith('/dev/'))
     const primary =
-      realDevices.length > 0
-        ? realDevices.reduce((a, b) => (b.size > a.size ? b : a))
-        : fsSize[0]
+      realDevices.length > 0 ? realDevices.reduce((a, b) => (b.size > a.size ? b : a)) : fsSize[0]
     return { totalSize: primary.size, totalUsed: primary.used }
   }
 

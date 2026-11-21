@@ -344,7 +344,13 @@ export class EvalGenerationService {
 
         const generated = isMock
           ? { answer: mockAnswer(context), usage: undefined }
-          : await this.generate(options.model, trace.messages, trace.numCtx, trace.numPredict, sampling)
+          : await this.generate(
+              options.model,
+              trace.messages,
+              trace.numCtx,
+              trace.numPredict,
+              sampling
+            )
         const answer = generated.answer
 
         // The backend just reported the prompt's real token count. Comparing it

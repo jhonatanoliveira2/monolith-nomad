@@ -42,7 +42,10 @@ test('readContextLength copes with a Map, and with nothing', () => {
 })
 
 test('reads num_ctx out of the modelfile parameters block', () => {
-  assert.equal(readModelfileNumCtx('num_keep 24\nnum_ctx                        16384\nstop "<|eot_id|>"'), 16384)
+  assert.equal(
+    readModelfileNumCtx('num_keep 24\nnum_ctx                        16384\nstop "<|eot_id|>"'),
+    16384
+  )
   assert.equal(readModelfileNumCtx('num_keep 24\nstop "<|eot_id|>"'), undefined)
   assert.equal(readModelfileNumCtx(undefined), undefined)
 })

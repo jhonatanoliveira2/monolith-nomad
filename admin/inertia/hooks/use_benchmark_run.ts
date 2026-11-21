@@ -69,7 +69,9 @@ const pushRing = (arr: number[], v: number) => {
  * telemetry) and exposes a flat, render-ready view of a live run. All history
  * buffers are kept as fresh arrays so memoized children re-render on change.
  */
-export function useBenchmarkRun(opts?: { onFinished?: (status: 'completed' | 'error', message: string) => void }) {
+export function useBenchmarkRun(opts?: {
+  onFinished?: (status: 'completed' | 'error', message: string) => void
+}) {
   const { subscribe } = useTransmit()
   const onFinishedRef = useRef(opts?.onFinished)
   onFinishedRef.current = opts?.onFinished
@@ -141,8 +143,13 @@ export function useBenchmarkRun(opts?: { onFinished?: (status: 'completed' | 'er
             diskReadHistory: pushRing(prev.diskReadHistory, data.disk.read_mb_s),
             diskWriteHistory: pushRing(prev.diskWriteHistory, data.disk.write_mb_s),
             aiTokensPerSec: isTok ? data.stage_metric!.value : prev.aiTokensPerSec,
-            aiTokHistory: isTok ? pushRing(prev.aiTokHistory, data.stage_metric!.value) : prev.aiTokHistory,
-            aiTtftMs: isTok && data.stage_metric!.ttft_ms !== undefined ? data.stage_metric!.ttft_ms : prev.aiTtftMs,
+            aiTokHistory: isTok
+              ? pushRing(prev.aiTokHistory, data.stage_metric!.value)
+              : prev.aiTokHistory,
+            aiTtftMs:
+              isTok && data.stage_metric!.ttft_ms !== undefined
+                ? data.stage_metric!.ttft_ms
+                : prev.aiTtftMs,
             cpuEventsPerSec: isEps ? data.stage_metric!.value : prev.cpuEventsPerSec,
             cpuEventsHistory: isEps
               ? pushRing(prev.cpuEventsHistory, data.stage_metric!.value)
@@ -163,7 +170,6 @@ export function useBenchmarkRun(opts?: { onFinished?: (status: 'completed' | 'er
       unsubProgress()
       unsubTelemetry()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subscribe])
 
   const status: BenchmarkStatus | null = progress?.status ?? null

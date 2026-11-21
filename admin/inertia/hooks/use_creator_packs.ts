@@ -34,7 +34,10 @@ const useCreatorPacks = (enabled = true) => {
   }
 
   return {
-    ...queryData,
+    data: queryData.data,
+    isLoading: queryData.isLoading,
+    error: queryData.error,
+    refetch: queryData.refetch,
     configured: queryData.data?.configured ?? false,
     packs: queryData.data?.packs ?? [],
     downloads: queryData.data?.downloads ?? [],

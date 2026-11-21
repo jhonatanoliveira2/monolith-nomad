@@ -89,7 +89,9 @@ export type SmartDownloadParams = DoResumableDownloadParams & {
 }
 
 /** Hosts whose metalink (and therefore mirror list and SHA-256) we trust. */
-export const METALINK_HOSTS = new Set(['download.kiwix.org'])
+// lb.download.kiwix.org is the same MirrorBrain: download.kiwix.org now answers 301 to it, and the Kiwix
+// OPDS catalog hands out lb.* URLs, so catalog-resolved downloads would otherwise skip the SHA-256 check.
+export const METALINK_HOSTS = new Set(['download.kiwix.org', 'lb.download.kiwix.org'])
 
 async function defaultFetchText(
   url: string,

@@ -20,7 +20,10 @@ export default class extends BaseSchema {
       await db
         .from(this.tableName)
         .where('service_name', 'nomad_kiwix_server')
-        .where('container_command', '--library /data/kiwix-library.xml --monitorLibrary --address=all')
+        .where(
+          'container_command',
+          '--library /data/kiwix-library.xml --monitorLibrary --address=all'
+        )
         .update({
           container_command: '*.zim --address=all',
         })

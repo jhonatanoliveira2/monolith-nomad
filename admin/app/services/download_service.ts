@@ -5,10 +5,15 @@ import { RunExtractPmtilesJob } from '#jobs/run_extract_pmtiles_job'
 import type { RunExtractPmtilesJobParams } from '#jobs/run_extract_pmtiles_job'
 import { DownloadModelJob } from '#jobs/download_model_job'
 import { DownloadDrugDataJob } from '#jobs/download_drug_data_job'
-import { DownloadJobWithProgress, DownloadProgressData, RunDownloadJobParams } from '../../types/downloads.js'
+import {
+  DownloadJobWithProgress,
+  DownloadProgressData,
+  RunDownloadJobParams,
+} from '../../types/downloads.js'
 import type { Job, Queue } from 'bullmq'
-import { normalize } from 'path'
+import { normalize } from 'node:path'
 import { deleteFileIfExists } from '../utils/fs.js'
+import { isWikipediaZimUrl } from '../utils/zim_filename.js'
 import transmit from '@adonisjs/transmit/services/main'
 import { BROADCAST_CHANNELS } from '../../constants/broadcast.js'
 
@@ -19,7 +24,12 @@ type TaggedJob = { job: Job; state: FileJobState }
 export class DownloadService {
   constructor(private queueService: QueueService) {}
 
-  private parseProgress(progress: any): { percent: number; downloadedBytes?: number; totalBytes?: number; lastProgressTime?: number } {
+  private parseProgress(progress: any): {
+    percent: number
+    downloadedBytes?: number
+    totalBytes?: number
+    lastProgressTime?: number
+  } {
     if (typeof progress === 'object' && progress !== null && 'percent' in progress) {
       const p = progress as DownloadProgressData
       return {
@@ -30,7 +40,7 @@ export class DownloadService {
       }
     }
     // Backward compat: plain integer from in-flight jobs during upgrade
-    return { percent: parseInt(String(progress), 10) || 0 }
+    return { percent: Number.parseInt(String(progress), 10) || 0 }
   }
 
   /** Fetch all non-completed jobs from a queue, tagged with their current BullMQ state */
@@ -52,7 +62,10 @@ export class DownloadService {
       // every poll of this endpoint (normalize(undefined)), and because failed
       // jobs are never evicted the endpoint stayed broken until Redis was cleared
       // by hand. Drop them: with no payload there is nothing to show anyway.
-    ].filter(({ job }) => job?.id != null && job.data != null)
+    ].filter(
+      ({ job }) =>
+        job?.id !== null && job?.id !== undefined && job.data !== null && job.data !== undefined
+    )
   }
 
   async listDownloadJobs(filetype?: string): Promise<DownloadJobWithProgress[]> {
@@ -100,7 +113,7 @@ export class DownloadService {
     const modelDownloads = modelTagged.map(({ job }) => ({
       jobId: job.id!.toString(),
       url: job.data.modelName || 'Unknown Model',
-      progress: parseInt(job.progress.toString(), 10),
+      progress: Number.parseInt(job.progress.toString(), 10),
       filepath: job.data.modelName || 'Unknown Model',
       filetype: 'model',
       status: (job.failedReason ? 'failed' : 'active') as 'active' | 'failed',
@@ -140,7 +153,12 @@ export class DownloadService {
         })
       : []
 
-    const allDownloads = [...fileDownloads, ...extractDownloads, ...modelDownloads, ...drugDownloads]
+    const allDownloads = [
+      ...fileDownloads,
+      ...extractDownloads,
+      ...modelDownloads,
+      ...drugDownloads,
+    ]
     const filtered = allDownloads.filter((job) => !filetype || job.filetype === filetype)
 
     return filtered.sort((a, b) => {
@@ -337,7 +355,7 @@ export class DownloadService {
 
     // If this was a Wikipedia download, update selection status to failed
     // (the worker's failed event may not fire if we removed the job first)
-    if (job.data.filetype === 'zim' && job.data.url?.includes('wikipedia_en_')) {
+    if (job.data.filetype === 'zim' && job.data.url && isWikipediaZimUrl(job.data.url)) {
       try {
         const { DockerService } = await import('#services/docker_service')
         const { ZimService } = await import('#services/zim_service')

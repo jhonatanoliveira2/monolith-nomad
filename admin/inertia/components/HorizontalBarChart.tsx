@@ -1,4 +1,4 @@
-import classNames from '~/lib/classNames'
+import classNames from '~/lib/class_names'
 
 interface HorizontalBarChartProps {
   items: Array<{

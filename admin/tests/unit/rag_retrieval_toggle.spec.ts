@@ -52,8 +52,9 @@ function makeFakes(
     ) {
       calls.search++
       args.minFinalScore = minFinalScore
-      const results =
-        opts.searchResults ?? [{ text: 'retrieved body', score: 0.9, metadata: { full_title: 'A Doc' } }]
+      const results = opts.searchResults ?? [
+        { text: 'retrieved body', score: 0.9, metadata: { full_title: 'A Doc' } },
+      ]
       // Stand in for the real floor: whatever the fake was told to return is
       // what survived, and anything it was told to withhold is what did not.
       if (floorOut) {

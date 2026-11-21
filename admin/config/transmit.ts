@@ -10,6 +10,6 @@ export default defineConfig({
       port: env.get('REDIS_PORT'),
       db: env.get('REDIS_DB') ?? 0,
       keyPrefix: 'transmit:',
-    })
-  }
+    }),
+  },
 })

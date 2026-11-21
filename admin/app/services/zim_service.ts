@@ -24,7 +24,7 @@ import {
   listDirectoryContents,
   ZIM_STORAGE_PATH,
 } from '../utils/fs.js'
-import { join, resolve, sep } from 'path'
+import { join, resolve, sep } from 'node:path'
 import { WikipediaOption, WikipediaState } from '../../types/downloads.js'
 import vine from '@vinejs/vine'
 import { wikipediaOptionsFileSchema } from '#validators/curated_collections'
@@ -53,7 +53,7 @@ const WIKIPEDIA_OPTIONS_URL = `${GITHUB_RAW_BASE_URL}/collections/wikipedia.json
 
 @inject()
 export class ZimService {
-  constructor(private dockerService: DockerService) { }
+  constructor(private dockerService: DockerService) {}
 
   async list() {
     const dirPath = join(process.cwd(), ZIM_STORAGE_PATH)
@@ -170,22 +170,22 @@ export class ZimService {
         if (!downloadLink) continue
 
         // downloadLink['href'] ends with .meta4; strip that to get the actual .zim URL.
-        const download_url = downloadLink['href'].substring(0, downloadLink['href'].length - 6)
-        const file_name = download_url.split('/').pop() || `${entry.title}.zim`
-        if (existingKeys.has(file_name)) continue
+        const downloadUrl = downloadLink['href'].substring(0, downloadLink['href'].length - 6)
+        const fileName = downloadUrl.split('/').pop() || `${entry.title}.zim`
+        if (existingKeys.has(fileName)) continue
         if (seenIds.has(entry.id)) continue
         seenIds.add(entry.id)
 
-        const sizeBytes = parseInt(downloadLink['length'], 10)
+        const sizeBytes = Number.parseInt(downloadLink['length'], 10)
         accumulated.push({
           id: entry.id,
           title: entry.title,
           updated: entry.updated,
           summary: entry.summary,
           size_bytes: sizeBytes || 0,
-          download_url,
+          download_url: downloadUrl,
           author: entry.author.name,
-          file_name,
+          file_name: fileName,
           language: entry.language,
           category: entry.category,
           tags: entry.tags,
@@ -264,7 +264,10 @@ export class ZimService {
     }
   }
 
-  async downloadRemote(url: string, metadata?: { title?: string; summary?: string; author?: string; size_bytes?: number }): Promise<{ filename: string; jobId?: string }> {
+  async downloadRemote(
+    url: string,
+    metadata?: { title?: string; summary?: string; author?: string; size_bytes?: number }
+  ): Promise<{ filename: string; jobId?: string }> {
     const parsed = new URL(url)
     if (!parsed.pathname.endsWith('.zim')) {
       throw new Error(`Invalid ZIM file URL: ${url}. URL must end with .zim`)
@@ -286,7 +289,11 @@ export class ZimService {
     // Parse resource metadata for the download job
     const parsedFilename = CollectionManifestService.parseZimFilename(filename)
     const resourceMetadata = parsedFilename
-      ? { resource_id: parsedFilename.resource_id, version: parsedFilename.version, collection_ref: null }
+      ? {
+          resource_id: parsedFilename.resource_id,
+          version: parsedFilename.version,
+          collection_ref: null,
+        }
       : undefined
 
     // Dispatch a background download job
@@ -320,7 +327,10 @@ export class ZimService {
 
   async downloadCategoryTier(categorySlug: string, tierSlug: string): Promise<string[] | null> {
     const manifestService = new CollectionManifestService()
-    const spec = await manifestService.getSpecWithFallback<import('../../types/collections.js').ZimCategoriesSpec>('zim_categories')
+    const spec =
+      await manifestService.getSpecWithFallback<
+        import('../../types/collections.js').ZimCategoriesSpec
+      >('zim_categories')
     if (!spec) {
       throw new Error('Could not load ZIM categories spec')
     }
@@ -450,7 +460,8 @@ export class ZimService {
       if (spec?.options?.length) return spec.options.map((o) => o.url)
     } catch {}
     try {
-      return (await this.getWikipediaOptions()).map((o) => o.url)
+      const options = await this.getWikipediaOptions()
+      return options.map((o) => o.url)
     } catch {
       return []
     }
@@ -477,7 +488,7 @@ export class ZimService {
         await this.onWikipediaDownloadComplete(url, true)
       }
     }
-    
+
     // Update the kiwix library XML after all downloaded ZIM files are in place.
     // This covers all ZIM types including Wikipedia. Rebuilding once from disk
     // avoids repeated XML parse/write cycles and reduces the chance of write races
@@ -496,17 +507,17 @@ export class ZimService {
       const queue = queueService.getQueue('downloads')
 
       // Get all active and waiting jobs
-      const [activeJobs, waitingJobs] = await Promise.all([
-        queue.getActive(),
-        queue.getWaiting(),
-      ])
+      const [activeJobs, waitingJobs] = await Promise.all([queue.getActive(), queue.getWaiting()])
 
       // Filter out completed jobs (progress === 100) to avoid race condition
       // where this job itself is still in the active queue
       const activeIncompleteJobs = activeJobs.filter((job) => {
-        const progress = typeof job.progress === 'object' && job.progress !== null
-          ? (job.progress as any).percent
-          : typeof job.progress === 'number' ? job.progress : 0
+        const progress =
+          typeof job.progress === 'object' && job.progress !== null
+            ? (job.progress as any).percent
+            : typeof job.progress === 'number'
+              ? job.progress
+              : 0
         return progress < 100
       })
 
@@ -521,7 +532,9 @@ export class ZimService {
         // the XML change automatically — no restart needed.
         const isLegacy = await this.dockerService.isKiwixOnLegacyConfig()
         if (!isLegacy) {
-          logger.info('[ZimService] Kiwix is in library mode — XML updated, no container restart needed.')
+          logger.info(
+            '[ZimService] Kiwix is in library mode — XML updated, no container restart needed.'
+          )
         } else {
           // Legacy config: restart (affectContainer will trigger migration instead)
           logger.info('[ZimService] No more ZIM downloads pending - restarting KIWIX container')
@@ -635,11 +648,9 @@ export class ZimService {
     const isLegacy = await this.dockerService.isKiwixOnLegacyConfig()
     if (isLegacy) {
       logger.info('[ZimService] Kiwix in legacy mode — restarting container after rescan.')
-      await this.dockerService
-        .affectContainer(SERVICE_NAMES.KIWIX, 'restart')
-        .catch((error) => {
-          logger.error('[ZimService] Failed to restart KIWIX container after rescan:', error)
-        })
+      await this.dockerService.affectContainer(SERVICE_NAMES.KIWIX, 'restart').catch((error) => {
+        logger.error('[ZimService] Failed to restart KIWIX container after rescan:', error)
+      })
     }
 
     return { before, after, added: Math.max(0, after - before) }
@@ -699,7 +710,9 @@ export class ZimService {
               status: 'installed',
             })
           }
-          logger.info(`[ZimService] Marked Wikipedia option '${matchedOption.id}' as installed from local upload`)
+          logger.info(
+            `[ZimService] Marked Wikipedia option '${matchedOption.id}' as installed from local upload`
+          )
 
           // Remove older releases of this same Wikipedia variant only, same as the download flow
           // (a prefix match here used to delete unrelated corpora such as the Medicine tier)
@@ -832,7 +845,10 @@ export class ZimService {
         logger.info(`[ZimService] Cleared WikipediaSelection after deleting ${fileName}`)
       }
     } catch (error) {
-      logger.error(`[ZimService] Failed to clear WikipediaSelection after deleting ${fileName}:`, error)
+      logger.error(
+        `[ZimService] Failed to clear WikipediaSelection after deleting ${fileName}:`,
+        error
+      )
     }
   }
 
@@ -868,16 +884,18 @@ export class ZimService {
       options,
       currentSelection: selection
         ? {
-          optionId: selection.option_id,
-          status: selection.status,
-          filename: selection.filename,
-          url: selection.url,
-        }
+            optionId: selection.option_id,
+            status: selection.status,
+            filename: selection.filename,
+            url: selection.url,
+          }
         : null,
     }
   }
 
-  async selectWikipedia(optionId: string): Promise<{ success: boolean; jobId?: string; message?: string }> {
+  async selectWikipedia(
+    optionId: string
+  ): Promise<{ success: boolean; jobId?: string; message?: string }> {
     const options = await this.getWikipediaOptions()
     const selectedOption = options.find((opt) => opt.id === optionId)
 
@@ -900,7 +918,9 @@ export class ZimService {
           logger.info(`[ZimService] Deleted Wikipedia file: ${currentSelection.filename}`)
         } catch (error) {
           // File might already be deleted, that's OK
-          logger.warn(`[ZimService] Could not delete Wikipedia file (may already be gone): ${currentSelection.filename}`)
+          logger.warn(
+            `[ZimService] Could not delete Wikipedia file (may already be gone): ${currentSelection.filename}`
+          )
         }
       }
 
@@ -921,11 +941,9 @@ export class ZimService {
       }
 
       // Restart Kiwix to reflect the change
-      await this.dockerService
-        .affectContainer(SERVICE_NAMES.KIWIX, 'restart')
-        .catch((error) => {
-          logger.error(`[ZimService] Failed to restart Kiwix after Wikipedia removal:`, error)
-        })
+      await this.dockerService.affectContainer(SERVICE_NAMES.KIWIX, 'restart').catch((error) => {
+        logger.error(`[ZimService] Failed to restart Kiwix after Wikipedia removal:`, error)
+      })
 
       return { success: true, message: 'Wikipedia removed' }
     }
@@ -1020,7 +1038,9 @@ export class ZimService {
       !!selection?.filename && zimFilenameStem(selection.filename) === zimFilenameStem(filename)
     const isPendingSelection = !!selection && !selection.filename && selection.url === url
     if (!matchedOptionId && !isSelectionVariant && !isPendingSelection) {
-      logger.info(`[ZimService] ${filename} is not the selected Wikipedia; leaving the selection unchanged`)
+      logger.info(
+        `[ZimService] ${filename} is not the selected Wikipedia; leaving the selection unchanged`
+      )
       return
     }
 
@@ -1068,7 +1088,9 @@ export class ZimService {
         await selection.save()
         logger.error(`[ZimService] Wikipedia download failed for: ${filename}`)
       } else {
-        logger.error(`[ZimService] Wikipedia download failed for: ${filename} (no matching selection)`)
+        logger.error(
+          `[ZimService] Wikipedia download failed for: ${filename} (no matching selection)`
+        )
       }
     }
   }
@@ -1118,7 +1140,7 @@ export class ZimService {
       responseType: 'text',
       timeout: 15000,
       headers: {
-        'Accept': 'text/html',
+        Accept: 'text/html',
       },
     })
 
@@ -1130,7 +1152,14 @@ export class ZimService {
 
     $('a').each((_, el) => {
       const href = el.attribs?.href
-      if (!href || href === '../' || href === './' || href === '/' || href.startsWith('?') || href.startsWith('#')) {
+      if (
+        !href ||
+        href === '../' ||
+        href === './' ||
+        href === '/' ||
+        href.startsWith('?') ||
+        href.startsWith('#')
+      ) {
         return
       }
       if (href.startsWith('/') || href.startsWith('http://') || href.startsWith('https://')) {
@@ -1186,13 +1215,18 @@ export class ZimService {
     if (!sizeMatch) return null
 
     const sizeStr = sizeMatch[1].replace(/\s|B$/gi, '')
-    const num = parseFloat(sizeStr)
-    if (isNaN(num)) return null
+    const num = Number.parseFloat(sizeStr)
+    if (Number.isNaN(num)) return null
 
     if (/^\d+$/.test(sizeStr)) return num
 
     const suffix = sizeStr.slice(-1).toUpperCase()
-    const multipliers: Record<string, number> = { K: 1024, M: 1024 ** 2, G: 1024 ** 3, T: 1024 ** 4 }
+    const multipliers: Record<string, number> = {
+      K: 1024,
+      M: 1024 ** 2,
+      G: 1024 ** 3,
+      T: 1024 ** 4,
+    }
     return multipliers[suffix] ? Math.round(num * multipliers[suffix]) : null
   }
 }

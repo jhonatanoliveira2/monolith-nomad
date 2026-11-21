@@ -504,3 +504,28 @@ test('aria2 readout lines are parsed in bytes', () => {
   })
   assert.equal(parseAria2Readout('*** Download Progress Summary ***'), null)
 })
+
+test('resolveSources also uses the metalink for lb.download.kiwix.org, where the Kiwix catalog now points', async () => {
+  // Since late 2026 download.kiwix.org answers 301 to lb.download.kiwix.org and the OPDS catalog hands out
+  // lb.* URLs. Without this, every download resolved through the catalog lost its SHA-256 and its mirrors.
+  const url = 'https://lb.download.kiwix.org/zim/other/zimgit-medicine_en_2024-08.zim'
+  let asked = ''
+  const r = await resolveSources(
+    url,
+    { useMetalink: true },
+    async (u) => ((asked = u), META4),
+    undefined,
+    publicLookup
+  )
+  assert.equal(asked, url + '.meta4')
+  assert.equal(r.viaMetalink, true)
+  assert.equal(r.sha256, 'a86c31b93e9800aae2cd812ef18cbf9c087a7537784c62fbc259db7f9f9d18c0')
+})
+
+test('lb.download.kiwix.org gets the same single-connection limit as download.kiwix.org', async () => {
+  const { HOST_CONNECTION_LIMITS } = await import('../../app/utils/mirror_selection.js')
+  assert.equal(
+    HOST_CONNECTION_LIMITS['lb.download.kiwix.org'],
+    HOST_CONNECTION_LIMITS['download.kiwix.org']
+  )
+})

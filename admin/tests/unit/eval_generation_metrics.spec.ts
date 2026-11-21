@@ -126,7 +126,10 @@ test('extracts and normalizes numbers', () => {
 })
 
 test('treats 2,000 and 2000 as the same number', () => {
-  const { score, ungrounded } = numericGroundedness('Use a 2,000cc absorber.', 'Use a 2000cc absorber.')
+  const { score, ungrounded } = numericGroundedness(
+    'Use a 2,000cc absorber.',
+    'Use a 2000cc absorber.'
+  )
   assert.equal(score, 1)
   assert.deepEqual(ungrounded, [])
 })
@@ -142,19 +145,28 @@ test('flags a number the context does not support', () => {
 })
 
 test('scores partial grounding', () => {
-  const { score } = numericGroundedness('Boil 3 minutes above 9000 feet.', 'Boil 3 minutes above 6500 feet.')
+  const { score } = numericGroundedness(
+    'Boil 3 minutes above 9000 feet.',
+    'Boil 3 minutes above 6500 feet.'
+  )
   // 3 is excluded as a small integer; 9000 is claimed and unsupported.
   assert.equal(score, 0)
 })
 
 test('ignores small integers, which appear incidentally in any prose', () => {
   // "3 layers" and "step 2" would otherwise dominate the score with noise.
-  const { score } = numericGroundedness('There are 3 layers and 2 rules.', 'Wear a base, mid, and shell layer.')
+  const { score } = numericGroundedness(
+    'There are 3 layers and 2 rules.',
+    'Wear a base, mid, and shell layer.'
+  )
   assert.equal(score, null)
 })
 
 test('returns null when the answer makes no numeric claims', () => {
-  const { score } = numericGroundedness('Cool the burn under running water.', 'Cool for twenty minutes.')
+  const { score } = numericGroundedness(
+    'Cool the burn under running water.',
+    'Cool for twenty minutes.'
+  )
   assert.equal(score, null)
 })
 

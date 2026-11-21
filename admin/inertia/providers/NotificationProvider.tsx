@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { NotificationContext, Notification } from '../context/NotificationContext'
+import { NotificationContext, Notification } from '../context/notification_context'
 import { IconExclamationCircle, IconCircleCheck, IconInfoCircle } from '@tabler/icons-react'
 import { setGlobalNotificationCallback } from '~/lib/util'
 import { useTranslation } from 'react-i18next'

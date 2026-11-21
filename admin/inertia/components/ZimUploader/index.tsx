@@ -1,4 +1,4 @@
-import Uppy from '@uppy/core'
+import Uppy, { type Body, type Meta, type UploadResult } from '@uppy/core'
 import Dashboard from '@uppy/react/dashboard'
 import XHRUpload from '@uppy/xhr-upload'
 import '@uppy/core/css/style.min.css'
@@ -90,7 +90,7 @@ export default function ZimUploader({ onUploadComplete, existingFilenames }: Zim
   }, [onUploadComplete])
 
   const [uppy] = useState(() =>
-    new Uppy({
+    new Uppy<Meta, Body>({
       restrictions: {
         maxNumberOfFiles: 5,
         allowedFileTypes: ['.zim'],
@@ -100,12 +100,16 @@ export default function ZimUploader({ onUploadComplete, existingFilenames }: Zim
     }).use(XHRUpload, {
       endpoint: '/api/zim/upload',
       fieldName: 'file',
-      getResponseError: (responseText) => {
+      // Uppy 5 dropped getResponseError: an error thrown here fails the upload with this message
+      // (the server's own `message` when it sent one) instead of a bare status text.
+      onAfterResponse: (xhr: XMLHttpRequest) => {
+        if (xhr.status >= 200 && xhr.status < 300) return
+        let message = translate('Upload failed')
         try {
-          const body = JSON.parse(responseText)
-          if (body?.message) return new Error(body.message)
+          const body = JSON.parse(xhr.responseText)
+          if (body?.message) message = body.message
         } catch {}
-        return new Error(translate('Upload failed'))
+        throw new Error(message)
       },
     })
   )
@@ -127,16 +131,16 @@ export default function ZimUploader({ onUploadComplete, existingFilenames }: Zim
         }
       }
     }
-    const handleComplete = (result: {
-      successful: Array<{ response?: { body?: { added?: number } } }>
-      failed: Array<unknown>
-    }) => {
+    const handleComplete = (result: UploadResult<Meta, Body>) => {
       // Uppy emits `complete` even when uploads fail or are aborted. Only treat
       // the run as a success when nothing failed — otherwise leave the uploader
       // open so the Dashboard can surface the error instead of closing it with a
       // false "Upload complete" toast.
-      if (result.failed.length > 0) return
-      const added = result.successful.reduce((sum, f) => sum + (f.response?.body?.added ?? 0), 0)
+      if ((result.failed ?? []).length > 0) return
+      const added = (result.successful ?? []).reduce(
+        (sum, f) => sum + Number((f.response?.body as { added?: number } | undefined)?.added ?? 0),
+        0
+      )
       onUploadCompleteRef.current(added)
     }
     uppy.on('file-added', handleFileAdded)

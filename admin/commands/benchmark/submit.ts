@@ -92,7 +92,6 @@ export default class BenchmarkSubmit extends BaseCommand {
       this.logger.info(`Your percentile: ${submitResult.percentile}%`)
       this.logger.info('')
       this.logger.info('Thank you for contributing to the NOMAD community!')
-
     } catch (error) {
       this.logger.error(`Submission failed: ${error.message}`)
       this.exitCode = 1

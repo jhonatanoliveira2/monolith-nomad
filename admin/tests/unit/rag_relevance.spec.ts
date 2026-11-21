@@ -65,7 +65,10 @@ test('relevance floor: keeps chunks at or above the floor', () => {
   // Boundary inclusive: a chunk scoring exactly the floor is on the right side
   // of it. The presets are round numbers, so this edge is reachable.
   const { survivors, belowFloor } = applyRelevanceFloor(ranked(0.8, 0.6, 0.59), 0.6)
-  assert.deepEqual(survivors.map((s) => s.id), ['c0', 'c1'])
+  assert.deepEqual(
+    survivors.map((s) => s.id),
+    ['c0', 'c1']
+  )
   assert.equal(belowFloor, 1)
 })
 

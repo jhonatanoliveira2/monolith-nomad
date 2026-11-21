@@ -1,8 +1,5 @@
 import { BaseStylesFile, MapLayer } from '../../types/maps.js'
-import {
-  DownloadRemoteSuccessCallback,
-  FileEntry,
-} from '../../types/files.js'
+import { DownloadRemoteSuccessCallback, FileEntry } from '../../types/files.js'
 import { doResumableDownloadWithRetry } from '../utils/downloads.js'
 import { extract } from 'tar'
 import env from '#start/env'
@@ -13,7 +10,7 @@ import {
   getFile,
   ensureDirectoryExists,
 } from '../utils/fs.js'
-import { join, resolve, sep } from 'path'
+import { join, resolve, sep } from 'node:path'
 import urlJoin from 'url-join'
 import { RunDownloadJob } from '#jobs/run_download_job'
 import { RunExtractPmtilesJob } from '#jobs/run_extract_pmtiles_job'
@@ -37,10 +34,10 @@ import {
 } from '../../constants/map_regions.js'
 import { UPSTREAM_MAPS_REPO } from '../../constants/project.js'
 import { CountriesService } from './countries_service.js'
-import { execFile } from 'child_process'
-import { createHash, randomBytes } from 'crypto'
-import { tmpdir } from 'os'
-import { promisify } from 'util'
+import { execFile } from 'node:child_process'
+import { createHash, randomBytes } from 'node:crypto'
+import { tmpdir } from 'node:os'
+import { promisify } from 'node:util'
 
 const execFileAsync = promisify(execFile)
 
@@ -77,11 +74,11 @@ const PMTILES_ATTRIBUTION =
   '<a href="https://github.com/protomaps/basemaps">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>'
 const PMTILES_MIME_TYPES = ['application/vnd.pmtiles', 'application/octet-stream']
 
-interface IMapService {
+interface MapServiceContract {
   downloadRemoteSuccessCallback: DownloadRemoteSuccessCallback
 }
 
-export class MapService implements IMapService {
+export class MapService implements MapServiceContract {
   private readonly mapStoragePath = '/storage/maps'
   private readonly baseStylesFile = 'nomad-base-styles.json'
   private readonly basemapsAssetsDir = 'basemaps-assets'
@@ -92,7 +89,8 @@ export class MapService implements IMapService {
   private worldBasemapInFlight: Promise<void> | null = null
 
   async listRegions() {
-    const files = (await this.listAllMapStorageItems()).filter(
+    const items = await this.listAllMapStorageItems()
+    const files = items.filter(
       (item) =>
         item.type === 'file' &&
         item.name.endsWith('.pmtiles') &&
@@ -284,7 +282,6 @@ export class MapService implements IMapService {
 
     const filepath = join(process.cwd(), this.mapStoragePath, 'pmtiles', filename)
 
-
     // First, ensure base assets are present - regions depend on them
     const baseAssetsExist = await this.ensureBaseAssets()
     if (!baseAssetsExist) {
@@ -296,7 +293,11 @@ export class MapService implements IMapService {
     // Parse resource metadata
     const parsedFilename = CollectionManifestService.parseMapFilename(filename)
     const resourceMetadata = parsedFilename
-      ? { resource_id: parsedFilename.resource_id, version: parsedFilename.version, collection_ref: null }
+      ? {
+          resource_id: parsedFilename.resource_id,
+          version: parsedFilename.version,
+          collection_ref: null,
+        }
       : undefined
 
     // Dispatch background job
@@ -346,7 +347,7 @@ export class MapService implements IMapService {
       }
 
       const contentLength = response.headers['content-length']
-      const size = contentLength ? parseInt(contentLength.toString(), 10) : 0
+      const size = contentLength ? Number.parseInt(contentLength.toString(), 10) : 0
 
       return { filename, size }
     } catch (error: any) {
@@ -355,7 +356,10 @@ export class MapService implements IMapService {
     }
   }
 
-  async generateStylesJSON(host: string | null = null, protocol: string = 'http'): Promise<BaseStylesFile> {
+  async generateStylesJSON(
+    host: string | null = null,
+    protocol: string = 'http'
+  ): Promise<BaseStylesFile> {
     if (!(await this.checkBaseAssetsExist())) {
       throw new Error('Base map assets are missing from storage/maps')
     }
@@ -368,14 +372,14 @@ export class MapService implements IMapService {
 
     const rawStyles = JSON.parse(baseStyle.toString()) as BaseStylesFile
 
-    const regions = (await this.listRegions()).files
+    const { files: regions } = await this.listRegions()
 
     /** If we have the host, use it to build public URLs, otherwise we'll fallback to defaults
-    * This is mainly useful because we need to know what host the user is accessing from in order to
-    * properly generate URLs in the styles file
-    * e.g. user is accessing from "example.com", but we would by default generate "localhost:8080/..." so maps would
-    * fail to load.
-    */
+     * This is mainly useful because we need to know what host the user is accessing from in order to
+     * properly generate URLs in the styles file
+     * e.g. user is accessing from "example.com", but we would by default generate "localhost:8080/..." so maps would
+     * fail to load.
+     */
     const sources = this.generateSourcesArray(host, regions, protocol)
     const baseUrl = this.getPublicFileBaseUrl(host, this.basemapsAssetsDir, protocol)
 
@@ -546,7 +550,11 @@ export class MapService implements IMapService {
     return a < b ? -1 : 1
   }
 
-  private generateSourcesArray(host: string | null, regions: FileEntry[], protocol: string = 'http'): BaseStylesFile['sources'][] {
+  private generateSourcesArray(
+    host: string | null,
+    regions: FileEntry[],
+    protocol: string = 'http'
+  ): BaseStylesFile['sources'][] {
     const sources: BaseStylesFile['sources'][] = []
     const baseUrl = this.getPublicFileBaseUrl(host, 'pmtiles', protocol)
 
@@ -830,7 +838,9 @@ export class MapService implements IMapService {
         const preflight = await this.runDryRun(info, regionFilepath, maxzoom)
         estimatedBytes = preflight.bytes
       } catch (err) {
-        logger.warn(`[MapService] extractRegion preflight failed, proceeding without estimate: ${err}`)
+        logger.warn(
+          `[MapService] extractRegion preflight failed, proceeding without estimate: ${err}`
+        )
       }
     }
 
@@ -882,14 +892,8 @@ export class MapService implements IMapService {
 
   private validateMaxzoom(maxzoom: number | undefined): void {
     if (typeof maxzoom !== 'number') return
-    if (
-      !Number.isInteger(maxzoom) ||
-      maxzoom < EXTRACT_MIN_ZOOM ||
-      maxzoom > EXTRACT_MAX_ZOOM
-    ) {
-      throw new Error(
-        `maxzoom must be an integer in [${EXTRACT_MIN_ZOOM}, ${EXTRACT_MAX_ZOOM}]`
-      )
+    if (!Number.isInteger(maxzoom) || maxzoom < EXTRACT_MIN_ZOOM || maxzoom > EXTRACT_MAX_ZOOM) {
+      throw new Error(`maxzoom must be an integer in [${EXTRACT_MIN_ZOOM}, ${EXTRACT_MAX_ZOOM}]`)
     }
   }
 
@@ -901,7 +905,7 @@ export class MapService implements IMapService {
 
     const byteLine = output.match(/archive\s+size\s+of\s+([\d,.]+)\s*(B|KB|MB|GB|TB|bytes?)?/i)
     if (byteLine) {
-      const raw = parseFloat(byteLine[1].replace(/,/g, ''))
+      const raw = Number.parseFloat(byteLine[1].replace(/,/g, ''))
       const unit = (byteLine[2] ?? 'B').toUpperCase()
       const multipliers: Record<string, number> = {
         B: 1,
@@ -917,7 +921,7 @@ export class MapService implements IMapService {
 
     const tileLine = output.match(/(?:tiles\s+to\s+extract|tiles)[^\d]*([\d,]+)/i)
     if (tileLine) {
-      tiles = parseInt(tileLine[1].replace(/,/g, ''), 10) || 0
+      tiles = Number.parseInt(tileLine[1].replace(/,/g, ''), 10) || 0
     }
 
     return { tiles, bytes }
@@ -972,7 +976,11 @@ export class MapService implements IMapService {
    * @param protocol - the protocol to use in the generated URL (e.g. "http", "https"), defaults to "http"
    * @returns the public URL for the map asset
    */
-  private getPublicFileBaseUrl(specifiedHost: string | null, childPath: string, protocol: string = 'http'): string {
+  private getPublicFileBaseUrl(
+    specifiedHost: string | null,
+    childPath: string,
+    protocol: string = 'http'
+  ): string {
     function getHost() {
       try {
         const localUrlRaw = env.get('URL')
@@ -1002,7 +1010,7 @@ export class MapService implements IMapService {
       return getHost()
     }
 
-    const host = specifiedHostOrDefault();
+    const host = specifiedHostOrDefault()
     const withProtocol = `${protocol}://${host}`
     const baseUrlPath =
       process.env.NODE_ENV === 'production' ? childPath : urlJoin(this.mapStoragePath, childPath)
@@ -1019,8 +1027,7 @@ function findExactGroupMatch(
   return (
     groups.find(
       (g) =>
-        g.countries.length === countries.length &&
-        g.countries.every((c, i) => c === countries[i])
+        g.countries.length === countries.length && g.countries.every((c, i) => c === countries[i])
     ) ?? null
   )
 }

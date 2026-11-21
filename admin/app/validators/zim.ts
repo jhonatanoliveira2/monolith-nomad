@@ -19,19 +19,13 @@ export const listRemoteZimValidator = vine.compile(
 export const addCustomLibraryValidator = vine.compile(
   vine.object({
     name: vine.string().trim().minLength(1).maxLength(100),
-    base_url: vine
-      .string()
-      .url({ require_tld: false })
-      .trim(),
+    base_url: vine.string().url({ require_tld: false }).trim(),
   })
 )
 
 export const browseLibraryValidator = vine.compile(
   vine.object({
-    url: vine
-      .string()
-      .url({ require_tld: false })
-      .trim(),
+    url: vine.string().url({ require_tld: false }).trim(),
   })
 )
 

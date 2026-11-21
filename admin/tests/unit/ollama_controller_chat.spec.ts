@@ -83,8 +83,8 @@ test('unknown backend image rejection returns actionable compatibility details o
     // RagPipelineService after this test was written. The stub returns the
     // messages untouched so these cases still exercise only the vision paths.
     {
-      buildPrompt: async (messages: unknown) => ({
-        messages,
+      buildPrompt: async (promptMessages: unknown) => ({
+        messages: promptMessages,
         numCtx: undefined,
         numPredict: undefined,
         retrieved: [],
@@ -174,8 +174,8 @@ test('unknown backend image rejection returns actionable compatibility details w
     // RagPipelineService after this test was written. The stub returns the
     // messages untouched so these cases still exercise only the vision paths.
     {
-      buildPrompt: async (messages: unknown) => ({
-        messages,
+      buildPrompt: async (promptMessages: unknown) => ({
+        messages: promptMessages,
         numCtx: undefined,
         numPredict: undefined,
         retrieved: [],
@@ -198,10 +198,7 @@ test('unknown backend image rejection returns actionable compatibility details w
   assert.equal(statusCode, 422)
   assert.match((responseBody as { message: string }).message, /cannot confirm/i)
   assert.match((responseBody as { message: string }).message, /supports images/i)
-  assert.doesNotMatch(
-    (responseBody as { message: string }).message,
-    /backend|metadata|projector/i
-  )
+  assert.doesNotMatch((responseBody as { message: string }).message, /backend|metadata|projector/i)
 })
 
 test('unknown backend image requests do not mislabel preprocessing failures as incompatibility', async () => {
@@ -329,8 +326,8 @@ test('text-only JSON chat preserves long histories through the controller bounda
     // RagPipelineService after this test was written. The stub returns the
     // messages untouched so these cases still exercise only the vision paths.
     {
-      buildPrompt: async (messages: unknown) => ({
-        messages,
+      buildPrompt: async (promptMessages: unknown) => ({
+        messages: promptMessages,
         numCtx: undefined,
         numPredict: undefined,
         retrieved: [],

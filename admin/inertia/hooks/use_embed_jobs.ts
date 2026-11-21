@@ -30,7 +30,13 @@ const useEmbedJobs = (props: { enabled?: boolean } = {}) => {
     queryClient.invalidateQueries({ queryKey: ['embed-jobs'] })
   }
 
-  return { ...queryData, invalidate }
+  return {
+    data: queryData.data,
+    isLoading: queryData.isLoading,
+    error: queryData.error,
+    refetch: queryData.refetch,
+    invalidate,
+  }
 }
 
 export default useEmbedJobs

@@ -5,9 +5,13 @@ import react from '@vitejs/plugin-react'
 import adonisjs from '@adonisjs/vite/client'
 import tailwindcss from '@tailwindcss/vite'
 
-
 export default defineConfig({
-  plugins: [inertia({ ssr: { enabled: false } }), react(), tailwindcss(), adonisjs({ entrypoints: ['inertia/app/app.tsx'], reload: ['resources/views/**/*.edge'] })],
+  plugins: [
+    inertia({ ssr: { enabled: false } }),
+    react(),
+    tailwindcss(),
+    adonisjs({ entrypoints: ['inertia/app/app.tsx'], reload: ['resources/views/**/*.edge'] }),
+  ],
 
   /**
    * Define aliases for importing modules from
@@ -19,6 +23,6 @@ export default defineConfig({
     },
   },
   server: {
-    allowedHosts: true // This is for dev environments only. Can be overriden with `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS` if needed.
-  }
+    allowedHosts: true, // This is for dev environments only. Can be overriden with `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS` if needed.
+  },
 })

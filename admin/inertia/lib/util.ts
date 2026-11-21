@@ -1,4 +1,4 @@
-import { Notification } from '~/context/NotificationContext'
+import { Notification } from '~/context/notification_context'
 import { t } from '~/lib/i18n'
 
 // Global notification callback that can be set by the NotificationProvider
@@ -19,7 +19,7 @@ export function formatBytes(bytes: number, decimals = 2): string {
   const dm = decimals < 0 ? 0 : decimals
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+  return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
 }
 
 export function generateRandomString(length: number): string {
@@ -71,7 +71,9 @@ export const extractFileName = (path: string) => {
  * @param fn The asynchronous function to be wrapped.
  * @returns A new function that executes the original function and logs any errors. Returns undefined in case of an error.
  */
-export function catchInternal<Fn extends (...args: any[]) => any>(fn: Fn): (...args: Parameters<Fn>) => Promise<ReturnType<Fn> | undefined> {
+export function catchInternal<Fn extends (...args: any[]) => any>(
+  fn: Fn
+): (...args: Parameters<Fn>) => Promise<ReturnType<Fn> | undefined> {
   return async (...args: any[]) => {
     try {
       return await fn(...args)
@@ -86,7 +88,7 @@ export function catchInternal<Fn extends (...args: any[]) => any>(fn: Fn): (...a
         globalNotificationCallback({
           message: errorMessage,
           type: 'error',
-          duration: 5000
+          duration: 5000,
         })
       }
 

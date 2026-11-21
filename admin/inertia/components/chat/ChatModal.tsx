@@ -1,6 +1,6 @@
 import { Dialog, DialogBackdrop, DialogPanel } from '@headlessui/react'
 import Chat from './index'
-import { useSystemSetting } from '~/hooks/useSystemSetting'
+import { useSystemSetting } from '~/hooks/use_system_setting'
 import { parseBoolean } from '../../../app/utils/misc'
 
 interface ChatModalProps {

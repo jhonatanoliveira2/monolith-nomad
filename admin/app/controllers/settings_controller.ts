@@ -173,9 +173,9 @@ export default class SettingsController {
   }
 
   async getSetting({ request, response }: HttpContext) {
-    const { key } = await getSettingSchema.validate({ key: request.qs().key });
-    const value = await KVStore.getValue(key);
-    return response.status(200).send({ key, value });
+    const { key } = await getSettingSchema.validate({ key: request.qs().key })
+    const value = await KVStore.getValue(key)
+    return response.status(200).send({ key, value })
   }
 
   async updateSetting({ request, response }: HttpContext) {

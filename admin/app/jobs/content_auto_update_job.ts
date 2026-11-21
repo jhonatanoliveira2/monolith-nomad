@@ -59,7 +59,9 @@ export class ContentAutoUpdateJob {
       }
     )
 
-    logger.info('[ContentAutoUpdateJob] Content auto-update evaluation scheduled with cron: 0 * * * *')
+    logger.info(
+      '[ContentAutoUpdateJob] Content auto-update evaluation scheduled with cron: 0 * * * *'
+    )
   }
 
   static async dispatch() {
@@ -76,7 +78,9 @@ export class ContentAutoUpdateJob {
       }
     )
 
-    logger.info(`[ContentAutoUpdateJob] Dispatched ad-hoc content auto-update evaluation job ${job.id}`)
+    logger.info(
+      `[ContentAutoUpdateJob] Dispatched ad-hoc content auto-update evaluation job ${job.id}`
+    )
     return job
   }
 }

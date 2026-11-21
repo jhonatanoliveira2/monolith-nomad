@@ -61,9 +61,7 @@ test('evaluateBindMounts requires absolute container paths', () => {
 test('evaluateBindMounts hard-blocks a colon in the host path', () => {
   // Without this, Docker would re-split "/etc:foo" on the colon and mount /etc — bypassing the
   // system-directory block, which only matches the string as a whole path.
-  const { blocked } = evaluateBindMounts([
-    { host_path: '/etc:foo', container_path: '/data' },
-  ])
+  const { blocked } = evaluateBindMounts([{ host_path: '/etc:foo', container_path: '/data' }])
   assert.equal(blocked.length, 1)
 })
 
@@ -104,9 +102,7 @@ test('evaluateImageReference blocks a malformed reference', () => {
 })
 
 test('evaluateImageReference accepts a digest-pinned image without a moving-tag warning', () => {
-  const { blocked, warnings } = evaluateImageReference(
-    'ghcr.io/org/app@sha256:' + 'a'.repeat(64)
-  )
+  const { blocked, warnings } = evaluateImageReference('ghcr.io/org/app@sha256:' + 'a'.repeat(64))
   assert.equal(blocked.length, 0)
   assert.equal(warnings.length, 0)
 })

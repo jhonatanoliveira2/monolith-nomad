@@ -6,13 +6,18 @@ import {
   remoteDownloadWithMetadataValidator,
   selectWikipediaValidator,
 } from '#validators/common'
-import { addCustomLibraryValidator, browseLibraryValidator, idParamValidator, listRemoteZimValidator } from '#validators/zim'
+import {
+  addCustomLibraryValidator,
+  browseLibraryValidator,
+  idParamValidator,
+  listRemoteZimValidator,
+} from '#validators/zim'
 import { inject } from '@adonisjs/core'
 import logger from '@adonisjs/core/services/logger'
 import type { HttpContext } from '@adonisjs/core/http'
-import { createWriteStream } from 'fs'
-import { rename } from 'fs/promises'
-import { join, resolve, sep } from 'path'
+import { createWriteStream } from 'node:fs'
+import { rename } from 'node:fs/promises'
+import { join, resolve, sep } from 'node:path'
 import { ZIM_STORAGE_PATH, ensureDirectoryExists, sanitizeFilename } from '../utils/fs.js'
 
 @inject()
@@ -118,8 +123,10 @@ export default class ZimController {
           return
         }
 
-        const { access } = await import('fs/promises')
-        const exists = await access(finalPath).then(() => true).catch(() => false)
+        const { access } = await import('node:fs/promises')
+        const exists = await access(finalPath)
+          .then(() => true)
+          .catch(() => false)
         if (exists) {
           part.resume()
           uploadError = 'DUPLICATE_FILENAME'
@@ -166,7 +173,7 @@ export default class ZimController {
     } catch (error) {
       logger.error('[ZimController] Upload failed:', error)
       if (tmpPath) {
-        const { unlink } = await import('fs/promises')
+        const { unlink } = await import('node:fs/promises')
         await unlink(tmpPath).catch(() => {})
       }
       return response.status(500).send({ message: 'Upload failed' })

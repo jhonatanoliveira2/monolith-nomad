@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { IconBug, IconCopy, IconCheck } from '@tabler/icons-react'
 import StyledModal from './StyledModal'
 import api from '~/lib/api'
-import { useProject } from '~/hooks/useProject'
+import { useProject } from '~/hooks/use_project'
 import { useTranslation } from 'react-i18next'
 
 interface DebugInfoModalProps {

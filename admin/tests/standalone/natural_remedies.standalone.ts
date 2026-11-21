@@ -158,7 +158,16 @@ check('parseNaturalRemediesFile drops malformed entries but keeps good ones', ()
         cautions: 'c',
         sourceUrl: 'https://example.com',
       },
-      { slug: 'bad-no-conditions', name: 'Bad', commonNames: [], conditions: [], uses: 'u', evidence: 'e', cautions: 'c', sourceUrl: 'https://example.com' },
+      {
+        slug: 'bad-no-conditions',
+        name: 'Bad',
+        commonNames: [],
+        conditions: [],
+        uses: 'u',
+        evidence: 'e',
+        cautions: 'c',
+        sourceUrl: 'https://example.com',
+      },
       'not-an-object',
     ],
   })
@@ -171,8 +180,26 @@ check('parseNaturalRemediesFile de-dupes by slug, keeping the first', () => {
     version: 'v',
     source: { name: '', url: '', license: '' },
     remedies: [
-      { slug: 'dup', name: 'First', commonNames: [], conditions: ['pain'], uses: 'u', evidence: 'e', cautions: 'c', sourceUrl: 'https://example.com' },
-      { slug: 'dup', name: 'Second', commonNames: [], conditions: ['pain'], uses: 'u2', evidence: 'e2', cautions: 'c2', sourceUrl: 'https://example.com' },
+      {
+        slug: 'dup',
+        name: 'First',
+        commonNames: [],
+        conditions: ['pain'],
+        uses: 'u',
+        evidence: 'e',
+        cautions: 'c',
+        sourceUrl: 'https://example.com',
+      },
+      {
+        slug: 'dup',
+        name: 'Second',
+        commonNames: [],
+        conditions: ['pain'],
+        uses: 'u2',
+        evidence: 'e2',
+        cautions: 'c2',
+        sourceUrl: 'https://example.com',
+      },
     ],
   })
   assert.equal(file.remedies.length, 1)
@@ -184,7 +211,10 @@ check('parseNaturalRemediesFile fail-soft on garbage input', () => {
   assert.equal(empty.version, 'unknown')
   assert.deepEqual(empty.remedies, [])
 
-  const noRemedies = parseNaturalRemediesFile({ version: 'v', source: { name: '', url: '', license: '' } })
+  const noRemedies = parseNaturalRemediesFile({
+    version: 'v',
+    source: { name: '', url: '', license: '' },
+  })
   assert.deepEqual(noRemedies.remedies, [])
 })
 
@@ -194,9 +224,36 @@ const sampleFile = parseNaturalRemediesFile({
   version: 'v',
   source: { name: 'S', url: 'u', license: 'l' },
   remedies: [
-    { slug: 'ginger', name: 'Ginger', commonNames: [], conditions: ['nausea-vomiting', 'indigestion'], uses: 'u', evidence: 'e', cautions: 'c', sourceUrl: 'https://example.com/ginger' },
-    { slug: 'chamomile', name: 'Chamomile', commonNames: [], conditions: ['sleeplessness', 'indigestion'], uses: 'u', evidence: 'e', cautions: 'c', sourceUrl: 'https://example.com/chamomile' },
-    { slug: 'aloe-vera', name: 'Aloe Vera', commonNames: [], conditions: ['burns'], uses: 'u', evidence: 'e', cautions: 'c', sourceUrl: 'https://example.com/aloe-vera' },
+    {
+      slug: 'ginger',
+      name: 'Ginger',
+      commonNames: [],
+      conditions: ['nausea-vomiting', 'indigestion'],
+      uses: 'u',
+      evidence: 'e',
+      cautions: 'c',
+      sourceUrl: 'https://example.com/ginger',
+    },
+    {
+      slug: 'chamomile',
+      name: 'Chamomile',
+      commonNames: [],
+      conditions: ['sleeplessness', 'indigestion'],
+      uses: 'u',
+      evidence: 'e',
+      cautions: 'c',
+      sourceUrl: 'https://example.com/chamomile',
+    },
+    {
+      slug: 'aloe-vera',
+      name: 'Aloe Vera',
+      commonNames: [],
+      conditions: ['burns'],
+      uses: 'u',
+      evidence: 'e',
+      cautions: 'c',
+      sourceUrl: 'https://example.com/aloe-vera',
+    },
   ],
 })
 
@@ -225,7 +282,11 @@ check('remediesForCondition preserves stable curated order', () => {
 })
 
 check('remediesForCondition returns [] for empty remedies file', () => {
-  const emptyFile = parseNaturalRemediesFile({ version: 'v', source: { name: '', url: '', license: '' }, remedies: [] })
+  const emptyFile = parseNaturalRemediesFile({
+    version: 'v',
+    source: { name: '', url: '', license: '' },
+    remedies: [],
+  })
   assert.deepEqual(remediesForCondition(emptyFile, 'burns'), [])
 })
 
@@ -262,36 +323,39 @@ check('NATURAL_REMEDIES_FILE parses cleanly with no dropped entries', () => {
   assert.equal(parsed.remedies.length, NATURAL_REMEDIES_FILE.remedies.length)
 })
 
-check('NATURAL_REMEDIES_FILE matches collections/natural_remedies.json in version + count + slugs', () => {
-  // This test file is at admin/tests/standalone/; ../../../ reaches the repo root.
-  const __dir = dirname(fileURLToPath(import.meta.url))
-  const jsonPath = resolve(__dir, '../../../collections/natural_remedies.json')
-  const raw = JSON.parse(readFileSync(jsonPath, 'utf8')) as NaturalRemediesFile
+check(
+  'NATURAL_REMEDIES_FILE matches collections/natural_remedies.json in version + count + slugs',
+  () => {
+    // This test file is at admin/tests/standalone/; ../../../ reaches the repo root.
+    const currentDir = dirname(fileURLToPath(import.meta.url))
+    const jsonPath = resolve(currentDir, '../../../collections/natural_remedies.json')
+    const raw = JSON.parse(readFileSync(jsonPath, 'utf8')) as NaturalRemediesFile
 
-  // version
-  assert.equal(
-    NATURAL_REMEDIES_FILE.version,
-    raw.version,
-    `version mismatch: TS=${NATURAL_REMEDIES_FILE.version} JSON=${raw.version}`
-  )
+    // version
+    assert.equal(
+      NATURAL_REMEDIES_FILE.version,
+      raw.version,
+      `version mismatch: TS=${NATURAL_REMEDIES_FILE.version} JSON=${raw.version}`
+    )
 
-  // remedy count
-  assert.equal(
-    NATURAL_REMEDIES_FILE.remedies.length,
-    raw.remedies.length,
-    `remedy count mismatch: TS=${NATURAL_REMEDIES_FILE.remedies.length} JSON=${raw.remedies.length}`
-  )
+    // remedy count
+    assert.equal(
+      NATURAL_REMEDIES_FILE.remedies.length,
+      raw.remedies.length,
+      `remedy count mismatch: TS=${NATURAL_REMEDIES_FILE.remedies.length} JSON=${raw.remedies.length}`
+    )
 
-  // slug set equality
-  const tsSlugs = new Set(NATURAL_REMEDIES_FILE.remedies.map((r) => r.slug))
-  const jsonSlugs = new Set(raw.remedies.map((r: { slug: string }) => r.slug))
-  for (const slug of tsSlugs) {
-    assert.ok(jsonSlugs.has(slug), `slug in TS but not in JSON: ${slug}`)
+    // slug set equality
+    const tsSlugs = new Set(NATURAL_REMEDIES_FILE.remedies.map((r) => r.slug))
+    const jsonSlugs = new Set(raw.remedies.map((r: { slug: string }) => r.slug))
+    for (const slug of tsSlugs) {
+      assert.ok(jsonSlugs.has(slug), `slug in TS but not in JSON: ${slug}`)
+    }
+    for (const slug of jsonSlugs) {
+      assert.ok(tsSlugs.has(slug), `slug in JSON but not in TS: ${slug}`)
+    }
   }
-  for (const slug of jsonSlugs) {
-    assert.ok(tsSlugs.has(slug), `slug in JSON but not in TS: ${slug}`)
-  }
-})
+)
 
 check('every remedy condition slug exists in the conditions spine', () => {
   const spine = parseConditionsFile(CONDITIONS_FILE)
@@ -304,11 +368,7 @@ check('every remedy condition slug exists in the conditions spine', () => {
       }
     }
   }
-  assert.equal(
-    unknown.length,
-    0,
-    `Unknown condition slugs in remedies:\n  ${unknown.join('\n  ')}`
-  )
+  assert.equal(unknown.length, 0, `Unknown condition slugs in remedies:\n  ${unknown.join('\n  ')}`)
 })
 
 check('shipped NATURAL_REMEDIES_FILE has the 18 curated remedies', () => {

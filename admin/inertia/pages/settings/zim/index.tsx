@@ -5,11 +5,11 @@ import StyledTable from '~/components/StyledTable'
 import SettingsLayout from '~/layouts/SettingsLayout'
 import api from '~/lib/api'
 import StyledButton from '~/components/StyledButton'
-import { useModals } from '~/context/ModalContext'
+import { useModals } from '~/context/modal_context'
 import StyledModal from '~/components/StyledModal'
 import useServiceInstalledStatus from '~/hooks/useServiceInstalledStatus'
 import Alert from '~/components/Alert'
-import { useNotifications } from '~/context/NotificationContext'
+import { useNotifications } from '~/context/notification_context'
 import ZimUploader from '~/components/ZimUploader'
 import { ZimFileWithMetadata } from '../../../../types/zim'
 import { SERVICE_NAMES } from '../../../../constants/service_names'
@@ -37,7 +37,7 @@ export default function ZimPage() {
 
   async function getFiles() {
     const res = await api.listZimFiles()
-    return res.data.files
+    return res?.data.files ?? []
   }
 
   const sortedData = useMemo(() => {

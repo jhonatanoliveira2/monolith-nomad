@@ -67,7 +67,8 @@ export class EvalCorpusService {
   /** Read every markdown document in the corpus, sorted for determinism. */
   async loadCorpus(): Promise<CorpusDocument[]> {
     const dir = this.corpusPath()
-    const entries = (await readdir(dir)).filter((f) => f.endsWith('.md')).sort()
+    const dirEntries = await readdir(dir)
+    const entries = dirEntries.filter((f) => f.endsWith('.md')).sort()
     if (entries.length === 0) {
       throw new Error(`No corpus documents found in ${dir}`)
     }
@@ -91,7 +92,8 @@ export class EvalCorpusService {
    */
   async loadGoldens(suites: string[] = [DEFAULT_GOLDEN_SUITE]): Promise<Golden[]> {
     const dir = resolve(join(process.cwd(), EVAL_GOLDENS_DIR))
-    const available = (await readdir(dir)).filter((f) => f.endsWith('.jsonl')).sort()
+    const dirEntries = await readdir(dir)
+    const available = dirEntries.filter((f) => f.endsWith('.jsonl')).sort()
     if (available.length === 0) throw new Error(`No golden files found in ${dir}`)
 
     // '*' loads every suite. Used by `eval:corpus`, which validates the fixtures
@@ -167,7 +169,9 @@ export class EvalCorpusService {
    * a state no fingerprint describes, and a fingerprint that does not describe
    * the store is worse than no fingerprint at all.
    */
-  async ingest(onProgress?: (docId: string, index: number, total: number) => void): Promise<IngestSummary> {
+  async ingest(
+    onProgress?: (docId: string, index: number, total: number) => void
+  ): Promise<IngestSummary> {
     const corpus = await this.loadCorpus()
     const removedBeforeIngest = await this.reset()
 
@@ -187,7 +191,10 @@ export class EvalCorpusService {
         }
         chunks += result.chunks
       } catch (error) {
-        failures.push({ docId: doc.docId, reason: error instanceof Error ? error.message : String(error) })
+        failures.push({
+          docId: doc.docId,
+          reason: error instanceof Error ? error.message : String(error),
+        })
       }
     }
 

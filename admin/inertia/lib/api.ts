@@ -6,16 +6,43 @@ import {
 } from '../../types/zim'
 import { ServiceSlim } from '../../types/services'
 import { FileEntry } from '../../types/files'
-import { AppAutoUpdateStatus, AutoUpdateStatus, CheckLatestVersionResult, ContentAutoUpdateStatus, SystemInformationResponse, SystemUpdateStatus } from '../../types/system'
+import {
+  AppAutoUpdateStatus,
+  AutoUpdateStatus,
+  CheckLatestVersionResult,
+  ContentAutoUpdateStatus,
+  SystemInformationResponse,
+  SystemUpdateStatus,
+} from '../../types/system'
 import { DownloadJobWithProgress, WikipediaState } from '../../types/downloads'
 import type { Country, CountryCode, CountryGroup, MapExtractPreflight } from '../../types/maps'
 import { EmbedJobWithProgress, FileWarningsResult, StoredFileInfo } from '../../types/rag'
-import type { CategoryWithStatus, CollectionWithStatus, ContentUpdateCheckResult, CreatorPackWithStatus, ResourceUpdateInfo } from '../../types/collections'
+import type {
+  CategoryWithStatus,
+  CollectionWithStatus,
+  ContentUpdateCheckResult,
+  CreatorPackWithStatus,
+  ResourceUpdateInfo,
+} from '../../types/collections'
 import { catchInternal } from './util'
-import { NomadChatResponse, NomadInstalledModel, NomadOllamaModel, OllamaChatRequest } from '../../types/ollama'
+import {
+  NomadChatResponse,
+  NomadInstalledModel,
+  NomadOllamaModel,
+  OllamaChatRequest,
+} from '../../types/ollama'
 import BenchmarkResult from '#models/benchmark_result'
-import { BenchmarkType, RunBenchmarkResponse, SubmitBenchmarkResponse, UpdateBuilderTagResponse } from '../../types/benchmark'
-import type { CreateMapMarkerPayload, MapMarkerResponse, UpdateMapMarkerPayload } from '../../types/maps'
+import {
+  BenchmarkType,
+  RunBenchmarkResponse,
+  SubmitBenchmarkResponse,
+  UpdateBuilderTagResponse,
+} from '../../types/benchmark'
+import type {
+  CreateMapMarkerPayload,
+  MapMarkerResponse,
+  UpdateMapMarkerPayload,
+} from '../../types/maps'
 import type { ChatSource } from '../../types/chat'
 import { chatStreamErrorMessage } from './chat_stream.js'
 import { t } from './i18n'
@@ -77,7 +104,7 @@ class API {
     })()
   }
 
-  async getRemoteOllamaStatus(): Promise<{ configured: boolean; connected: boolean }> {
+  async getRemoteOllamaStatus(): Promise<{ configured: boolean; connected: boolean } | undefined> {
     return catchInternal(async () => {
       const response = await this.client.get<{ configured: boolean; connected: boolean }>(
         '/ollama/remote-status'
@@ -86,7 +113,9 @@ class API {
     })()
   }
 
-  async configureRemoteOllama(remoteUrl: string | null): Promise<{ success: boolean; message: string }> {
+  async configureRemoteOllama(
+    remoteUrl: string | null
+  ): Promise<{ success: boolean; message: string } | undefined> {
     return catchInternal(async () => {
       const response = await this.client.post<{ success: boolean; message: string }>(
         '/ollama/configure-remote',
@@ -101,6 +130,36 @@ class API {
       const response = await this.client.delete('/ollama/models', { data: { model } })
       return response.data
     })()
+  }
+
+  async getLibrary() {
+    return catchInternal(async () => {
+      const response = await this.client.get<{
+        spec_version: string | null
+        areas: import('../../types/library').LibraryArea[]
+        items: import('../../types/library').LibraryItemWithStatus[]
+      }>('/library')
+      return response.data
+    })()
+  }
+
+  /** Queue a library file. Throws so the page can show the server's reason (e.g. 404, 500). */
+  async downloadLibraryFile(itemId: string, format: 'pdf' | 'epub' | 'zim') {
+    const response = await this.client.post<{ queued: boolean; message: string }>(
+      '/library/download',
+      {
+        itemId,
+        format,
+      }
+    )
+    return response.data
+  }
+
+  async removeLibraryFile(itemId: string, format: 'pdf' | 'epub') {
+    const response = await this.client.delete<{ success: boolean }>('/library/files', {
+      data: { itemId, format },
+    })
+    return response.data
   }
 
   async downloadBaseMapAssets() {
@@ -135,14 +194,20 @@ class API {
     })()
   }
 
-  async downloadCategoryTier(categorySlug: string, tierSlug: string): Promise<{
+  async downloadCategoryTier(
+    categorySlug: string,
+    tierSlug: string
+  ): Promise<{
     message: string
     categorySlug: string
     tierSlug: string
     resources: string[] | null
   }> {
     return catchInternal(async () => {
-      const response = await this.client.post('/zim/download-category-tier', { categorySlug, tierSlug })
+      const response = await this.client.post('/zim/download-category-tier', {
+        categorySlug,
+        tierSlug,
+      })
       return response.data
     })()
   }
@@ -159,15 +224,14 @@ class API {
 
   async downloadRemoteMapRegionPreflight(url: string) {
     return catchInternal(async () => {
-      const response = await this.client.post<{ filename: string; size: number } | { message: string }>(
-        '/maps/download-remote-preflight',
-        { url }
-      )
+      const response = await this.client.post<
+        { filename: string; size: number } | { message: string }
+      >('/maps/download-remote-preflight', { url })
       return response.data
     })()
   }
 
-  async deleteMapRegionFile(filename: string): Promise<{ message: string }> {
+  async deleteMapRegionFile(filename: string): Promise<{ message: string } | undefined> {
     return catchInternal(async () => {
       const response = await this.client.delete<{ message: string }>(
         `/maps/${encodeURIComponent(filename)}`
@@ -224,11 +288,14 @@ class API {
     })()
   }
 
-  async refreshManifests(): Promise<{ success: boolean; changed: Record<string, boolean> } | undefined> {
+  async refreshManifests(): Promise<
+    { success: boolean; changed: Record<string, boolean> } | undefined
+  > {
     return catchInternal(async () => {
-      const response = await this.client.post<{ success: boolean; changed: Record<string, boolean> }>(
-        '/manifests/refresh'
-      )
+      const response = await this.client.post<{
+        success: boolean
+        changed: Record<string, boolean>
+      }>('/manifests/refresh')
       return response.data
     })()
   }
@@ -279,10 +346,9 @@ class API {
 
   async getChatSuggestions(signal?: AbortSignal) {
     return catchInternal(async () => {
-      const response = await this.client.get<{ suggestions: string[] }>(
-        '/chat/suggestions',
-        { signal }
-      )
+      const response = await this.client.get<{ suggestions: string[] }>('/chat/suggestions', {
+        signal,
+      })
       return response.data.suggestions
     })()
   }
@@ -326,7 +392,12 @@ class API {
     })()
   }
 
-  async getAvailableModels(params: { query?: string; recommendedOnly?: boolean; limit?: number; force?: boolean }) {
+  async getAvailableModels(params: {
+    query?: string
+    recommendedOnly?: boolean
+    limit?: number
+    force?: boolean
+  }) {
     return catchInternal(async () => {
       const response = await this.client.get<{
         models: NomadOllamaModel[]
@@ -402,7 +473,9 @@ class API {
           let data: any
           try {
             data = JSON.parse(line.slice(6))
-          } catch { continue /* skip malformed chunks */ }
+          } catch {
+            continue /* skip malformed chunks */
+          }
 
           const streamError = chatStreamErrorMessage(data)
           if (streamError) throw new Error(streamError)
@@ -420,11 +493,7 @@ class API {
             onDoneReason?.(data.done_reason)
           }
 
-          onChunk(
-            data.message?.content ?? '',
-            data.message?.thinking ?? '',
-            data.done ?? false
-          )
+          onChunk(data.message?.content ?? '', data.message?.thinking ?? '', data.done ?? false)
         }
       }
     } finally {
@@ -434,14 +503,18 @@ class API {
 
   async getBenchmarkResults() {
     return catchInternal(async () => {
-      const response = await this.client.get<{ results: BenchmarkResult[], total: number }>('/benchmark/results')
+      const response = await this.client.get<{ results: BenchmarkResult[]; total: number }>(
+        '/benchmark/results'
+      )
       return response.data
     })()
   }
 
   async getLatestBenchmarkResult() {
     return catchInternal(async () => {
-      const response = await this.client.get<{ result: BenchmarkResult | null }>('/benchmark/results/latest')
+      const response = await this.client.get<{ result: BenchmarkResult | null }>(
+        '/benchmark/results/latest'
+      )
       return response.data
     })()
   }
@@ -455,13 +528,15 @@ class API {
 
   async getChatSessions() {
     return catchInternal(async () => {
-      const response = await this.client.get<Array<{
-        id: string
-        title: string
-        model: string | null
-        timestamp: string
-        lastMessage: string | null
-      }>>('/chat/sessions')
+      const response = await this.client.get<
+        Array<{
+          id: string
+          title: string
+          model: string | null
+          timestamp: string
+          lastMessage: string | null
+        }>
+      >('/chat/sessions')
       return response.data
     })()
   }
@@ -478,6 +553,8 @@ class API {
           role: 'system' | 'user' | 'assistant'
           content: string
           timestamp: string
+          // chat_service.getSession parses the stored JSON back into the RAG citations
+          sources?: import('../../types/chat').ChatSource[]
         }>
       }>(`/chat/sessions/${sessionId}`)
       return response.data
@@ -549,16 +626,28 @@ class API {
     })()
   }
 
-  async cleanupFailedEmbedJobs(): Promise<{ message: string; cleaned: number; filesDeleted: number } | undefined> {
+  async cleanupFailedEmbedJobs(): Promise<
+    { message: string; cleaned: number; filesDeleted: number } | undefined
+  > {
     return catchInternal(async () => {
-      const response = await this.client.delete<{ message: string; cleaned: number; filesDeleted: number }>('/rag/failed-jobs')
+      const response = await this.client.delete<{
+        message: string
+        cleaned: number
+        filesDeleted: number
+      }>('/rag/failed-jobs')
       return response.data
     })()
   }
 
-  async cancelAllEmbedJobs(): Promise<{ message: string; cancelled: number; filesDeleted: number } | undefined> {
+  async cancelAllEmbedJobs(): Promise<
+    { message: string; cancelled: number; filesDeleted: number } | undefined
+  > {
     return catchInternal(async () => {
-      const response = await this.client.delete<{ message: string; cancelled: number; filesDeleted: number }>('/rag/jobs')
+      const response = await this.client.delete<{
+        message: string
+        cancelled: number
+        filesDeleted: number
+      }>('/rag/jobs')
       return response.data
     })()
   }
@@ -579,7 +668,10 @@ class API {
 
   async embedSingleRAGFile(source: string, force: boolean = false) {
     return catchInternal(async () => {
-      const response = await this.client.post<{ message: string }>('/rag/files/embed', { source, force })
+      const response = await this.client.post<{ message: string }>('/rag/files/embed', {
+        source,
+        force,
+      })
       return response.data
     })()
   }
@@ -593,7 +685,9 @@ class API {
 
   async deleteRAGFile(source: string) {
     return catchInternal(async () => {
-      const response = await this.client.delete<{ message: string }>('/rag/files', { data: { source } })
+      const response = await this.client.delete<{ message: string }>('/rag/files', {
+        data: { source },
+      })
       return response.data
     })()
   }
@@ -772,9 +866,7 @@ class API {
 
   async listCuratedMapCollections() {
     return catchInternal(async () => {
-      const response = await this.client.get<CollectionWithStatus[]>(
-        '/maps/curated-collections'
-      )
+      const response = await this.client.get<CollectionWithStatus[]>('/maps/curated-collections')
       return response.data
     })()
   }
@@ -881,17 +973,17 @@ class API {
 
   async listCatalogLanguages() {
     return catchInternal(async () => {
-      const response =
-        await this.client.get<ListCatalogLanguagesResponse>('/zim/catalog-languages')
+      const response = await this.client.get<ListCatalogLanguagesResponse>('/zim/catalog-languages')
       return response.data.languages
     })()
   }
 
   async listCustomLibraries() {
     return catchInternal(async () => {
-      const response = await this.client.get<{ id: number; name: string; base_url: string; is_default: boolean }[]>(
-        '/zim/custom-libraries'
-      )
+      const response =
+        await this.client.get<
+          { id: number; name: string; base_url: string; is_default: boolean }[]
+        >('/zim/custom-libraries')
       return response.data
     })()
   }
@@ -962,7 +1054,9 @@ class API {
     })()
   }
 
-  async cancelDownloadJob(jobId: string): Promise<{ success: boolean; message: string } | undefined> {
+  async cancelDownloadJob(
+    jobId: string
+  ): Promise<{ success: boolean; message: string } | undefined> {
     return catchInternal(async () => {
       const response = await this.client.post<{ success: boolean; message: string }>(
         `/downloads/jobs/${jobId}/cancel`
@@ -971,7 +1065,9 @@ class API {
     })()
   }
 
-  async retryDownloadJob(jobId: string): Promise<{ success: boolean; message: string } | undefined> {
+  async retryDownloadJob(
+    jobId: string
+  ): Promise<{ success: boolean; message: string } | undefined> {
     return catchInternal(async () => {
       const response = await this.client.post<{ success: boolean; message: string }>(
         `/downloads/jobs/${jobId}/retry`
@@ -984,7 +1080,7 @@ class API {
     return catchInternal(async () => {
       const response = await this.client.post<RunBenchmarkResponse>(
         `/benchmark/run${sync ? '?sync=true' : ''}`,
-        { benchmark_type: type },
+        { benchmark_type: type }
       )
       return response.data
     })()
@@ -1001,7 +1097,10 @@ class API {
 
   async submitBenchmark(benchmark_id: string, anonymous: boolean) {
     try {
-      const response = await this.client.post<SubmitBenchmarkResponse>('/benchmark/submit', { benchmark_id, anonymous })
+      const response = await this.client.post<SubmitBenchmarkResponse>('/benchmark/submit', {
+        benchmark_id,
+        anonymous,
+      })
       return response.data
     } catch (error: any) {
       // For 409 Conflict errors, throw a specific error that the UI can handle
@@ -1112,10 +1211,10 @@ class API {
 
   async updateBuilderTag(benchmark_id: string, builder_tag: string) {
     return catchInternal(async () => {
-      const response = await this.client.post<UpdateBuilderTagResponse>(
-        '/benchmark/builder-tag',
-        { benchmark_id, builder_tag }
-      )
+      const response = await this.client.post<UpdateBuilderTagResponse>('/benchmark/builder-tag', {
+        benchmark_id,
+        builder_tag,
+      })
       return response.data
     })()
   }
@@ -1237,10 +1336,9 @@ class API {
 
   async getSetting(key: string) {
     return catchInternal(async () => {
-      const response = await this.client.get<{ key: string; value: any }>(
-        '/system/settings',
-        { params: { key } }
-      )
+      const response = await this.client.get<{ key: string; value: any }>('/system/settings', {
+        params: { key },
+      })
       return response.data
     })()
   }

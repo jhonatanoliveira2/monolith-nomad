@@ -57,10 +57,9 @@ import {
   IconAlertTriangle,
   IconXboxX,
   IconBug,
-  IconCopy,
+  IconEye,
   IconLibrary,
-  IconServer,
-  IconMenu2,
+  IconMap2,
   IconArrowLeft,
   IconArrowRight,
 } from '@tabler/icons-react'
@@ -99,6 +98,7 @@ export const icons = {
   IconDatabase,
   IconDownload,
   IconExternalLink,
+  IconEye,
   IconFileDescription,
   IconFolderOpen,
   IconHome,
@@ -106,6 +106,7 @@ export const icons = {
   IconLibrary,
   IconLogs,
   IconMap,
+  IconMap2,
   IconMenu2,
   IconMoon,
   IconMovie,
@@ -133,7 +134,7 @@ export const icons = {
   IconWifi,
   IconWorld,
   IconX,
-  IconXboxX
+  IconXboxX,
 } as const
 
 export type DynamicIconName = keyof typeof icons

@@ -217,11 +217,7 @@ export class KiwixCatalogService {
 
     const feed = parsed.feed
     const totalResults = Number(feed?.totalResults)
-    const rawEntries = feed?.entry
-      ? Array.isArray(feed.entry)
-        ? feed.entry
-        : [feed.entry]
-      : []
+    const rawEntries = feed?.entry ? (Array.isArray(feed.entry) ? feed.entry : [feed.entry]) : []
 
     const entries: CatalogZimEntry[] = []
     for (const raw of rawEntries) {
@@ -238,16 +234,16 @@ export class KiwixCatalogService {
 
       // The OPDS href ends with `.meta4`; strip it to get the real .zim URL.
       const href: string = downloadLink.href
-      const download_url = href.endsWith('.meta4') ? href.slice(0, -'.meta4'.length) : href
-      const file_name = download_url.split('/').pop() || ''
-      if (!file_name) continue
+      const downloadUrl = href.endsWith('.meta4') ? href.slice(0, -'.meta4'.length) : href
+      const fileName = downloadUrl.split('/').pop() || ''
+      if (!fileName) continue
 
-      const size_bytes = Number.parseInt(downloadLink.length, 10) || 0
+      const sizeBytes = Number.parseInt(downloadLink.length, 10) || 0
       entries.push({
         name: typeof raw.name === 'string' ? raw.name : null,
-        download_url,
-        file_name,
-        size_bytes,
+        download_url: downloadUrl,
+        file_name: fileName,
+        size_bytes: sizeBytes,
       })
     }
 

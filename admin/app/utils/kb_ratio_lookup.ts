@@ -35,10 +35,7 @@ export interface BatchEstimate {
  * matched files, so callers should annotate "estimate excludes unknown files"
  * when surfacing the figure.
  */
-export function estimateBatch(
-  files: BatchEstimateInput[],
-  rows: RatioRow[]
-): BatchEstimate {
+export function estimateBatch(files: BatchEstimateInput[], rows: RatioRow[]): BatchEstimate {
   let totalChunks = 0
   let hasUnknown = false
   for (const f of files) {

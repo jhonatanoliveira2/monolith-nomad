@@ -5,7 +5,7 @@ import StyledModal, { StyledModalProps } from './StyledModal'
 import LoadingSpinner from './LoadingSpinner'
 import api from '~/lib/api'
 import { formatBytes } from '~/lib/util'
-import classNames from '~/lib/classNames'
+import classNames from '~/lib/class_names'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '~/lib/format'
 import {

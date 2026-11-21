@@ -52,12 +52,21 @@ export const setServiceAutoUpdateValidator = vine.compile(
 // (host:container:options) — forbid it in either field so a path can't smuggle in an
 // extra segment that the guard reads as safe but Docker re-parses as a different mount.
 const volumeSchema = vine.object({
-  host_path: vine.string().trim().regex(/^[^:]+$/),
-  container_path: vine.string().trim().regex(/^[^:]+$/),
+  host_path: vine
+    .string()
+    .trim()
+    .regex(/^[^:]+$/),
+  container_path: vine
+    .string()
+    .trim()
+    .regex(/^[^:]+$/),
 })
 
 // Environment variables must be KEY=value (value may be empty), matching Docker's Env format.
-const envVarSchema = vine.string().trim().regex(/^[A-Za-z_][A-Za-z0-9_]*=[\s\S]*$/)
+const envVarSchema = vine
+  .string()
+  .trim()
+  .regex(/^[A-Za-z_][A-Za-z0-9_]*=[\s\S]*$/)
 
 // Service-less preflight for the custom-app form: evaluates ports, volumes and image together.
 export const preflightCustomValidator = vine.compile(
@@ -85,7 +94,16 @@ export const customAppValidator = vine.compile(
     volumes: vine.array(volumeSchema).optional(),
     env: vine.array(envVarSchema).optional(),
     category: vine
-      .enum(['productivity', 'media', 'security', 'networking', 'utility', 'ai', 'education', 'custom'])
+      .enum([
+        'productivity',
+        'media',
+        'security',
+        'networking',
+        'utility',
+        'ai',
+        'education',
+        'custom',
+      ])
       .optional(),
     icon: vine.string().trim().optional(),
     // Optional resource caps (advanced). Default caps are applied when omitted.
@@ -203,7 +221,16 @@ export const updateCustomAppValidator = vine.compile(
     volumes: vine.array(volumeSchema).optional(),
     env: vine.array(envVarSchema).optional(),
     category: vine
-      .enum(['productivity', 'media', 'security', 'networking', 'utility', 'ai', 'education', 'custom'])
+      .enum([
+        'productivity',
+        'media',
+        'security',
+        'networking',
+        'utility',
+        'ai',
+        'education',
+        'custom',
+      ])
       .optional(),
     icon: vine.string().trim().optional(),
     memory_mb: vine.number().min(64).optional(),

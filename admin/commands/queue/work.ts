@@ -110,9 +110,7 @@ export default class QueueWork extends BaseCommand {
             const zimService = new ZimService(dockerService)
             await zimService.onWikipediaDownloadComplete(job.data.url, false)
           } catch (e: any) {
-            this.logger.error(
-              `[${queueName}] Failed to update Wikipedia status: ${e.message}`
-            )
+            this.logger.error(`[${queueName}] Failed to update Wikipedia status: ${e.message}`)
           }
         }
 
@@ -131,9 +129,8 @@ export default class QueueWork extends BaseCommand {
         ) {
           try {
             const { default: InstalledResource } = await import('#models/installed_resource')
-            const { recordResourceUpdateFailure } = await import(
-              '../../app/utils/content_auto_update_backoff.js'
-            )
+            const { recordResourceUpdateFailure } =
+              await import('../../app/utils/content_auto_update_backoff.js')
             const resource = await InstalledResource.query()
               .where('resource_id', meta.resource_id)
               .where('resource_type', job.data.filetype)

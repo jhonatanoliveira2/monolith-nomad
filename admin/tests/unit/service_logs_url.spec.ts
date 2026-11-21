@@ -14,7 +14,8 @@ import { validateSettingValue } from '../../app/validators/settings.js'
 // mirror below duplicates; that module reads window and is therefore not importable
 // from a Node unit test (the app's tsconfig excludes inertia/ from the Node program).
 
-const valid = (value: string) => assert.equal(validateSettingValue('ui.serviceLogsUrl', value), null)
+const valid = (value: string) =>
+  assert.equal(validateSettingValue('ui.serviceLogsUrl', value), null)
 
 // ── Accepted values ──────────────────────────────────────────────────────────
 
@@ -79,5 +80,8 @@ test('rejects malformed URLs', () => {
 test('rejects non-string values', () => {
   assert.match(String(validateSettingValue('ui.serviceLogsUrl', 42)), /must be a string/)
   assert.match(String(validateSettingValue('ui.serviceLogsUrl', true)), /must be a string/)
-  assert.match(String(validateSettingValue('ui.serviceLogsUrl', ['https://a.example'])), /must be a string/)
+  assert.match(
+    String(validateSettingValue('ui.serviceLogsUrl', ['https://a.example'])),
+    /must be a string/
+  )
 })

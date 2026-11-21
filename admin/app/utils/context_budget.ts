@@ -178,7 +178,10 @@ export function planPrompt(inputs: BudgetInputs): BudgetResult {
 
   const responseReserve =
     inputs.responseReserve ??
-    Math.max(256, Math.min(MAX_RESPONSE_RESERVE, Math.floor(contextWindow * RESPONSE_RESERVE_FRACTION)))
+    Math.max(
+      256,
+      Math.min(MAX_RESPONSE_RESERVE, Math.floor(contextWindow * RESPONSE_RESERVE_FRACTION))
+    )
   const promptBudget = Math.max(0, contextWindow - responseReserve)
 
   const cost = (messages: BudgetMessage[]) => estimateMessagesTokens(messages, ratio)
@@ -216,7 +219,10 @@ export function planPrompt(inputs: BudgetInputs): BudgetResult {
   // character count, which could hand the model a chunk cut off mid-sentence —
   // the worst of both worlds, since it costs tokens without carrying a complete
   // fact. A chunk that doesn't fit is dropped, not shortened.
-  const ragBudget = Math.max(0, Math.floor(Math.max(0, remaining) * (inputs.ragShare ?? DEFAULT_RAG_SHARE)))
+  const ragBudget = Math.max(
+    0,
+    Math.floor(Math.max(0, remaining) * (inputs.ragShare ?? DEFAULT_RAG_SHARE))
+  )
   const keptChunks: BudgetChunk[] = []
   let ragTokens = 0
 
@@ -234,9 +240,7 @@ export function planPrompt(inputs: BudgetInputs): BudgetResult {
   }
 
   const ragMessage: BudgetMessage | null =
-    keptChunks.length > 0
-      ? { role: 'system', content: inputs.renderRagBlock(keptChunks) }
-      : null
+    keptChunks.length > 0 ? { role: 'system', content: inputs.renderRagBlock(keptChunks) } : null
 
   remaining -= ragTokens
 

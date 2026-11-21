@@ -20,7 +20,10 @@ export default class CreatorPacksController {
       const downloads = await downloadService.listDownloadJobs('zim')
       return { configured, packs, downloads }
     } catch (error: any) {
-      logger.error('[CreatorPacksController] Failed to list creator packs:', error?.message || error)
+      logger.error(
+        '[CreatorPacksController] Failed to list creator packs:',
+        error?.message || error
+      )
       return response.status(500).send({ message: 'Failed to load creator packs' })
     }
   }

@@ -98,6 +98,8 @@ export type WikipediaOption = {
   description: string
   size_mb: number
   url: string | null
+  /** Content language (pt, en, mul); shown as a badge. Absent for "none". */
+  language?: string
 }
 
 export type WikipediaOptionsFile = {

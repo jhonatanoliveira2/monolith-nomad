@@ -33,9 +33,6 @@ export interface ZimBatchProgress {
   batchSize: number
 }
 
-export function hasMoreArticleBatches({
-  articlesProcessed,
-  batchSize,
-}: ZimBatchProgress): boolean {
+export function hasMoreArticleBatches({ articlesProcessed, batchSize }: ZimBatchProgress): boolean {
   return articlesProcessed >= batchSize
 }

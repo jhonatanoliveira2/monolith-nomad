@@ -1,4 +1,5 @@
 import { formatBytes } from '~/lib/util'
+import LanguageBadge from './LanguageBadge'
 import { WikipediaOption, WikipediaCurrentSelection } from '../../types/downloads'
 import classNames from 'classnames'
 import { IconCheck, IconDownload, IconWorld, IconAlertTriangle } from '@tabler/icons-react'
@@ -127,7 +128,10 @@ const WikipediaSelector: React.FC<WikipediaSelectorProps> = ({
 
               {/* Option content */}
               <div className="pr-16 flex flex-col h-full">
-                <h4 className="text-lg font-semibold text-text-primary mb-1">{option.name}</h4>
+                <h4 className="text-lg font-semibold text-text-primary mb-1">
+                  {option.name}
+                  <LanguageBadge language={option.language} />
+                </h4>
                 <p className="text-sm text-text-secondary mb-3 flex-grow">{option.description}</p>
                 <div className="flex items-center gap-3">
                   {/* Radio indicator */}

@@ -41,7 +41,9 @@ export default class EvalMatrix extends BaseCommand {
   @flags.string({ description: 'Only run goldens carrying this tag' })
   declare tag: string
 
-  @flags.boolean({ description: 'Write the table to tests/eval/baselines/<fingerprint>/matrix.json' })
+  @flags.boolean({
+    description: 'Write the table to tests/eval/baselines/<fingerprint>/matrix.json',
+  })
   declare promote: boolean
 
   @flags.boolean({ description: 'Leave application debug logging on (very noisy)' })
@@ -68,7 +70,10 @@ export default class EvalMatrix extends BaseCommand {
         this.exitCode = 1
         return
       }
-      const models = this.models.split(',').map((m) => m.trim()).filter(Boolean)
+      const models = this.models
+        .split(',')
+        .map((m) => m.trim())
+        .filter(Boolean)
 
       let goldens = await corpusService.loadGoldens()
       if (this.tag) goldens = goldens.filter((g) => g.tags.includes(this.tag))
@@ -112,7 +117,9 @@ export default class EvalMatrix extends BaseCommand {
       this.printTable(rows)
 
       if (this.promote) {
-        const path = resolve(join(process.cwd(), 'tests/eval/baselines', fingerprint, 'matrix.json'))
+        const path = resolve(
+          join(process.cwd(), 'tests/eval/baselines', fingerprint, 'matrix.json')
+        )
         await mkdir(dirname(path), { recursive: true })
         await writeFile(
           path,
@@ -153,8 +160,10 @@ export default class EvalMatrix extends BaseCommand {
         continue
       }
       const cost =
-        row.oracle?.correctness !== null && row.oracle?.correctness !== undefined &&
-        row.e2e?.correctness !== null && row.e2e?.correctness !== undefined
+        row.oracle?.correctness !== null &&
+        row.oracle?.correctness !== undefined &&
+        row.e2e?.correctness !== null &&
+        row.e2e?.correctness !== undefined
           ? row.oracle.correctness - row.e2e.correctness
           : null
       this.logger.info(
@@ -168,7 +177,7 @@ export default class EvalMatrix extends BaseCommand {
       )
     }
     this.logger.info('')
-    this.logger.info('oracle   = correctness with perfect context (the model\'s ceiling)')
+    this.logger.info("oracle   = correctness with perfect context (the model's ceiling)")
     this.logger.info('e2e      = correctness with real retrieval (what a user gets)')
     this.logger.info('ret.cost = oracle - e2e (what imperfect retrieval costs this model)')
     this.logger.info('leakage  = rate of narrating retrieval; lower is better')

@@ -19,8 +19,8 @@ export default class extends BaseSchema {
         { service_name: 'nomad_flatnotes', category: 'productivity' },
       ]
 
-      for (const { service_name, category } of updates) {
-        await db.from('services').where('service_name', service_name).update({ category })
+      for (const { service_name: serviceName, category } of updates) {
+        await db.from('services').where('service_name', serviceName).update({ category })
       }
     })
   }

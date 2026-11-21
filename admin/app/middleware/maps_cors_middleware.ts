@@ -20,7 +20,10 @@ export function isMapAssetPath(rawPath: string): boolean {
   } catch {
     return false
   }
-  return MAP_ASSET_EXACT_PATHS.includes(pathname) || MAP_ASSET_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+  return (
+    MAP_ASSET_EXACT_PATHS.includes(pathname) ||
+    MAP_ASSET_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+  )
 }
 
 export function isReadableMethod(method: string): boolean {
@@ -33,7 +36,10 @@ export default class MapsCorsMiddleware {
 
     // safeHeader so this stays inert if the global CORS config is ever fixed.
     response.safeHeader('Access-Control-Allow-Origin', '*')
-    response.header('Access-Control-Expose-Headers', 'ETag, Content-Range, Accept-Ranges, Content-Length')
+    response.header(
+      'Access-Control-Expose-Headers',
+      'ETag, Content-Range, Accept-Ranges, Content-Length'
+    )
     response.header('Vary', 'Origin')
 
     if (request.method() === 'OPTIONS') {

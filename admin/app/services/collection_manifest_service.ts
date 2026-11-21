@@ -2,13 +2,20 @@ import axios from 'axios'
 import vine from '@vinejs/vine'
 import logger from '@adonisjs/core/services/logger'
 import { DateTime } from 'luxon'
-import { join } from 'path'
+import { join } from 'node:path'
 import CollectionManifest from '#models/collection_manifest'
 import InstalledResource from '#models/installed_resource'
 import WikipediaSelection from '#models/wikipedia_selection'
 import { QueueService } from './queue_service.js'
 import { RunDownloadJob } from '#jobs/run_download_job'
-import { zimCategoriesSpecSchema, mapsSpecSchema, wikipediaSpecSchema, creatorPacksSpecSchema } from '#validators/curated_collections'
+import {
+  zimCategoriesSpecSchema,
+  mapsSpecSchema,
+  wikipediaSpecSchema,
+  creatorPacksSpecSchema,
+} from '#validators/curated_collections'
+import { librarySpecSchema } from '#validators/library'
+import { readFile } from 'node:fs/promises'
 import { isGatedResource } from '../utils/hosted_content.js'
 import {
   ensureDirectoryExists,
@@ -34,6 +41,7 @@ const SPEC_URLS: Record<ManifestType, string> = {
   maps: `${GITHUB_RAW_BASE_URL}/collections/maps.json`,
   wikipedia: `${GITHUB_RAW_BASE_URL}/collections/wikipedia.json`,
   creator_packs: `${GITHUB_RAW_BASE_URL}/collections/creator-packs.json`,
+  library: `${GITHUB_RAW_BASE_URL}/collections/library.json`,
 }
 
 const VALIDATORS: Record<ManifestType, any> = {
@@ -41,6 +49,16 @@ const VALIDATORS: Record<ManifestType, any> = {
   maps: mapsSpecSchema,
   wikipedia: wikipediaSpecSchema,
   creator_packs: creatorPacksSpecSchema,
+  library: librarySpecSchema,
+}
+
+/**
+ * Copies of the manifests shipped inside the image (Dockerfile copies collections/library.json to
+ * /app/collections). Used only when GitHub is unreachable AND nothing was ever cached — the first boot
+ * of an offline install — so the library is never empty just because the box has no internet.
+ */
+const BUNDLED_SPEC_FILES: Partial<Record<ManifestType, string>> = {
+  library: 'library.json',
 }
 
 export class CollectionManifestService {
@@ -78,7 +96,10 @@ export class CollectionManifestService {
 
       return true
     } catch (error) {
-      logger.error(`[CollectionManifestService] Failed to fetch spec for ${type}:`, error?.message || error)
+      logger.error(
+        `[CollectionManifestService] Failed to fetch spec for ${type}:`,
+        error?.message || error
+      )
       return false
     }
   }
@@ -95,7 +116,26 @@ export class CollectionManifestService {
     } catch {
       // Fetch failed, will fall back to cache
     }
-    return this.getCachedSpec<T>(type)
+    return (await this.getCachedSpec<T>(type)) ?? (await this.getBundledSpec<T>(type))
+  }
+
+  /** The validated manifest shipped in the image, or null (see BUNDLED_SPEC_FILES). */
+  async getBundledSpec<T>(type: ManifestType): Promise<T | null> {
+    const file = BUNDLED_SPEC_FILES[type]
+    if (!file) return null
+    // /app/collections in the image; ../collections when running from admin/ in development.
+    for (const dir of [
+      join(process.cwd(), 'collections'),
+      join(process.cwd(), '..', 'collections'),
+    ]) {
+      try {
+        const raw = JSON.parse(await readFile(join(dir, file), 'utf8'))
+        return (await vine.validate({ schema: VALIDATORS[type], data: raw })) as T
+      } catch {
+        // try the next location
+      }
+    }
+    return null
   }
 
   // ---- Status computation ----
@@ -188,7 +228,10 @@ export class CollectionManifestService {
     } catch (error) {
       // Don't fail the whole categories endpoint if the queue is briefly
       // unreachable — just report no in-flight downloads.
-      logger.warn('[CollectionManifestService] Could not read download queue:', error?.message || error)
+      logger.warn(
+        '[CollectionManifestService] Could not read download queue:',
+        error?.message || error
+      )
     }
 
     // Also surface an in-flight curated-tier drug-dataset install. The drug
@@ -255,9 +298,7 @@ export class CollectionManifestService {
     for (const tier of reversedTiers) {
       const resolved = CollectionManifestService.resolveTierResources(tier, tiers)
       if (resolved.length === 0) continue
-      const allAccountedFor = resolved.every(
-        (r) => installedMap.has(r.id) || inFlightIds.has(r.id)
-      )
+      const allAccountedFor = resolved.every((r) => installedMap.has(r.id) || inFlightIds.has(r.id))
       if (allAccountedFor) {
         return tier.slug === installedTierSlug ? undefined : tier.slug
       }
@@ -369,7 +410,9 @@ export class CollectionManifestService {
     if (tier.includesTier) {
       const included = allTiers.find((t) => t.slug === tier.includesTier)
       if (included) {
-        resources.push(...CollectionManifestService._resolveTierResourcesInner(included, allTiers, visited))
+        resources.push(
+          ...CollectionManifestService._resolveTierResourcesInner(included, allTiers, visited)
+        )
       }
     }
 
@@ -419,7 +462,7 @@ export class CollectionManifestService {
     let zimCount = 0
     let mapCount = 0
 
-    console.log("RECONCILING FILESYSTEM MANIFESTS...")
+    console.log('RECONCILING FILESYSTEM MANIFESTS...')
 
     // Reconcile ZIM files
     try {
@@ -545,7 +588,9 @@ export class CollectionManifestService {
       logger.error('[CollectionManifestService] Error reconciling map files:', error)
     }
 
-    logger.info(`[CollectionManifestService] Reconciled ${zimCount} ZIM files, ${mapCount} map files`)
+    logger.info(
+      `[CollectionManifestService] Reconciled ${zimCount} ZIM files, ${mapCount} map files`
+    )
     return { zim: zimCount, map: mapCount }
   }
 }

@@ -4,7 +4,7 @@ import { EditorView } from '@codemirror/view'
 import { markdown } from '@codemirror/lang-markdown'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { basicSetup } from 'codemirror'
-import { useTheme } from '~/hooks/useTheme'
+import { useTheme } from '~/hooks/use_theme'
 
 interface MarkdownEditorProps {
   /** Initial document contents. Read once on mount; later edits are reported via onChange. */

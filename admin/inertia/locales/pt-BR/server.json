@@ -357,7 +357,7 @@
   "Already installed": "Já instalado",
   "Wikipedia removed": "Wikipédia removida",
   "Selected Wikipedia option has no download URL": "A opção da Wikipédia escolhida não tem URL de download",
-  "Download already in progress": "Download já em andamento",
+  "Download already in progress": "O download já está em andamento",
   "Download started": "Download iniciado",
   "Maximum of 10 custom libraries allowed": "São permitidas no máximo 10 bibliotecas personalizadas",
   "Custom library not found": "Biblioteca personalizada não encontrada",
@@ -403,5 +403,10 @@
   "full benchmark started": "Benchmark completo iniciado",
   "system benchmark started": "Benchmark do sistema iniciado",
   "ai benchmark started": "Benchmark de IA iniciado",
-  "Invalid target image tag": "Tag de imagem de destino inválida"
+  "Invalid target image tag": "Tag de imagem de destino inválida",
+  "Download queued": "Download adicionado à fila",
+  "Could not queue the download": "Não foi possível adicionar o download à fila",
+  "ZIM files are managed in Settings > Content": "Os arquivos ZIM são gerenciados em Configurações > Conteúdo",
+  "Integrity check failed: the publisher's file changed or is unavailable ({{detail}})": "Falha na verificação de integridade: o arquivo do editor mudou ou está indisponível ({{detail}})",
+  "Library item not found: {{id}}": "Obra não encontrada na biblioteca: {{id}}"
 }

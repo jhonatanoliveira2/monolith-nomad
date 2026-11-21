@@ -197,6 +197,22 @@ Veja mapas sem internet. Baixe as regiões de que precisa antes de ficar offline
 
 ---
 
+### Biblioteca: livros e manuais para ler offline
+
+Livros, manuais e obras de referência em português, em PDF, EPUB e ZIM, organizados por área (Matemática, Computação, Direito, Saúde e outras) e por nível (iniciante, intermediário, avançado). Todos vêm da fonte oficial de cada editora ou instituição e têm licença que permite o uso offline.
+
+**Como usar:**
+1. Clique em **Biblioteca** na Central de Comando
+2. Filtre por área, nível ou formato, ou busque por título, autor ou assunto
+3. Clique em **Baixar** no formato que preferir (PDF ou EPUB)
+4. Depois do download, clique em **Ler**: o PDF abre no visualizador do navegador e o EPUB no leitor da própria Biblioteca, com sumário, ajuste de tamanho da letra e memória da página em que você parou
+
+Cada arquivo é conferido na chegada: o download é recusado se o conteúdo não for o que a editora publicou. Os livros baixados também entram na Base de Conhecimento, para o Assistente de IA poder consultá-los. As obras em ZIM abrem no Kiwix.
+
+**[Abrir a Biblioteca →](/library)**
+
+---
+
 ## Gerenciando o servidor
 
 ### Adicionar mais conteúdo

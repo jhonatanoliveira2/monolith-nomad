@@ -1,5 +1,9 @@
 import { test } from '@japa/runner'
-import { parseInteractions, isSectionHeader, type InteractionBlock } from '../../util/drug_interactions.js'
+import {
+  parseInteractions,
+  isSectionHeader,
+  type InteractionBlock,
+} from '../../util/drug_interactions.js'
 
 // Representative real FDA `drug_interactions` text, two formats:
 const MAXALT =
@@ -69,7 +73,10 @@ test.group('parseInteractions — structure', () => {
     assert.isNotNull(bulletBlock)
     assert.isAbove(bulletBlock!.bullets!.length, 2)
     // The real "7.1 Inhibitors..." subsection is still detected.
-    assert.include(blocks.map((b) => b.label), '7.1')
+    assert.include(
+      blocks.map((b) => b.label),
+      '7.1'
+    )
   })
 
   test('separates the section header from the body', ({ assert }) => {

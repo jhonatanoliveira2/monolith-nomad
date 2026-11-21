@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react'
 import { IconArrowLeft } from '@tabler/icons-react'
-import classNames from '~/lib/classNames'
+import classNames from '~/lib/class_names'
 import { useTranslation } from 'react-i18next'
 
 interface BackToHomeHeaderProps {

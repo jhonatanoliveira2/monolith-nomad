@@ -42,7 +42,10 @@ test('applies other catalog changes while keeping the port', () => {
 
 test('returns the catalog value untouched when the port already matches', () => {
   const catalog = config({ '8080/tcp': '8090' })
-  assert.equal(mergeContainerConfigPreservingHostPorts(catalog, config({ '8080/tcp': '8090' })), catalog)
+  assert.equal(
+    mergeContainerConfigPreservingHostPorts(catalog, config({ '8080/tcp': '8090' })),
+    catalog
+  )
 })
 
 test('a catalog change to the CONTAINER-side port wins', () => {
@@ -110,7 +113,10 @@ test('takes the catalog scheme and the live port', () => {
 
 test('a path ui_location is never rewritten', () => {
   assert.equal(mergeUiLocationPreservingHostPort('/chat', '/chat', null), '/chat')
-  assert.equal(mergeUiLocationPreservingHostPort('/chat', '9999', config({ '80/tcp': '9999' })), '/chat')
+  assert.equal(
+    mergeUiLocationPreservingHostPort('/chat', '9999', config({ '80/tcp': '9999' })),
+    '/chat'
+  )
 })
 
 // The third argument is the config the sync is about to WRITE, not the live row.

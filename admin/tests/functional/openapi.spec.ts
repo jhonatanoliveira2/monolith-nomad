@@ -41,16 +41,18 @@ test.group('OpenAPI docs', () => {
     for (const [path, methods] of Object.entries<any>(doc.paths)) {
       for (const [method, op] of Object.entries<any>(methods)) {
         assert.isObject(op.responses, `${method.toUpperCase()} ${path} is missing responses`)
-        assert.isAbove(Object.keys(op.responses).length, 0, `${method.toUpperCase()} ${path} has empty responses`)
+        assert.isAbove(
+          Object.keys(op.responses).length,
+          0,
+          `${method.toUpperCase()} ${path} has empty responses`
+        )
       }
     }
   })
 
   test('every /api route is documented (completeness gate)', ({ assert }) => {
     // All committed routes under /api.
-    const apiRoutes = router
-      .toJSON()
-      .root.filter((node) => node.pattern.startsWith('/api'))
+    const apiRoutes = router.toJSON().root.filter((node) => node.pattern.startsWith('/api'))
 
     const allApiKeys = routeKeys(apiRoutes)
 

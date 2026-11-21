@@ -36,46 +36,61 @@ function manifest(sizes: string[]): DrugLabelManifest {
 
 // ── manifestBytesTotal ────────────────────────────────────────────────────────
 check('manifestBytesTotal sums partition MB into bytes', () =>
-  assert.equal(manifestBytesTotal(manifest(['100', '200', '50'])), 350 * MB))
+  assert.equal(manifestBytesTotal(manifest(['100', '200', '50'])), 350 * MB)
+)
 check('manifestBytesTotal treats a non-numeric size as 0 (no NaN)', () =>
-  assert.equal(manifestBytesTotal(manifest(['100', 'oops', '50'])), 150 * MB))
+  assert.equal(manifestBytesTotal(manifest(['100', 'oops', '50'])), 150 * MB)
+)
 check('manifestBytesTotal treats a negative/zero size as 0', () =>
-  assert.equal(manifestBytesTotal(manifest(['100', '0', '-5'])), 100 * MB))
+  assert.equal(manifestBytesTotal(manifest(['100', '0', '-5'])), 100 * MB)
+)
 check('manifestBytesTotal of an empty partition list is 0', () =>
-  assert.equal(manifestBytesTotal(manifest([])), 0))
+  assert.equal(manifestBytesTotal(manifest([])), 0)
+)
 
 // ── isExportDateNewer ─────────────────────────────────────────────────────────
 // No baseline → any valid candidate is "newer" (first install with no marker).
 check('isExportDateNewer: empty baseline is always newer', () =>
-  assert.equal(isExportDateNewer('2025-06-01', null), true))
+  assert.equal(isExportDateNewer('2025-06-01', null), true)
+)
 check('isExportDateNewer: empty-string baseline is always newer', () =>
-  assert.equal(isExportDateNewer('2025-06-01', ''), true))
+  assert.equal(isExportDateNewer('2025-06-01', ''), true)
+)
 // Empty candidate → nothing to update to.
 check('isExportDateNewer: empty candidate is never newer', () =>
-  assert.equal(isExportDateNewer('', '2025-06-01'), false))
+  assert.equal(isExportDateNewer('', '2025-06-01'), false)
+)
 // Identical → already current.
 check('isExportDateNewer: identical dates are not newer', () =>
-  assert.equal(isExportDateNewer('2025-06-01', '2025-06-01'), false))
+  assert.equal(isExportDateNewer('2025-06-01', '2025-06-01'), false)
+)
 // ISO YYYY-MM-DD — both Date.parse paths and lexicographic agree.
 check('isExportDateNewer: ISO later date is newer', () =>
-  assert.equal(isExportDateNewer('2025-06-02', '2025-06-01'), true))
+  assert.equal(isExportDateNewer('2025-06-02', '2025-06-01'), true)
+)
 check('isExportDateNewer: ISO earlier date is not newer', () =>
-  assert.equal(isExportDateNewer('2025-05-31', '2025-06-01'), false))
+  assert.equal(isExportDateNewer('2025-05-31', '2025-06-01'), false)
+)
 // Cross-month / cross-year ISO ordering.
 check('isExportDateNewer: ISO across year boundary', () =>
-  assert.equal(isExportDateNewer('2026-01-01', '2025-12-31'), true))
+  assert.equal(isExportDateNewer('2026-01-01', '2025-12-31'), true)
+)
 // US M/D/YYYY format — Date.parse handles this; a naive lexicographic compare
 // would get it WRONG ('1/2/2026' < '12/31/2025' lexically). This proves the
 // Date.parse-first path is doing the work.
 check('isExportDateNewer: US-format newer date (Date.parse path)', () =>
-  assert.equal(isExportDateNewer('1/2/2026', '12/31/2025'), true))
+  assert.equal(isExportDateNewer('1/2/2026', '12/31/2025'), true)
+)
 check('isExportDateNewer: US-format older date (Date.parse path)', () =>
-  assert.equal(isExportDateNewer('12/30/2025', '12/31/2025'), false))
+  assert.equal(isExportDateNewer('12/30/2025', '12/31/2025'), false)
+)
 // Zero-padded compact YYYYMMDD — Date.parse rejects it, lexicographic fallback
 // is correct for this zero-padded ordered form.
 check('isExportDateNewer: compact YYYYMMDD newer (lexicographic fallback)', () =>
-  assert.equal(isExportDateNewer('20260102', '20251231'), true))
+  assert.equal(isExportDateNewer('20260102', '20251231'), true)
+)
 check('isExportDateNewer: compact YYYYMMDD older (lexicographic fallback)', () =>
-  assert.equal(isExportDateNewer('20251230', '20251231'), false))
+  assert.equal(isExportDateNewer('20251230', '20251231'), false)
+)
 
 console.log(`\nAll ${passed} standalone assertions passed.`)

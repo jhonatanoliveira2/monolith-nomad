@@ -299,7 +299,10 @@ export function remediesForCondition(file: NaturalRemediesFile, slug: string): N
  * never link out to the internet; this credit satisfies the public-domain
  * attribution without implying connectivity.
  */
-export function remedySourceName(remedy: { kind?: 'herb' | 'self-care'; sourceUrl: string }): string {
+export function remedySourceName(remedy: {
+  kind?: 'herb' | 'self-care'
+  sourceUrl: string
+}): string {
   if ((remedy.kind ?? 'herb') === 'herb') return 'NCCIH'
   const url = remedy.sourceUrl.toLowerCase()
   if (url.includes('cdc.gov')) return 'CDC'

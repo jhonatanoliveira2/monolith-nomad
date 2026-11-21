@@ -24,7 +24,11 @@ test('relevance check: off unless explicitly on', () => {
   assert.equal(isRelevanceCheckEnabled('true'), true)
   // Unset, cleared, or anything odd must not start costing a model call per turn.
   for (const raw of [null, undefined, false, 'false', '', 'on', 'auto', 1]) {
-    assert.equal(isRelevanceCheckEnabled(raw), false, `expected ${JSON.stringify(raw)} to read as off`)
+    assert.equal(
+      isRelevanceCheckEnabled(raw),
+      false,
+      `expected ${JSON.stringify(raw)} to read as off`
+    )
   }
 })
 
@@ -39,7 +43,10 @@ test('relevance check: a verdict is read only from a boolean on_topic', () => {
 })
 
 test('excerpt: a short passage is passed through whole', () => {
-  assert.equal(excerptFor('Boil   water\nfor one minute.', 'boil water', 100), 'Boil water for one minute.')
+  assert.equal(
+    excerptFor('Boil   water\nfor one minute.', 'boil water', 100),
+    'Boil water for one minute.'
+  )
 })
 
 test('excerpt: a long passage is cut to the window about the question', () => {

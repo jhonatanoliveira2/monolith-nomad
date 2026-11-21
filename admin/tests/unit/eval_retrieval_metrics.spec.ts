@@ -219,11 +219,11 @@ test('aggregate separates answerable cases from refusal cases', () => {
 })
 
 test('empty rate on answerable questions surfaces an over-tight threshold', () => {
-  const cases = [
-    mkCase({ id: 'q1', retrieved: [] }),
-    mkCase({ id: 'q2', retrieved: chunks('a') }),
-  ]
-  const agg = aggregate(cases, cases.map((c) => scoreCase(c)))
+  const cases = [mkCase({ id: 'q1', retrieved: [] }), mkCase({ id: 'q2', retrieved: chunks('a') })]
+  const agg = aggregate(
+    cases,
+    cases.map((c) => scoreCase(c))
+  )
   close(agg.emptyRateOnAnswerable, 0.5)
 })
 
@@ -232,13 +232,19 @@ test('non-empty rate on refusal questions surfaces an over-loose threshold', () 
     mkCase({ id: 'r1', retrieved: chunks('x'), relevantDocIds: [], expectRefusal: true }),
     mkCase({ id: 'r2', retrieved: [], relevantDocIds: [], expectRefusal: true }),
   ]
-  const agg = aggregate(cases, cases.map((c) => scoreCase(c)))
+  const agg = aggregate(
+    cases,
+    cases.map((c) => scoreCase(c))
+  )
   close(agg.nonEmptyRateOnRefusal, 0.5)
 })
 
 test('score distributions split relevant from irrelevant chunks', () => {
   const cases = [mkCase({ retrieved: chunks('a', 'x', 'y'), relevantDocIds: ['a'] })]
-  const agg = aggregate(cases, cases.map((c) => scoreCase(c)))
+  const agg = aggregate(
+    cases,
+    cases.map((c) => scoreCase(c))
+  )
   assert.equal(agg.relevantScores!.count, 1)
   assert.equal(agg.irrelevantScores!.count, 2)
   // The relevant chunk ranked first, so it should score above the noise.
@@ -247,7 +253,10 @@ test('score distributions split relevant from irrelevant chunks', () => {
 
 test('refusal cases contribute only to the irrelevant score population', () => {
   const cases = [mkCase({ retrieved: chunks('x', 'y'), relevantDocIds: [], expectRefusal: true })]
-  const agg = aggregate(cases, cases.map((c) => scoreCase(c)))
+  const agg = aggregate(
+    cases,
+    cases.map((c) => scoreCase(c))
+  )
   assert.equal(agg.relevantScores, null)
   assert.equal(agg.irrelevantScores!.count, 2)
 })
@@ -257,7 +266,10 @@ test('per-tag aggregation slices the same cases without recomputing them wrong',
     mkCase({ id: 'q1', tags: ['single-hop'], retrieved: chunks('a'), relevantDocIds: ['a'] }),
     mkCase({ id: 'q2', tags: ['multi-hop'], retrieved: chunks('a'), relevantDocIds: ['a', 'b'] }),
   ]
-  const byTag = aggregateByTag(cases, cases.map((c) => scoreCase(c)))
+  const byTag = aggregateByTag(
+    cases,
+    cases.map((c) => scoreCase(c))
+  )
   close(byTag['single-hop'].recall[5], 1)
   close(byTag['multi-hop'].recall[5], 0.5)
   assert.equal(byTag['single-hop'].cases, 1)
@@ -280,7 +292,10 @@ test('aggregate reports the semantic and final axes separately', () => {
       ],
     },
   ]
-  const agg = aggregate(cases, cases.map((c) => scoreCase(c)))
+  const agg = aggregate(
+    cases,
+    cases.map((c) => scoreCase(c))
+  )
 
   assert.equal(agg.relevantScores!.median, 0.7)
   assert.equal(agg.irrelevantScores!.median, 0.4)
@@ -300,7 +315,10 @@ test('aggregate falls back to the final score when no semantic score was recorde
       retrieved: [{ docId: 'doc-a', score: 0.8 }],
     },
   ]
-  const agg = aggregate(cases, cases.map((c) => scoreCase(c)))
+  const agg = aggregate(
+    cases,
+    cases.map((c) => scoreCase(c))
+  )
 
   assert.equal(agg.relevantScores!.median, 0.8)
   assert.equal(agg.relevantFinalScores!.median, 0.8)

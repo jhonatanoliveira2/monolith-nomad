@@ -66,7 +66,11 @@ export function toDocumentRanking(retrieved: ScoredChunk[]): string[] {
  * recall is undefined there, and returning 0 would drag the mean down for
  * questions that are *supposed* to retrieve nothing.
  */
-export function recallAtK(retrieved: ScoredChunk[], relevantDocIds: string[], k: number): number | null {
+export function recallAtK(
+  retrieved: ScoredChunk[],
+  relevantDocIds: string[],
+  k: number
+): number | null {
   if (relevantDocIds.length === 0) return null
   const relevant = new Set(relevantDocIds)
   const found = new Set<string>()
@@ -83,7 +87,11 @@ export function recallAtK(retrieved: ScoredChunk[], relevantDocIds: string[], k:
  * documents is a hit but only 0.5 recall. Reporting both is what separates
  * "found something" from "found enough to answer".
  */
-export function hitRateAtK(retrieved: ScoredChunk[], relevantDocIds: string[], k: number): number | null {
+export function hitRateAtK(
+  retrieved: ScoredChunk[],
+  relevantDocIds: string[],
+  k: number
+): number | null {
   if (relevantDocIds.length === 0) return null
   const relevant = new Set(relevantDocIds)
   return retrieved.slice(0, k).some((c) => c.docId && relevant.has(c.docId)) ? 1 : 0
@@ -97,7 +105,11 @@ export function hitRateAtK(retrieved: ScoredChunk[], relevantDocIds: string[], k
  * Denominator is min(k, retrieved.length) so a pipeline returning 2 good chunks
  * is not punished for the 3 it correctly declined to return.
  */
-export function precisionAtK(retrieved: ScoredChunk[], relevantDocIds: string[], k: number): number | null {
+export function precisionAtK(
+  retrieved: ScoredChunk[],
+  relevantDocIds: string[],
+  k: number
+): number | null {
   if (relevantDocIds.length === 0) return null
   const window = retrieved.slice(0, k)
   if (window.length === 0) return 0
@@ -134,7 +146,11 @@ export function reciprocalRank(retrieved: ScoredChunk[], relevantDocIds: string[
  * regression that leaves recall untouched while pushing the answer to position
  * five, where a 1B model with a 2-result budget will never see it.
  */
-export function ndcgAtK(retrieved: ScoredChunk[], relevantDocIds: string[], k: number): number | null {
+export function ndcgAtK(
+  retrieved: ScoredChunk[],
+  relevantDocIds: string[],
+  k: number
+): number | null {
   if (relevantDocIds.length === 0) return null
   const relevant = new Set(relevantDocIds)
   const docRanking = toDocumentRanking(retrieved).slice(0, k)
@@ -264,7 +280,10 @@ export type RetrievalAggregate = {
 
 export const DEFAULT_K_VALUES = [1, 3, 5, 10]
 
-export function scoreCase(c: RetrievalCase, kValues: number[] = DEFAULT_K_VALUES): RetrievalCaseResult {
+export function scoreCase(
+  c: RetrievalCase,
+  kValues: number[] = DEFAULT_K_VALUES
+): RetrievalCaseResult {
   const byK = <T>(fn: (k: number) => T): Record<number, T> =>
     Object.fromEntries(kValues.map((k) => [k, fn(k)]))
 
@@ -296,7 +315,9 @@ export function aggregate(
   const answerable = results.filter((r) => !r.expectRefusal)
   const refusals = results.filter((r) => r.expectRefusal)
 
-  const byK = (pick: (r: RetrievalCaseResult, k: number) => number | null): Record<number, number | null> =>
+  const byK = (
+    pick: (r: RetrievalCaseResult, k: number) => number | null
+  ): Record<number, number | null> =>
     Object.fromEntries(kValues.map((k) => [k, meanOf(results.map((r) => pick(r, k)))]))
 
   // Split every retrieved chunk's score by whether its document was relevant.
@@ -346,11 +367,7 @@ export function aggregateByTag(
   const out: Record<string, RetrievalAggregate> = {}
   for (const tag of [...tags].sort()) {
     const tagged = results.filter((r) => r.tags.includes(tag))
-    out[tag] = aggregate(
-      tagged.map((r) => byId.get(r.id)!).filter(Boolean),
-      tagged,
-      kValues
-    )
+    out[tag] = aggregate(tagged.map((r) => byId.get(r.id)!).filter(Boolean), tagged, kValues)
   }
   return out
 }

@@ -33,11 +33,7 @@ export function computeJobHealth(input: JobHealthInput): JobHealthStatus {
   if (input.status === 'failed') return 'failed'
 
   // No progress recorded and no activity timestamps — job is still queued.
-  if (
-    input.progress === 0 &&
-    input.lastBatchAt === undefined &&
-    input.startedAt === undefined
-  ) {
+  if (input.progress === 0 && input.lastBatchAt === undefined && input.startedAt === undefined) {
     return 'waiting'
   }
 

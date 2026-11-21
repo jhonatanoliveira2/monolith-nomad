@@ -281,5 +281,7 @@
   "Application Data:": "Dados do aplicativo:",
   "Stored in Docker volumes on your local system": "Armazenados em volumes Docker no seu sistema local",
   "You maintain full control over your data. Uninstalling monolith-nomad or deleting these directories will permanently remove all associated data.": "Você mantém controle total sobre seus dados. Desinstalar o monolith-nomad ou excluir esses diretórios remove permanentemente todos os dados associados.",
-  "Fading image": "Imagem em transição"
+  "Fading image": "Imagem em transição",
+  "Library": "Biblioteca",
+  "Books and manuals in Portuguese to download and read offline": "Livros e manuais em português para baixar e ler offline"
 }

@@ -45,7 +45,8 @@ export class NomadMdService {
    * when the file is missing or blank (so chat behaviour is unchanged).
    */
   async getSystemPrompt(): Promise<string | null> {
-    const content = (await this.read()).trim()
+    const raw = await this.read()
+    const content = raw.trim()
     return content.length > 0 ? content : null
   }
 }

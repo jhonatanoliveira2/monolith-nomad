@@ -1,5 +1,5 @@
 import { IconCheck } from '@tabler/icons-react'
-import classNames from '~/lib/classNames'
+import classNames from '~/lib/class_names'
 import { useTranslation } from 'react-i18next'
 import type { BenchmarkStageDescriptor, BenchmarkStatus } from '../../../types/benchmark'
 

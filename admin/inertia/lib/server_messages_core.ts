@@ -24,6 +24,12 @@ type Pattern = { re: RegExp; key: string }
 // translated recursively. Avoid i18next option names (count, context, lng, ns, defaultValue) as group names.
 // Order matters: the more specific pattern must come first.
 export const PATTERNS: Pattern[] = [
+  // library (run_download_job, library_service)
+  {
+    re: /^Integrity check failed: the publisher's file changed or is unavailable \((?<detail>.*)\)$/,
+    key: "Integrity check failed: the publisher's file changed or is unavailable ({{detail}})",
+  },
+  { re: /^Library item not found: (?<id>\S+)$/, key: 'Library item not found: {{id}}' },
   // apps (docker_service, system_controller)
   {
     re: /^Service (?<name>\S+) not found or not installed$/,

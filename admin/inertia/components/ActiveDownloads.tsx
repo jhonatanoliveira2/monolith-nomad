@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from 'react'
-import useDownloads, { useDownloadsProps } from '~/hooks/useDownloads'
+import useDownloads, { UseDownloadsProps } from '~/hooks/use_downloads'
 import { extractFileName, formatBytes } from '~/lib/util'
 import { formatSpeed } from '../../app/utils/misc'
 import StyledSectionHeader from './StyledSectionHeader'
@@ -8,7 +8,7 @@ import api from '~/lib/api'
 import { useTranslation } from 'react-i18next'
 
 interface ActiveDownloadProps {
-  filetype?: useDownloadsProps['filetype']
+  filetype?: UseDownloadsProps['filetype']
   withHeader?: boolean
 }
 

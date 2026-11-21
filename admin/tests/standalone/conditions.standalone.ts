@@ -211,7 +211,12 @@ const sampleConditions = parseConditionsFile({
   conditions: [
     { slug: 'fever', label: 'Fever', category: 'Pain', searchTerms: ['fever', 'reduces fever'] },
     { slug: 'pain', label: 'Pain', category: 'Pain', searchTerms: ['pain', 'minor aches'] },
-    { slug: 'cough', label: 'Cough', category: 'Cold', searchTerms: ['cough', 'cough suppressant'] },
+    {
+      slug: 'cough',
+      label: 'Cough',
+      category: 'Cold',
+      searchTerms: ['cough', 'cough suppressant'],
+    },
     {
       slug: 'sore-throat',
       label: 'Sore throat',
@@ -222,7 +227,10 @@ const sampleConditions = parseConditionsFile({
 }).conditions
 
 check('situationsForIndications matches a single-word term, case-insensitively', () => {
-  const out = situationsForIndications('Temporarily reduces FEVER and relieves minor aches', sampleConditions)
+  const out = situationsForIndications(
+    'Temporarily reduces FEVER and relieves minor aches',
+    sampleConditions
+  )
   assert.deepEqual(
     out.map((c) => c.slug),
     ['fever', 'pain']

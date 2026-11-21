@@ -1,6 +1,6 @@
 import { IconPhoto, IconSend, IconWand, IconX } from '@tabler/icons-react'
 import { useState, useRef, useEffect } from 'react'
-import classNames from '~/lib/classNames'
+import classNames from '~/lib/class_names'
 import { ChatImageAttachment, ChatMessage } from '../../../types/chat'
 import type { ModelVisionCapability } from '../../../types/ollama'
 import ChatMessageBubble from './ChatMessageBubble'
@@ -10,7 +10,7 @@ import { usePage } from '@inertiajs/react'
 import InfoTooltip from '../InfoTooltip'
 import { visionAttachmentGuidance } from '../../lib/vision_guidance'
 import { useTranslation } from 'react-i18next'
-import { useNotifications } from '~/context/NotificationContext'
+import { useNotifications } from '~/context/notification_context'
 
 interface ChatInterfaceProps {
   messages: ChatMessage[]

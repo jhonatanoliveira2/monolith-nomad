@@ -24,6 +24,14 @@ export type SpecResource = {
    * another schema change.
    */
   auth?: 'nomad_app_key'
+  /**
+   * Language of the content itself, not of the catalog text: an ISO 639-1 code
+   * (`pt`, `en`) or `mul` for multilingual builds (TED, pt.stackoverflow). Shown
+   * as a badge so a user can tell a Portuguese package from an English one
+   * before downloading. Optional: absent means "not declared", and app versions
+   * that predate the field simply strip it (VineJS drops unknown keys).
+   */
+  language?: string
 }
 
 export type SpecTier = {
@@ -70,6 +78,8 @@ export type WikipediaOption = {
   size_mb: number
   url: string | null
   version: string | null
+  /** Content language of this option (see SpecResource.language). Absent for "none". */
+  language?: string
 }
 
 export type WikipediaSpec = {
@@ -121,7 +131,7 @@ export type CreatorPackWithStatus = CreatorPack & {
   available_update_version?: string
 }
 
-export type ManifestType = 'zim_categories' | 'maps' | 'wikipedia' | 'creator_packs'
+export type ManifestType = 'zim_categories' | 'maps' | 'wikipedia' | 'creator_packs' | 'library'
 
 export type ResourceStatus = 'installed' | 'not_installed' | 'update_available'
 

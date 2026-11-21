@@ -1,4 +1,4 @@
-import classNames from '~/lib/classNames'
+import classNames from '~/lib/class_names'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { ChatMessage } from '../../../types/chat'

@@ -12,7 +12,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useMapMarkers } from '~/hooks/useMapMarkers'
+import { useMapMarkers } from '~/hooks/use_map_markers'
 
 import MarkerPin from './MarkerPin'
 import MarkerPanel from './MarkerPanel'
@@ -44,7 +44,7 @@ type MapLocationParams = {
 }
 
 const SAVED_MAP_VIEW_KEY = 'nomad:map-view'
-// First view when nothing was saved yet: Brazil (this distribution is configured for São Paulo, BR).
+// First view when nothing was saved yet: the whole of Brazil, not any one city (this distribution targets Brazil).
 // The upstream default was the continental United States (-101, 40).
 const DEFAULT_MAP_VIEW = { longitude: -52, latitude: -14, zoom: 3.5 }
 

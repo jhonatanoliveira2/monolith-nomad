@@ -7,7 +7,7 @@ import {
   generateRandomBuilderTag,
   parseBuilderTag,
   buildBuilderTag,
-} from '~/lib/builderTagWords'
+} from '~/lib/builder_tag_words'
 import { useTranslation } from 'react-i18next'
 
 interface BuilderTagSelectorProps {

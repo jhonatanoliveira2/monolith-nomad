@@ -47,7 +47,11 @@ export class BenchmarkTelemetrySampler {
   }
 
   /** Inject an in-test metric (e.g. live AI tokens/sec) into subsequent frames. */
-  setStageMetric(kind: NonNullable<BenchmarkTelemetry['stage_metric']>['kind'], value: number, ttftMs?: number) {
+  setStageMetric(
+    kind: NonNullable<BenchmarkTelemetry['stage_metric']>['kind'],
+    value: number,
+    ttftMs?: number
+  ) {
     this.stageMetric = { kind, value, ...(ttftMs !== undefined ? { ttft_ms: ttftMs } : {}) }
   }
 
@@ -77,9 +81,16 @@ export class BenchmarkTelemetrySampler {
 
       const overall = load ? Math.max(0, Math.round(load.currentLoad)) : 0
       const perCore = load?.cpus?.map((c) => Math.max(0, Math.round(c.load))) ?? []
-      const tempC = temp && typeof temp.main === 'number' && temp.main > 0 ? Math.round(temp.main) : null
-      const readMb = fs && typeof fs.rx_sec === 'number' && fs.rx_sec >= 0 ? Number((fs.rx_sec / 1e6).toFixed(1)) : 0
-      const writeMb = fs && typeof fs.wx_sec === 'number' && fs.wx_sec >= 0 ? Number((fs.wx_sec / 1e6).toFixed(1)) : 0
+      const tempC =
+        temp && typeof temp.main === 'number' && temp.main > 0 ? Math.round(temp.main) : null
+      const readMb =
+        fs && typeof fs.rx_sec === 'number' && fs.rx_sec >= 0
+          ? Number((fs.rx_sec / 1e6).toFixed(1))
+          : 0
+      const writeMb =
+        fs && typeof fs.wx_sec === 'number' && fs.wx_sec >= 0
+          ? Number((fs.wx_sec / 1e6).toFixed(1))
+          : 0
 
       const payload: BenchmarkTelemetry = {
         benchmark_id: this.benchmarkId,

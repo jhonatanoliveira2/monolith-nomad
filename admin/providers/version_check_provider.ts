@@ -20,24 +20,28 @@ import type { ApplicationService } from '@adonisjs/core/types'
  * CheckUpdateJob to do that, to avoid false positives in case of a stale cache.
  */
 export default class VersionCheckProvider {
-  constructor(protected app: ApplicationService) { }
+  constructor(protected app: ApplicationService) {}
 
   async boot() {
     if (this.app.getEnvironment() !== 'web') return
 
     setImmediate(async () => {
       try {
-        const KVStore = (await import('#models/kv_store')).default
+        const { default: KVStore } = await import('#models/kv_store')
         const { SystemService } = await import('#services/system_service')
         const { isNewerVersion } = await import('../app/utils/version.js')
 
         const current = SystemService.getAppVersion()
-        if (current === 'dev' || current === '0.0.0'){
-          logger.info(`[VersionCheckProvider] Skipping self-heal for version ${current}. Appears to be a dev build without proper version set.`)
+        if (current === 'dev' || current === '0.0.0') {
+          logger.info(
+            `[VersionCheckProvider] Skipping self-heal for version ${current}. Appears to be a dev build without proper version set.`
+          )
           return
         }
 
-        logger.info(`[VersionCheckProvider] Checking for stale updateAvailable (current=${current})`)
+        logger.info(
+          `[VersionCheckProvider] Checking for stale updateAvailable (current=${current})`
+        )
 
         const cachedLatest = (await KVStore.getValue('system.latestVersion')) as string | null
         const earlyAccess = ((await KVStore.getValue('system.earlyAccess')) ?? false) as boolean

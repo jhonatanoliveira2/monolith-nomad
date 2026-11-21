@@ -1,7 +1,7 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import StyledButton, { StyledButtonProps } from './StyledButton'
 import React from 'react'
-import classNames from '~/lib/classNames'
+import classNames from '~/lib/class_names'
 import { useTranslation } from 'react-i18next'
 
 export type StyledModalProps = {

@@ -8,7 +8,11 @@ import {
 } from '../../app/utils/download_integrity.js'
 
 test('parseContentRange reads start, end and total', () => {
-  assert.deepEqual(parseContentRange('bytes 1000-1999/2000'), { start: 1000, end: 1999, total: 2000 })
+  assert.deepEqual(parseContentRange('bytes 1000-1999/2000'), {
+    start: 1000,
+    end: 1999,
+    total: 2000,
+  })
   assert.deepEqual(parseContentRange('bytes 0-9/*'), { start: 0, end: 9, total: null })
   assert.equal(parseContentRange(undefined), null)
   assert.equal(parseContentRange('garbage'), null)

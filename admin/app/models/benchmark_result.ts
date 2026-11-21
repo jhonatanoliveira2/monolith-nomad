@@ -125,7 +125,8 @@ export default class BenchmarkResult extends BaseModel {
 
   @column({
     // Nullable tri-state; coerce the SQLite 0/1 int to a real boolean when present.
-    consume: (value: number | null) => (value === null || value === undefined ? null : Boolean(value)),
+    consume: (value: number | null) =>
+      value === null || value === undefined ? null : Boolean(value),
   })
   declare gpu_compute_detected: boolean | null
 

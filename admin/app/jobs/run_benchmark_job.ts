@@ -15,9 +15,10 @@ export class RunBenchmarkJob {
   }
 
   async handle(job: Job) {
-    const { benchmark_id, benchmark_type } = job.data as RunBenchmarkJobParams
+    const { benchmark_id: benchmarkId, benchmark_type: benchmarkType } =
+      job.data as RunBenchmarkJobParams
 
-    logger.info(`[RunBenchmarkJob] Starting benchmark ${benchmark_id} of type ${benchmark_type}`)
+    logger.info(`[RunBenchmarkJob] Starting benchmark ${benchmarkId} of type ${benchmarkType}`)
 
     const dockerService = new DockerService()
     const benchmarkService = new BenchmarkService(dockerService)
@@ -25,7 +26,7 @@ export class RunBenchmarkJob {
     try {
       let result
 
-      switch (benchmark_type) {
+      switch (benchmarkType) {
         case 'full':
           result = await benchmarkService.runFullBenchmark()
           break
@@ -36,10 +37,12 @@ export class RunBenchmarkJob {
           result = await benchmarkService.runAIBenchmark()
           break
         default:
-          throw new Error(`Unknown benchmark type: ${benchmark_type}`)
+          throw new Error(`Unknown benchmark type: ${benchmarkType}`)
       }
 
-      logger.info(`[RunBenchmarkJob] Benchmark ${benchmark_id} completed with NOMAD score: ${result.nomad_score}`)
+      logger.info(
+        `[RunBenchmarkJob] Benchmark ${benchmarkId} completed with NOMAD score: ${result.nomad_score}`
+      )
 
       return {
         success: true,
@@ -47,7 +50,7 @@ export class RunBenchmarkJob {
         nomad_score: result.nomad_score,
       }
     } catch (error) {
-      logger.error(`[RunBenchmarkJob] Benchmark ${benchmark_id} failed: ${error.message}`)
+      logger.error(`[RunBenchmarkJob] Benchmark ${benchmarkId} failed: ${error.message}`)
       throw error
     }
   }

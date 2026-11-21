@@ -1,4 +1,4 @@
-import classNames from '~/lib/classNames'
+import classNames from '~/lib/class_names'
 import DynamicIcon, { DynamicIconName } from './DynamicIcon'
 import StyledButton, { StyledButtonProps } from './StyledButton'
 import { useTranslation } from 'react-i18next'

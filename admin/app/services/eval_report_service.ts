@@ -57,7 +57,9 @@ export class EvalReportService {
     return {
       meta,
       metrics: flatten(result.overall),
-      byTag: Object.fromEntries(Object.entries(result.byTag).map(([tag, agg]) => [tag, flatten(agg)])),
+      byTag: Object.fromEntries(
+        Object.entries(result.byTag).map(([tag, agg]) => [tag, flatten(agg)])
+      ),
       cases: result.cases,
     }
   }
@@ -78,7 +80,9 @@ export class EvalReportService {
     return {
       meta,
       metrics: flatten(result.overall),
-      byTag: Object.fromEntries(Object.entries(result.byTag).map(([tag, agg]) => [tag, flatten(agg)])),
+      byTag: Object.fromEntries(
+        Object.entries(result.byTag).map(([tag, agg]) => [tag, flatten(agg)])
+      ),
       // Answers are kept in full. When a score moves, the only question anyone
       // actually asks is "what did it say?", and a truncated answer cannot
       // answer it.
@@ -124,7 +128,10 @@ export class EvalReportService {
 }
 
 async function readGitState() {
-  const git = async (args: string[]) => (await run('git', args)).stdout.trim()
+  const git = async (args: string[]) => {
+    const result = await run('git', args)
+    return result.stdout.trim()
+  }
   try {
     const [sha, branch, status] = await Promise.all([
       git(['rev-parse', 'HEAD']),
@@ -141,7 +148,9 @@ async function readGitState() {
 
 async function readNomadVersion(): Promise<string | null> {
   try {
-    const pkg = JSON.parse(await readFile(resolve(join(process.cwd(), '..', 'package.json')), 'utf8'))
+    const pkg = JSON.parse(
+      await readFile(resolve(join(process.cwd(), '..', 'package.json')), 'utf8')
+    )
     return pkg.version ?? null
   } catch {
     return null

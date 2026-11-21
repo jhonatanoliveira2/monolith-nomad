@@ -20,7 +20,10 @@ export default class extends BaseSchema {
       { name: 'Your.org (US)', base_url: 'https://ftpmirror.your.org/pub/kiwix/zim/' },
       { name: 'FAU Erlangen (DE)', base_url: 'https://ftp.fau.de/kiwix/zim/' },
       { name: 'Dotsrc (DK)', base_url: 'https://mirrors.dotsrc.org/kiwix/zim/' },
-      { name: 'MirrorService (UK)', base_url: 'https://www.mirrorservice.org/sites/download.kiwix.org/zim/' },
+      {
+        name: 'MirrorService (UK)',
+        base_url: 'https://www.mirrorservice.org/sites/download.kiwix.org/zim/',
+      },
     ]
 
     for (const d of defaults) {

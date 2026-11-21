@@ -11,6 +11,7 @@ import {
   getFileStatsIfExists,
   listDirectoryContentsRecursive,
   ZIM_STORAGE_PATH,
+  LIBRARY_STORAGE_PATH,
 } from '../utils/fs.js'
 import { PDFParse } from 'pdf-parse'
 import { createWorker } from 'tesseract.js'
@@ -30,7 +31,13 @@ import { decideOrphans } from '../utils/kb_orphan_decision.js'
 import { decideContentReindex, type ReindexOutcome } from '../utils/content_reindex_decision.js'
 import KbRatioRegistry from '#models/kb_ratio_registry'
 import { decideWarnings } from '../utils/kb_warning_decision.js'
-import type { FileWarning, FileWarningsResult, RetrievalFloorStats, RetrievalStages, StoredFileInfo } from '../../types/rag.js'
+import type {
+  FileWarning,
+  FileWarningsResult,
+  RetrievalFloorStats,
+  RetrievalStages,
+  StoredFileInfo,
+} from '../../types/rag.js'
 import { applyRelevanceFloor } from '../utils/misc.js'
 import { KB_EVAL_COLLECTION } from '../../constants/kb_collections.js'
 import { UnrecoverableError } from 'bullmq'
@@ -218,8 +225,11 @@ export class RagService {
     return (
       text
         // Null bytes
+        // eslint-disable-next-line no-control-regex -- removing NUL is intended
         .replace(/\x00/g, '')
         // Problematic control characters (keep \n, \r, \t)
+
+        // eslint-disable-next-line no-control-regex -- removing control characters is intended
         .replace(/[\x01-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '')
         // Invalid Unicode surrogates
         .replace(/[\uD800-\uDFFF]/g, '')
@@ -386,8 +396,12 @@ export class RagService {
       // TokenChunker uses character-based tokenization (1 char = 1 token)
       // We need to convert our embedding model's token counts to character counts
       // since nomic-embed-text tokenizer uses ~3 chars per token
-      const targetCharsPerChunk = Math.floor(RagService.TARGET_TOKENS_PER_CHUNK * RagService.CHAR_TO_TOKEN_RATIO)
-      const overlapChars = Math.floor(RagService.CHUNK_OVERLAP_TOKENS * RagService.CHAR_TO_TOKEN_RATIO)
+      const targetCharsPerChunk = Math.floor(
+        RagService.TARGET_TOKENS_PER_CHUNK * RagService.CHAR_TO_TOKEN_RATIO
+      )
+      const overlapChars = Math.floor(
+        RagService.CHUNK_OVERLAP_TOKENS * RagService.CHAR_TO_TOKEN_RATIO
+      )
 
       const chunker = await TokenChunker.create({
         chunkSize: targetCharsPerChunk,
@@ -405,9 +419,7 @@ export class RagService {
 
       // Prepare all chunk texts with prefix and truncation
       const prefixedChunks: string[] = []
-      for (let i = 0; i < chunks.length; i++) {
-        let chunkText = chunks[i]
-
+      for (let [i, chunkText] of chunks.entries()) {
         // Final safety check: ensure chunk + prefix fits
         const prefixText = RagService.SEARCH_DOCUMENT_PREFIX
         const withPrefix = prefixText + chunkText
@@ -1611,9 +1623,8 @@ export class RagService {
       // Rows before Qdrant, for the same reason as setFileActive(). Only rows
       // that change are touched, so a failed setPayload can restore exactly
       // those without flipping files that already held the target value.
-      const changedPaths = (
-        await collectionQuery().where('active', !active).select('file_path')
-      ).map((r) => r.file_path)
+      const changedRows = await collectionQuery().where('active', !active).select('file_path')
+      const changedPaths = changedRows.map((r) => r.file_path)
       const affectedCount = changedPaths.length
       await collectionQuery().update({ active })
 
@@ -1888,7 +1899,7 @@ export class RagService {
       const allSources = new Set<string>(chunksBySource.keys())
       const sizeByPath = new Map<string, number>()
 
-      for (const dir of [KB_UPLOADS_PATH, ZIM_PATH]) {
+      for (const dir of [KB_UPLOADS_PATH, ZIM_PATH, join(process.cwd(), LIBRARY_STORAGE_PATH)]) {
         try {
           const entries = await listDirectoryContentsRecursive(dir)
           for (const entry of entries) {
@@ -2047,7 +2058,8 @@ export class RagService {
     // paths above.
     let qdrantRunning = false
     if (isReplacement && qdrantInstalled && oldFileWasIndexed) {
-      qdrantRunning = (await this.checkQdrantHealth()).online
+      const health = await this.checkQdrantHealth()
+      qdrantRunning = health.online
     }
 
     const outcome = decideContentReindex({
@@ -2165,7 +2177,8 @@ export class RagService {
    * type" and retry on every sync.
    */
   private async _discoverKbFiles(): Promise<string[]> {
-    return (await this._discoverKbFilesWithRoots()).files
+    const { files } = await this._discoverKbFilesWithRoots()
+    return files
   }
 
   /**
@@ -2200,6 +2213,9 @@ export class RagService {
     for (const [label, dirPath] of [
       [RagService.UPLOADS_STORAGE_PATH, KB_UPLOADS_PATH] as const,
       [ZIM_STORAGE_PATH, ZIM_PATH] as const,
+      // Library PDFs/EPUBs (collections/library.json). A root of its own, so the orphan sweep only
+      // ever judges library files against a library directory it actually walked.
+      [LIBRARY_STORAGE_PATH, join(process.cwd(), LIBRARY_STORAGE_PATH)] as const,
     ]) {
       try {
         const contents = await listDirectoryContentsRecursive(dirPath)

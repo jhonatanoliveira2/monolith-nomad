@@ -129,13 +129,10 @@ test('a root holding only non-embeddable files still counts as empty', () => {
 
 test('an empty kb_uploads root keeps its sources while zim is swept normally', () => {
   const zims = ['a', 'b', 'c'].map((n) => zim(`${n}.zim`))
-  assert.deepEqual(
-    decideOrphans([upload('a.pdf'), ...zims, zim('gone.zim')], zims, SCAN_ROOTS),
-    {
-      orphans: [zim('gone.zim')],
-      withheld: [{ root: KB_UPLOADS_ROOT, count: 1, reason: 'empty_root' }],
-    }
-  )
+  assert.deepEqual(decideOrphans([upload('a.pdf'), ...zims, zim('gone.zim')], zims, SCAN_ROOTS), {
+    orphans: [zim('gone.zim')],
+    withheld: [{ root: KB_UPLOADS_ROOT, count: 1, reason: 'empty_root' }],
+  })
 })
 
 test('removing most of a root in one sync is withheld as a likely wrong mount', () => {

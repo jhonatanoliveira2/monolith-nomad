@@ -91,7 +91,11 @@ const CPU_CONTAINER = {
 
 test('a ROCm container is expected on AMD with no Docker runtime registered (#1344)', () => {
   assert.equal(
-    resolveExpectedGpuVendor({ hasNvidiaRuntime: false, amdConfigured: false, container: ROCM_CONTAINER }),
+    resolveExpectedGpuVendor({
+      hasNvidiaRuntime: false,
+      amdConfigured: false,
+      container: ROCM_CONTAINER,
+    }),
     'amd'
   )
 })
@@ -139,14 +143,22 @@ test('an nvidia DeviceRequest is expected on NVIDIA even without the runtime', (
 
 test('a CPU container is expected on NVIDIA when the runtime was registered after install', () => {
   assert.equal(
-    resolveExpectedGpuVendor({ hasNvidiaRuntime: true, amdConfigured: false, container: CPU_CONTAINER }),
+    resolveExpectedGpuVendor({
+      hasNvidiaRuntime: true,
+      amdConfigured: false,
+      container: CPU_CONTAINER,
+    }),
     'nvidia'
   )
 })
 
 test('a CPU container on an AMD box is trusted as deliberate (#1232 fallback)', () => {
   assert.equal(
-    resolveExpectedGpuVendor({ hasNvidiaRuntime: false, amdConfigured: true, container: CPU_CONTAINER }),
+    resolveExpectedGpuVendor({
+      hasNvidiaRuntime: false,
+      amdConfigured: true,
+      container: CPU_CONTAINER,
+    }),
     null
   )
 })
@@ -237,7 +249,10 @@ test('diagnoseAmdCpuFallback on the #1377 box: keeps the hand-set override, flag
   // override, so the only drift is the iGPU flag and a reinstall preserves 11.0.0.
   const container = {
     ...ROCM_CONTAINER,
-    Config: { ...ROCM_CONTAINER.Config, Env: ['OLLAMA_NO_CLOUD=1', 'HSA_OVERRIDE_GFX_VERSION=11.0.0'] },
+    Config: {
+      ...ROCM_CONTAINER.Config,
+      Env: ['OLLAMA_NO_CLOUD=1', 'HSA_OVERRIDE_GFX_VERSION=11.0.0'],
+    },
   }
   assert.deepEqual(diffAmdOllamaConfig(container, '11.0.0'), ['OLLAMA_IGPU_ENABLE=1 is not set'])
   assert.deepEqual(diagnoseAmdCpuFallback(container, '', '11.0.0'), {

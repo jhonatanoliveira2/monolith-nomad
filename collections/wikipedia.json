@@ -1,53 +1,112 @@
 {
-  "spec_version": "2026-08-02",
+  "spec_version": "2026-11-21",
   "options": [
     {
       "id": "none",
-      "name": "No Wikipedia",
-      "description": "Skip Wikipedia installation",
+      "name": "Sem Wikipédia",
+      "description": "Não instalar a Wikipédia.",
       "size_mb": 0,
       "url": null,
       "version": null
     },
     {
+      "id": "pt-top-mini",
+      "name": "Consulta rápida",
+      "description": "Os 50 mil melhores artigos da Wikipédia em português, só a introdução de cada um. Ideal para consultas rápidas.",
+      "size_mb": 146,
+      "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_pt_top_mini_2026-10.zim",
+      "version": "2026-10",
+      "language": "pt"
+    },
+    {
+      "id": "pt-top-nopic",
+      "name": "Artigos populares",
+      "description": "Os 50 mil melhores artigos da Wikipédia em português, completos e sem imagens. Bom equilíbrio entre conteúdo e tamanho.",
+      "size_mb": 1044,
+      "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_pt_top_nopic_2026-10.zim",
+      "version": "2026-10",
+      "language": "pt"
+    },
+    {
+      "id": "pt-top-maxi",
+      "name": "Artigos populares, com imagens",
+      "description": "Os 50 mil melhores artigos da Wikipédia em português, completos e com imagens.",
+      "size_mb": 2884,
+      "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_pt_top_maxi_2026-10.zim",
+      "version": "2026-10",
+      "language": "pt"
+    },
+    {
+      "id": "pt-all-mini",
+      "name": "Wikipédia completa, resumida",
+      "description": "Todos os artigos da Wikipédia em português, só a introdução de cada um.",
+      "size_mb": 1625,
+      "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_pt_all_mini_2026-05.zim",
+      "version": "2026-05",
+      "language": "pt"
+    },
+    {
+      "id": "pt-all-nopic",
+      "name": "Wikipédia completa, sem imagens",
+      "description": "Todos os artigos da Wikipédia em português, sem imagens. Referência offline abrangente.",
+      "size_mb": 6745,
+      "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_pt_all_nopic_2026-05.zim",
+      "version": "2026-05",
+      "language": "pt"
+    },
+    {
+      "id": "pt-all-maxi",
+      "name": "Wikipédia completa, com imagens",
+      "description": "A Wikipédia em português inteira, com imagens e mídia.",
+      "size_mb": 19685,
+      "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_pt_all_maxi_2026-05.zim",
+      "version": "2026-05",
+      "language": "pt"
+    },
+    {
       "id": "top-mini",
-      "name": "Quick Reference",
-      "description": "Top 100,000 articles with minimal images. Great for quick lookups.",
+      "name": "Consulta rápida (inglês)",
+      "description": "Os 100 mil artigos mais populares da Wikipédia em inglês, só a introdução de cada um.",
       "size_mb": 331,
       "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_en_top_mini_2026-06.zim",
-      "version": "2026-06"
+      "version": "2026-06",
+      "language": "en"
     },
     {
       "id": "top-nopic",
-      "name": "Popular Articles",
-      "description": "Top articles without images. Good balance of content and size.",
+      "name": "Artigos populares (inglês)",
+      "description": "Os artigos mais populares da Wikipédia em inglês, completos e sem imagens.",
       "size_mb": 2239,
       "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_en_top_nopic_2026-06.zim",
-      "version": "2026-06"
+      "version": "2026-06",
+      "language": "en"
     },
     {
       "id": "all-mini",
-      "name": "Complete Wikipedia (Compact)",
-      "description": "All 6+ million articles in condensed format.",
+      "name": "Wikipédia completa, resumida (inglês)",
+      "description": "Todos os mais de 6 milhões de artigos da Wikipédia em inglês, só a introdução de cada um.",
       "size_mb": 12531,
       "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_en_all_mini_2026-06.zim",
-      "version": "2026-06"
+      "version": "2026-06",
+      "language": "en"
     },
     {
       "id": "all-nopic",
-      "name": "Complete Wikipedia (No Images)",
-      "description": "All articles without images. Comprehensive offline reference.",
+      "name": "Wikipédia completa, sem imagens (inglês)",
+      "description": "Todos os artigos da Wikipédia em inglês, sem imagens.",
       "size_mb": 52690,
       "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_en_all_nopic_2026-06.zim",
-      "version": "2026-06"
+      "version": "2026-06",
+      "language": "en"
     },
     {
       "id": "all-maxi",
-      "name": "Complete Wikipedia (Full)",
-      "description": "The complete experience with all images and media.",
+      "name": "Wikipédia completa, com imagens (inglês)",
+      "description": "A Wikipédia em inglês inteira, com imagens e mídia.",
       "size_mb": 123980,
       "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_en_all_maxi_2026-02.zim",
-      "version": "2026-02"
+      "version": "2026-02",
+      "language": "en"
     }
   ]
 }

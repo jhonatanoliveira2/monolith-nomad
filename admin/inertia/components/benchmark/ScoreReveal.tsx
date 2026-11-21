@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { IconChartBar, IconCpu, IconDatabase, IconRobot, IconServer } from '@tabler/icons-react'
 import CircularGauge from '~/components/systeminfo/CircularGauge'
 import StyledButton from '~/components/StyledButton'
-import { getScoreDisplay } from '~/lib/benchmarkScore'
+import { getScoreDisplay } from '~/lib/benchmark_score'
 import BenchmarkResult from '#models/benchmark_result'
 import { useTranslation } from 'react-i18next'
 

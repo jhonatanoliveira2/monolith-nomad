@@ -221,6 +221,8 @@ export const HOST_CONNECTION_LIMITS: Record<string, number> = {
   // MirrorBrain: redirects each request to a mirror of its choice, dumps.wikimedia.org included, so whatever
   // reaches it may end up on a host with a published limit (see selectAria2Sources)
   'download.kiwix.org': 1,
+  // the MirrorBrain host download.kiwix.org redirects to (and the Kiwix catalog links to directly)
+  'lb.download.kiwix.org': 1,
 }
 
 /**

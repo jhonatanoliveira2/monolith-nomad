@@ -2,7 +2,7 @@ import { Head } from '@inertiajs/react'
 import SettingsLayout from '~/layouts/SettingsLayout'
 import CreatorPacksSection from '~/components/CreatorPacksSection'
 import ActiveDownloads from '~/components/ActiveDownloads'
-import useCreatorPacks from '~/hooks/useCreatorPacks'
+import useCreatorPacks from '~/hooks/use_creator_packs'
 import { useTranslation } from 'react-i18next'
 
 export default function CreatorPacksPage() {

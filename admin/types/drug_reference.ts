@@ -18,8 +18,8 @@ export type ProductType = (typeof PRODUCT_TYPES)[keyof typeof PRODUCT_TYPES]
 
 export interface DrugLabelPartition {
   display_name: string
-  file: string        // full URL to the .zip
-  size_mb: string     // string in the JSON
+  file: string // full URL to the .zip
+  size_mb: string // string in the JSON
   records: number
 }
 

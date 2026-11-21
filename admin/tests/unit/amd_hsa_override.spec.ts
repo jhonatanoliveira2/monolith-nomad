@@ -58,48 +58,70 @@ test('readHsaOverrideFromEnv reads the override or null', () => {
 })
 
 test('pickAmdHsaOverride: a KV version wins over the marker and container', () => {
-  assert.deepEqual(pickAmdHsaOverride({ manual: '10.3.0', markerGfx: 'gfx1103', containerEnv: OVERRIDE_ENV }), {
-    value: '10.3.0',
-    source: 'kv',
-  })
+  assert.deepEqual(
+    pickAmdHsaOverride({ manual: '10.3.0', markerGfx: 'gfx1103', containerEnv: OVERRIDE_ENV }),
+    {
+      value: '10.3.0',
+      source: 'kv',
+    }
+  )
 })
 
 test('pickAmdHsaOverride: KV none disables even a container override', () => {
-  assert.deepEqual(pickAmdHsaOverride({ manual: 'none', markerGfx: null, containerEnv: OVERRIDE_ENV }), {
-    value: null,
-    source: 'kv-disabled',
-  })
+  assert.deepEqual(
+    pickAmdHsaOverride({ manual: 'none', markerGfx: null, containerEnv: OVERRIDE_ENV }),
+    {
+      value: null,
+      source: 'kv-disabled',
+    }
+  )
 })
 
 test('pickAmdHsaOverride: a marker is authoritative even when it maps to none', () => {
-  assert.deepEqual(pickAmdHsaOverride({ manual: null, markerGfx: 'gfx1151', containerEnv: OVERRIDE_ENV }), {
-    value: null,
-    source: 'marker',
-  })
+  assert.deepEqual(
+    pickAmdHsaOverride({ manual: null, markerGfx: 'gfx1151', containerEnv: OVERRIDE_ENV }),
+    {
+      value: null,
+      source: 'marker',
+    }
+  )
 })
 
 test('pickAmdHsaOverride keeps the container override with no KV or marker (#1377)', () => {
-  assert.deepEqual(pickAmdHsaOverride({ manual: null, markerGfx: null, containerEnv: OVERRIDE_ENV }), {
-    value: '11.0.0',
-    source: 'container',
-  })
-  assert.deepEqual(pickAmdHsaOverride({ manual: '', markerGfx: null, containerEnv: OVERRIDE_ENV }), {
-    value: '11.0.0',
-    source: 'container',
-  })
+  assert.deepEqual(
+    pickAmdHsaOverride({ manual: null, markerGfx: null, containerEnv: OVERRIDE_ENV }),
+    {
+      value: '11.0.0',
+      source: 'container',
+    }
+  )
+  assert.deepEqual(
+    pickAmdHsaOverride({ manual: '', markerGfx: null, containerEnv: OVERRIDE_ENV }),
+    {
+      value: '11.0.0',
+      source: 'container',
+    }
+  )
 })
 
 test('pickAmdHsaOverride ignores a malformed container override', () => {
   assert.deepEqual(
-    pickAmdHsaOverride({ manual: null, markerGfx: null, containerEnv: ['HSA_OVERRIDE_GFX_VERSION=gfx1103'] }),
+    pickAmdHsaOverride({
+      manual: null,
+      markerGfx: null,
+      containerEnv: ['HSA_OVERRIDE_GFX_VERSION=gfx1103'],
+    }),
     { value: null, source: 'default' }
   )
 })
 
 test('pickAmdHsaOverride skips an invalid KV value and reports it', () => {
-  assert.deepEqual(pickAmdHsaOverride({ manual: 'bogus', markerGfx: null, containerEnv: OVERRIDE_ENV }), {
-    value: '11.0.0',
-    source: 'container',
-    invalidManual: 'bogus',
-  })
+  assert.deepEqual(
+    pickAmdHsaOverride({ manual: 'bogus', markerGfx: null, containerEnv: OVERRIDE_ENV }),
+    {
+      value: '11.0.0',
+      source: 'container',
+      invalidManual: 'bogus',
+    }
+  )
 })

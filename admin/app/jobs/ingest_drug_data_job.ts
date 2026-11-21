@@ -115,7 +115,9 @@ async function withUpsertTimeout<T>(
 // resolvable in the inertia tsconfig context).
 import type { Readable } from 'node:stream'
 
-interface YauzlEntry { fileName: string }
+interface YauzlEntry {
+  fileName: string
+}
 interface YauzlZipFile {
   readEntry(): void
   openReadStream(entry: YauzlEntry, cb: (err: Error | null, stream: Readable | null) => void): void
@@ -181,17 +183,13 @@ export class IngestDrugDataJob {
     }
 
     try {
-      const job = await queue.add(
-        this.key,
-        { resourceMeta } satisfies IngestDrugDataJobParams,
-        {
-          jobId: this.jobId,
-          attempts: 3,
-          backoff: { type: 'exponential', delay: 5000 },
-          removeOnComplete: { count: 5 },
-          removeOnFail: { count: 5 },
-        }
-      )
+      const job = await queue.add(this.key, { resourceMeta } satisfies IngestDrugDataJobParams, {
+        jobId: this.jobId,
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnComplete: { count: 5 },
+        removeOnFail: { count: 5 },
+      })
       return { job, created: true, message: 'Drug label ingest dispatched' }
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error)
@@ -263,9 +261,7 @@ export class IngestDrugDataJob {
       )
     }
 
-    logger.info(
-      `[IngestDrugDataJob] Ingesting part ${partIndex + 1}/${totalParts}: ${partName}`
-    )
+    logger.info(`[IngestDrugDataJob] Ingesting part ${partIndex + 1}/${totalParts}: ${partName}`)
 
     await job.updateData({
       ...job.data,
@@ -323,7 +319,9 @@ export class IngestDrugDataJob {
         removeOnComplete: { count: 5 },
         removeOnFail: { count: 5 },
       })
-      logger.info(`[IngestDrugDataJob] Dispatched continuation for part ${nextIndex + 1}/${totalParts}`)
+      logger.info(
+        `[IngestDrugDataJob] Dispatched continuation for part ${nextIndex + 1}/${totalParts}`
+      )
 
       await job.updateData({
         ...job.data,
@@ -380,7 +378,7 @@ export class IngestDrugDataJob {
       return { manifest: params.manifest, exportDate: params.manifest.export_date }
     }
 
-    const KVStore = (await import('#models/kv_store')).default
+    const { default: KVStore } = await import('#models/kv_store')
     const marker = parseDownloadState(await KVStore.getValue('drugReference.downloadState'))
     if (!marker) {
       throw new Error('Nothing downloaded — run Download FDA data first.')
@@ -433,18 +431,21 @@ export class IngestDrugDataJob {
     // machine, and it also covers stream-json's deep `.js` subpaths that the
     // @types package doesn't map. Importing here (not at module top) keeps the
     // pure util/ helpers loadable in tests without these deps.
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
     // @ts-ignore — yauzl resolved at runtime from dependencies
     const yauzl = await import('yauzl')
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
     // @ts-ignore — stream-json resolved at runtime from dependencies
-    const createParser = (await import('stream-json')).default.parser
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    const { default: streamJson } = await import('stream-json')
+    const createParser = streamJson.parser
+
     // @ts-ignore — stream-json deep subpath resolved at runtime
-    const createPick = (await import('stream-json/filters/Pick.js')).default.pick
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    const { default: pickModule } = await import('stream-json/filters/Pick.js')
+    const createPick = pickModule.pick
+
     // @ts-ignore — stream-json deep subpath resolved at runtime
-    const createStreamArray = (await import('stream-json/streamers/StreamArray.js')).default.streamArray
+    const { default: streamArrayModule } = await import('stream-json/streamers/StreamArray.js')
+    const createStreamArray = streamArrayModule.streamArray
 
     // Defensive: stream-json 1.9.1 (CJS) exposes its factories only as
     // `.default.parser` / `.default.pick` / `.default.streamArray` under ESM
@@ -474,268 +475,272 @@ export class IngestDrugDataJob {
 
     // Cast to `any` so callback parameters get explicit annotations below rather
     // than triggering implicit-any in tsconfigs that don't find the yauzl types.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const yauzlOpen = (yauzl as any).open as (
       path: string,
       opts: { lazyEntries: boolean; autoClose: boolean },
       cb: (err: Error | null, zipFile: YauzlZipFile | null) => void
     ) => void
 
-    return new Promise<{ recordsIngested: number; recordsSkipped: number }>((resolveRaw, rejectRaw) => {
-      // Stall watchdog. The per-batch upsert has a timeout, but the stage BEFORE
-      // the first record (zip-open + JSON parse) had none — a corrupt/truncated
-      // part makes yauzl's inflate stream hang with no 'end' and no 'error', so
-      // the ingest froze on "part 1, 0 rows". If no record is parsed within
-      // STALL_MS, fail the part loudly (the reason lands in the job's failedReason
-      // → the status panel) and destroy the stuck stream. resolve/reject are
-      // wrapped (shadowing the raw executor params) so every existing handler
-      // routes through the once-guard + watchdog cleanup.
-      let settled = false
-      let activeReadStream: Readable | null = null
-      let watchdog: ReturnType<typeof setInterval> | undefined
-      const watchStart = Date.now()
-      const settle = () => {
-        settled = true
-        if (watchdog) clearInterval(watchdog)
-        try {
-          activeReadStream?.destroy()
-        } catch {
-          // best-effort stream teardown
+    return new Promise<{ recordsIngested: number; recordsSkipped: number }>(
+      (resolveRaw, rejectRaw) => {
+        // Stall watchdog. The per-batch upsert has a timeout, but the stage BEFORE
+        // the first record (zip-open + JSON parse) had none — a corrupt/truncated
+        // part makes yauzl's inflate stream hang with no 'end' and no 'error', so
+        // the ingest froze on "part 1, 0 rows". If no record is parsed within
+        // STALL_MS, fail the part loudly (the reason lands in the job's failedReason
+        // → the status panel) and destroy the stuck stream. resolve/reject are
+        // wrapped (shadowing the raw executor params) so every existing handler
+        // routes through the once-guard + watchdog cleanup.
+        let settled = false
+        let activeReadStream: Readable | null = null
+        let watchdog: ReturnType<typeof setInterval> | undefined
+        const watchStart = Date.now()
+        const settle = () => {
+          settled = true
+          if (watchdog) clearInterval(watchdog)
+          try {
+            activeReadStream?.destroy()
+          } catch {
+            // best-effort stream teardown
+          }
         }
-      }
-      const resolve = (v: { recordsIngested: number; recordsSkipped: number }) => {
-        if (settled) return
-        settle()
-        resolveRaw(v)
-      }
-      const reject = (e: Error) => {
-        if (settled) return
-        settle()
-        rejectRaw(e)
-      }
-      watchdog = setInterval(() => {
-        if (!settled && !firstRecordSeen && Date.now() - watchStart > STALL_MS) {
-          reject(
-            new Error(
-              `Ingest stalled: no records parsed from part ${partIndex + 1}/${totalParts} ` +
-                `within ${Math.round(STALL_MS / 1000)}s. The downloaded part is likely corrupt ` +
-                'or truncated — re-download FDA data, then ingest again.'
+        const resolve = (v: { recordsIngested: number; recordsSkipped: number }) => {
+          if (settled) return
+          settle()
+          resolveRaw(v)
+        }
+        const reject = (e: Error) => {
+          if (settled) return
+          settle()
+          rejectRaw(e)
+        }
+        watchdog = setInterval(() => {
+          if (!settled && !firstRecordSeen && Date.now() - watchStart > STALL_MS) {
+            reject(
+              new Error(
+                `Ingest stalled: no records parsed from part ${partIndex + 1}/${totalParts} ` +
+                  `within ${Math.round(STALL_MS / 1000)}s. The downloaded part is likely corrupt ` +
+                  'or truncated — re-download FDA data, then ingest again.'
+              )
             )
-          )
-        }
-      }, 10_000)
+          }
+        }, 10_000)
 
-      yauzlOpen(zipPath, { lazyEntries: true, autoClose: true }, (err, zipFile) => {
-        if (err || !zipFile) {
-          reject(err ?? new Error(`Failed to open zip: ${zipPath}`))
-          return
-        }
-
-        zipFile.on('error', reject)
-        zipFile.readEntry()
-
-        zipFile.on('entry', (entry) => {
-          // Skip directory entries
-          if (/\/$/.test(entry.fileName)) {
-            zipFile.readEntry()
+        yauzlOpen(zipPath, { lazyEntries: true, autoClose: true }, (err, zipFile) => {
+          if (err || !zipFile) {
+            reject(err ?? new Error(`Failed to open zip: ${zipPath}`))
             return
           }
 
-          // Open the single JSON entry as a read stream — never buffer it
-          zipFile.openReadStream(entry, (streamErr, readStream) => {
-            if (streamErr || !readStream) {
-              reject(streamErr ?? new Error(`Could not open zip entry ${entry.fileName}`))
+          zipFile.on('error', reject)
+          zipFile.readEntry()
+
+          zipFile.on('entry', (entry) => {
+            // Skip directory entries
+            if (/\/$/.test(entry.fileName)) {
+              zipFile.readEntry()
               return
             }
 
-            logger.info(
-              `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: reading zip entry ${entry.fileName}`
-            )
-            activeReadStream = readStream
+            // Open the single JSON entry as a read stream — never buffer it
+            zipFile.openReadStream(entry, (streamErr, readStream) => {
+              if (streamErr || !readStream) {
+                reject(streamErr ?? new Error(`Could not open zip entry ${entry.fileName}`))
+                return
+              }
 
-            // The JSON envelope is { meta, results: [...] }
-            // Pick the `results` path → StreamArray emits one record at a time
-            const jsonParser = createParser({ jsonStreaming: false })
-            const pick = createPick({ filter: 'results' })
-            const streamArray = createStreamArray()
-
-            // Writable that accumulates batches and flushes with back-pressure.
-            // The callback is called only after the async upsert completes, which
-            // naturally applies back-pressure via the pipe chain.
-            const batchWriter = new Writable({
-              objectMode: true,
-              write(chunk: { value: unknown }, _encoding: BufferEncoding, callback: (err?: Error | null) => void) {
-                const record = chunk.value
-                if (!firstRecordSeen) {
-                  firstRecordSeen = true
-                  logger.info(
-                    `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: first record received from parser`
-                  )
-                }
-
-                // Map the record
-                let row: ReturnType<typeof mapDrugLabelRecord>
-                try {
-                  row = mapDrugLabelRecord(record as Parameters<typeof mapDrugLabelRecord>[0])
-                } catch (mapErr) {
-                  logger.warn(
-                    `[IngestDrugDataJob] mapDrugLabelRecord threw: ${mapErr instanceof Error ? mapErr.message : String(mapErr)}`
-                  )
-                  recordsSkipped++
-                  callback()
-                  return
-                }
-
-                if (!row) {
-                  recordsSkipped++
-                  callback()
-                  return
-                }
-
-                batch.push(row)
-
-                if (batch.length < BATCH_SIZE) {
-                  // Not full yet — don't block the stream
-                  callback()
-                  return
-                }
-
-                // Batch full — flush and hold the callback until the upsert
-                // resolves (this is the back-pressure point).
-                const currentBatch = dedupeBySetId(batch)
-                batch = []
-                const myBatch = ++batchNum
-                const t0 = Date.now()
-                logger.info(
-                  `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: upserting batch ${myBatch} (${currentBatch.length} rows)…`
-                )
-
-                withUpsertTimeout(
-                  upsertDrugLabelBatch(currentBatch),
-                  currentBatch.length,
-                  UPSERT_TIMEOUT_MS
-                )
-                  .then((rowCount) => {
-                    recordsIngested += rowCount
-                    logger.info(
-                      `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: batch ${myBatch} ok in ${Date.now() - t0}ms ` +
-                        `(${rowCount} rows; part running ${recordsIngested})`
-                    )
-
-                    // Update progress: parts-done fraction + within-part fraction
-                    const withinFraction = recordsIngested / Math.max(1, 20000)
-                    const pct = Math.floor(
-                      ((partIndex + withinFraction) / totalParts) * 100
-                    )
-                    // Fire-and-forget progress writes. Swallow transient Redis/
-                    // job-update rejections: an un-awaited reject would otherwise
-                    // bubble to an unhandledRejection and crash the worker, which
-                    // BullMQ then reports as "job stalled more than allowable
-                    // limit" (a dead worker stops renewing its lock).
-                    void job
-                      .updateProgress(
-                        Math.min(pct, Math.floor(((partIndex + 1) / totalParts) * 100) - 1)
-                      )
-                      .catch(() => {})
-                    void job
-                      .updateData({
-                        ...job.data,
-                        recordsIngested: runningIngested + recordsIngested,
-                        recordsSkipped: runningSkipped + recordsSkipped,
-                      })
-                      .catch(() => {})
-                    callback()
-                  })
-                  .catch((upsertErr: unknown) => {
-                    const msg = upsertErr instanceof Error ? upsertErr.message : String(upsertErr)
-                    if (/timed out/i.test(msg)) {
-                      // Systemic DB hang — fail the part loudly so BullMQ retries.
-                      logger.error(
-                        `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: batch ${myBatch} TIMED OUT after ${Date.now() - t0}ms: ${msg}`
-                      )
-                      callback(upsertErr instanceof Error ? upsertErr : new Error(msg))
-                      return
-                    }
-                    // Per-batch data error (a row the schema rejects, etc.) — log,
-                    // count as skipped, and CONTINUE. One bad batch must not abort
-                    // the whole ~259k ingest (over-correcting to fail-loud here is
-                    // what let a single duplicate set_id kill the run at part 5).
-                    logger.error(
-                      `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: batch ${myBatch} skipped after error (${Date.now() - t0}ms): ${msg}`
-                    )
-                    recordsSkipped += currentBatch.length
-                    callback()
-                  })
-              },
-              final(callback: (err?: Error | null) => void) {
-                // Flush the last partial batch
-                if (batch.length === 0) {
-                  callback()
-                  return
-                }
-
-                const remainingBatch = dedupeBySetId(batch)
-                batch = []
-                const t0 = Date.now()
-                logger.info(
-                  `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: upserting final batch (${remainingBatch.length} rows)…`
-                )
-
-                withUpsertTimeout(
-                  upsertDrugLabelBatch(remainingBatch),
-                  remainingBatch.length,
-                  UPSERT_TIMEOUT_MS
-                )
-                  .then((rowCount) => {
-                    recordsIngested += rowCount
-                    logger.info(
-                      `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: final batch ok in ${Date.now() - t0}ms (${rowCount} rows)`
-                    )
-                    callback()
-                  })
-                  .catch((upsertErr: unknown) => {
-                    const msg = upsertErr instanceof Error ? upsertErr.message : String(upsertErr)
-                    if (/timed out/i.test(msg)) {
-                      logger.error(
-                        `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: final batch TIMED OUT after ${Date.now() - t0}ms: ${msg}`
-                      )
-                      callback(upsertErr instanceof Error ? upsertErr : new Error(msg))
-                      return
-                    }
-                    logger.error(
-                      `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: final batch skipped after error (${Date.now() - t0}ms): ${msg}`
-                    )
-                    recordsSkipped += remainingBatch.length
-                    callback()
-                  })
-              },
-            })
-
-            batchWriter.on('finish', () => {
               logger.info(
-                `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: stream finished — ` +
-                  `ingested=${recordsIngested} skipped=${recordsSkipped} batches=${batchNum}`
+                `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: reading zip entry ${entry.fileName}`
               )
-              resolve({ recordsIngested, recordsSkipped })
+              activeReadStream = readStream
+
+              // The JSON envelope is { meta, results: [...] }
+              // Pick the `results` path → StreamArray emits one record at a time
+              const jsonParser = createParser({ jsonStreaming: false })
+              const pick = createPick({ filter: 'results' })
+              const streamArray = createStreamArray()
+
+              // Writable that accumulates batches and flushes with back-pressure.
+              // The callback is called only after the async upsert completes, which
+              // naturally applies back-pressure via the pipe chain.
+              const batchWriter = new Writable({
+                objectMode: true,
+                write(
+                  chunk: { value: unknown },
+                  _encoding: BufferEncoding,
+                  callback: (err?: Error | null) => void
+                ) {
+                  const record = chunk.value
+                  if (!firstRecordSeen) {
+                    firstRecordSeen = true
+                    logger.info(
+                      `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: first record received from parser`
+                    )
+                  }
+
+                  // Map the record
+                  let row: ReturnType<typeof mapDrugLabelRecord>
+                  try {
+                    row = mapDrugLabelRecord(record as Parameters<typeof mapDrugLabelRecord>[0])
+                  } catch (mapErr) {
+                    logger.warn(
+                      `[IngestDrugDataJob] mapDrugLabelRecord threw: ${mapErr instanceof Error ? mapErr.message : String(mapErr)}`
+                    )
+                    recordsSkipped++
+                    callback()
+                    return
+                  }
+
+                  if (!row) {
+                    recordsSkipped++
+                    callback()
+                    return
+                  }
+
+                  batch.push(row)
+
+                  if (batch.length < BATCH_SIZE) {
+                    // Not full yet — don't block the stream
+                    callback()
+                    return
+                  }
+
+                  // Batch full — flush and hold the callback until the upsert
+                  // resolves (this is the back-pressure point).
+                  const currentBatch = dedupeBySetId(batch)
+                  batch = []
+                  const myBatch = ++batchNum
+                  const t0 = Date.now()
+                  logger.info(
+                    `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: upserting batch ${myBatch} (${currentBatch.length} rows)…`
+                  )
+
+                  withUpsertTimeout(
+                    upsertDrugLabelBatch(currentBatch),
+                    currentBatch.length,
+                    UPSERT_TIMEOUT_MS
+                  )
+                    .then((rowCount) => {
+                      recordsIngested += rowCount
+                      logger.info(
+                        `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: batch ${myBatch} ok in ${Date.now() - t0}ms ` +
+                          `(${rowCount} rows; part running ${recordsIngested})`
+                      )
+
+                      // Update progress: parts-done fraction + within-part fraction
+                      const withinFraction = recordsIngested / Math.max(1, 20000)
+                      const pct = Math.floor(((partIndex + withinFraction) / totalParts) * 100)
+                      // Fire-and-forget progress writes. Swallow transient Redis/
+                      // job-update rejections: an un-awaited reject would otherwise
+                      // bubble to an unhandledRejection and crash the worker, which
+                      // BullMQ then reports as "job stalled more than allowable
+                      // limit" (a dead worker stops renewing its lock).
+                      void job
+                        .updateProgress(
+                          Math.min(pct, Math.floor(((partIndex + 1) / totalParts) * 100) - 1)
+                        )
+                        .catch(() => {})
+                      void job
+                        .updateData({
+                          ...job.data,
+                          recordsIngested: runningIngested + recordsIngested,
+                          recordsSkipped: runningSkipped + recordsSkipped,
+                        })
+                        .catch(() => {})
+                      callback()
+                    })
+                    .catch((upsertErr: unknown) => {
+                      const msg = upsertErr instanceof Error ? upsertErr.message : String(upsertErr)
+                      if (/timed out/i.test(msg)) {
+                        // Systemic DB hang — fail the part loudly so BullMQ retries.
+                        logger.error(
+                          `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: batch ${myBatch} TIMED OUT after ${Date.now() - t0}ms: ${msg}`
+                        )
+                        callback(upsertErr instanceof Error ? upsertErr : new Error(msg))
+                        return
+                      }
+                      // Per-batch data error (a row the schema rejects, etc.) — log,
+                      // count as skipped, and CONTINUE. One bad batch must not abort
+                      // the whole ~259k ingest (over-correcting to fail-loud here is
+                      // what let a single duplicate set_id kill the run at part 5).
+                      logger.error(
+                        `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: batch ${myBatch} skipped after error (${Date.now() - t0}ms): ${msg}`
+                      )
+                      recordsSkipped += currentBatch.length
+                      callback()
+                    })
+                },
+                final(callback: (err?: Error | null) => void) {
+                  // Flush the last partial batch
+                  if (batch.length === 0) {
+                    callback()
+                    return
+                  }
+
+                  const remainingBatch = dedupeBySetId(batch)
+                  batch = []
+                  const t0 = Date.now()
+                  logger.info(
+                    `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: upserting final batch (${remainingBatch.length} rows)…`
+                  )
+
+                  withUpsertTimeout(
+                    upsertDrugLabelBatch(remainingBatch),
+                    remainingBatch.length,
+                    UPSERT_TIMEOUT_MS
+                  )
+                    .then((rowCount) => {
+                      recordsIngested += rowCount
+                      logger.info(
+                        `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: final batch ok in ${Date.now() - t0}ms (${rowCount} rows)`
+                      )
+                      callback()
+                    })
+                    .catch((upsertErr: unknown) => {
+                      const msg = upsertErr instanceof Error ? upsertErr.message : String(upsertErr)
+                      if (/timed out/i.test(msg)) {
+                        logger.error(
+                          `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: final batch TIMED OUT after ${Date.now() - t0}ms: ${msg}`
+                        )
+                        callback(upsertErr instanceof Error ? upsertErr : new Error(msg))
+                        return
+                      }
+                      logger.error(
+                        `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: final batch skipped after error (${Date.now() - t0}ms): ${msg}`
+                      )
+                      recordsSkipped += remainingBatch.length
+                      callback()
+                    })
+                },
+              })
+
+              batchWriter.on('finish', () => {
+                logger.info(
+                  `[IngestDrugDataJob] part ${partIndex + 1}/${totalParts}: stream finished — ` +
+                    `ingested=${recordsIngested} skipped=${recordsSkipped} batches=${batchNum}`
+                )
+                resolve({ recordsIngested, recordsSkipped })
+              })
+
+              batchWriter.on('error', reject)
+              readStream.on('error', reject)
+              jsonParser.on('error', reject)
+              pick.on('error', reject)
+              streamArray.on('error', reject)
+
+              // Pipeline: readStream → jsonParser → pick → streamArray → batchWriter
+              readStream.pipe(jsonParser).pipe(pick).pipe(streamArray).pipe(batchWriter)
             })
+          })
 
-            batchWriter.on('error', reject)
-            readStream.on('error', reject)
-            jsonParser.on('error', reject)
-            pick.on('error', reject)
-            streamArray.on('error', reject)
-
-            // Pipeline: readStream → jsonParser → pick → streamArray → batchWriter
-            readStream.pipe(jsonParser).pipe(pick).pipe(streamArray).pipe(batchWriter)
+          zipFile.on('end', () => {
+            // All zip entries enumerated. The batchWriter 'finish' event resolves
+            // the promise once the last batch flushes.
           })
         })
-
-        zipFile.on('end', () => {
-          // All zip entries enumerated. The batchWriter 'finish' event resolves
-          // the promise once the last batch flushes.
-        })
-      })
-    })
+      }
+    )
   }
 
   private async writeFinalStatus(
@@ -743,7 +748,7 @@ export class IngestDrugDataJob {
     resourceMeta?: DrugDatasetResourceMeta
   ): Promise<void> {
     // Lazy import to keep module top level free of Lucid
-    const KVStore = (await import('#models/kv_store')).default
+    const { default: KVStore } = await import('#models/kv_store')
     await KVStore.setValue('drugReference.lastUpdatedExportDate', exportDate)
 
     // Install-state write-back: when this ingest was kicked off by a curated-tier
@@ -785,8 +790,7 @@ export class IngestDrugDataJob {
    */
   private async totalDownloadedBytes(): Promise<number | null> {
     try {
-      const KVStore = (await import('#models/kv_store')).default
-      const { parseDownloadState } = await import('../../util/drug_labels.js')
+      const { default: KVStore } = await import('#models/kv_store')
       const marker = parseDownloadState(await KVStore.getValue('drugReference.downloadState'))
       if (!marker || marker.parts.length === 0) return null
       const sum = marker.parts.reduce((acc, p) => acc + (p.bytes || 0), 0)
@@ -819,7 +823,7 @@ export class IngestDrugDataJob {
       }
     }
 
-    const KVStore = (await import('#models/kv_store')).default
+    const { default: KVStore } = await import('#models/kv_store')
     await KVStore.clearValue('drugReference.downloadState')
   }
 }

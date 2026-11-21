@@ -23,10 +23,7 @@ test('exact prefix match', () => {
 
 test('longest-prefix wins over broader sibling', () => {
   // wikipedia_en_simple_* should pick 270, not the 250 from wikipedia_en_
-  assert.equal(
-    findChunksPerMb('wikipedia_en_simple_all_nopic_2026-02.zim', SEEDED_ROWS),
-    270
-  )
+  assert.equal(findChunksPerMb('wikipedia_en_simple_all_nopic_2026-02.zim', SEEDED_ROWS), 270)
 })
 
 test('broader prefix used when no specific match', () => {
@@ -77,9 +74,14 @@ test('ignoreCatchAll: returns null for filenames only the empty-pattern fallback
     null
   )
   assert.equal(
-    estimateChunkCount('irp.fas.org_en_military-medicine_2026-05.zim', 75 * 1024 * 1024, SEEDED_ROWS, {
-      ignoreCatchAll: true,
-    }),
+    estimateChunkCount(
+      'irp.fas.org_en_military-medicine_2026-05.zim',
+      75 * 1024 * 1024,
+      SEEDED_ROWS,
+      {
+        ignoreCatchAll: true,
+      }
+    ),
     null
   )
 })

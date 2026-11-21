@@ -72,16 +72,16 @@ export const METRIC_DIRECTIONS: Record<string, MetricDirection> = {
   'ndcg@3': 'higher-is-better',
   'ndcg@5': 'higher-is-better',
   'ndcg@10': 'higher-is-better',
-  mrr: 'higher-is-better',
-  emptyRateOnAnswerable: 'lower-is-better',
-  nonEmptyRateOnRefusal: 'lower-is-better',
+  'mrr': 'higher-is-better',
+  'emptyRateOnAnswerable': 'lower-is-better',
+  'nonEmptyRateOnRefusal': 'lower-is-better',
   // generation
-  correctness: 'higher-is-better',
-  refusalCorrectness: 'higher-is-better',
-  leakageRate: 'lower-is-better',
-  thinkTagLeakRate: 'lower-is-better',
-  markdownRate: 'higher-is-better',
-  groundedness: 'higher-is-better',
+  'correctness': 'higher-is-better',
+  'refusalCorrectness': 'higher-is-better',
+  'leakageRate': 'lower-is-better',
+  'thinkTagLeakRate': 'lower-is-better',
+  'markdownRate': 'higher-is-better',
+  'groundedness': 'higher-is-better',
   // context budgeting
   //
   // These are diagnostics as much as gates. A rise in historyElidedRate means
@@ -89,9 +89,9 @@ export const METRIC_DIRECTIONS: Record<string, MetricDirection> = {
   // drop that would otherwise look like the model getting worse. promptTokenError
   // gates the token estimator itself: every budget decision rests on it, so a
   // regression there quietly degrades everything downstream.
-  historyElidedRate: 'lower-is-better',
-  chunksDroppedRate: 'lower-is-better',
-  promptTokenError: 'lower-is-better',
+  'historyElidedRate': 'lower-is-better',
+  'chunksDroppedRate': 'lower-is-better',
+  'promptTokenError': 'lower-is-better',
 }
 
 export type MetricDelta = {
@@ -159,18 +159,30 @@ export function compareReports(
     )
   }
 
-  const names = [...new Set([...Object.keys(baseline.metrics), ...Object.keys(current.metrics)])].sort()
+  const names = [
+    ...new Set([...Object.keys(baseline.metrics), ...Object.keys(current.metrics)]),
+  ].sort()
   const deltas: MetricDelta[] = names.map((metric) => {
     const b = baseline.metrics[metric] ?? null
     const c = current.metrics[metric] ?? null
     const direction = METRIC_DIRECTIONS[metric] ?? 'higher-is-better'
-    const onlyIn =
-      !(metric in baseline.metrics) ? ('current' as const)
-      : !(metric in current.metrics) ? ('baseline' as const)
-      : undefined
+    const onlyIn = !(metric in baseline.metrics)
+      ? ('current' as const)
+      : !(metric in current.metrics)
+        ? ('baseline' as const)
+        : undefined
 
     if (b === null || c === null) {
-      return { metric, baseline: b, current: c, delta: null, direction, improvement: null, regressed: false, onlyIn }
+      return {
+        metric,
+        baseline: b,
+        current: c,
+        delta: null,
+        direction,
+        improvement: null,
+        regressed: false,
+        onlyIn,
+      }
     }
 
     const delta = c - b
@@ -250,12 +262,17 @@ export function renderComparisonMarkdown(
   const ordered = [...result.deltas].sort((a, b) => (a.improvement ?? 0) - (b.improvement ?? 0))
   for (const d of ordered) {
     const verdict =
-      d.onlyIn === 'current' ? 'new'
-      : d.onlyIn === 'baseline' ? 'removed'
-      : d.delta === null ? '—'
-      : d.regressed ? '**REGRESSED**'
-      : (d.improvement ?? 0) > result.tolerance ? 'improved'
-      : 'within tolerance'
+      d.onlyIn === 'current'
+        ? 'new'
+        : d.onlyIn === 'baseline'
+          ? 'removed'
+          : d.delta === null
+            ? '—'
+            : d.regressed
+              ? '**REGRESSED**'
+              : (d.improvement ?? 0) > result.tolerance
+                ? 'improved'
+                : 'within tolerance'
     const arrow = d.delta === null ? 'n/a' : `${d.delta >= 0 ? '+' : ''}${d.delta.toFixed(4)}`
     lines.push(`| ${d.metric} | ${pct(d.baseline)} | ${pct(d.current)} | ${arrow} | ${verdict} |`)
   }

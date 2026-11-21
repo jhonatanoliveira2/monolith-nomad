@@ -59,9 +59,7 @@ export function decideScanAction(
     case 'pending_decision':
       // Manual mode: file is waiting for the user to opt in via per-card Index.
       // Always mode: treat as "user-equivalent of auto-index" and dispatch.
-      return policy === 'Always'
-        ? { kind: 'dispatch', createStateRow: false }
-        : { kind: 'skip' }
+      return policy === 'Always' ? { kind: 'dispatch', createStateRow: false } : { kind: 'skip' }
     case 'browse_only':
     case 'failed':
     case 'stalled':

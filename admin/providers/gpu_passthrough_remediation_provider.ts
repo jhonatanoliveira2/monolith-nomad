@@ -42,16 +42,14 @@ export default class GpuPassthroughRemediationProvider {
 
     setImmediate(async () => {
       try {
-        const KVStore = (await import('#models/kv_store')).default
+        const { default: KVStore } = await import('#models/kv_store')
         const { DockerService } = await import('#services/docker_service')
         const { SERVICE_NAMES } = await import('../constants/service_names.js')
-        const Docker = (await import('dockerode')).default
+        const { default: Docker } = await import('dockerode')
 
         const enabledRaw = await KVStore.getValue('ai.autoFixGpuPassthrough')
         if (String(enabledRaw) === 'false') {
-          logger.info(
-            '[GpuPassthroughRemediationProvider] Auto-fix disabled via KV — skipping.'
-          )
+          logger.info('[GpuPassthroughRemediationProvider] Auto-fix disabled via KV — skipping.')
           return
         }
 
@@ -63,9 +61,7 @@ export default class GpuPassthroughRemediationProvider {
         const ollama = containers.find((c) => c.Names.includes(`/${SERVICE_NAMES.OLLAMA}`))
 
         if (!ollama) {
-          logger.info(
-            '[GpuPassthroughRemediationProvider] nomad_ollama not running — skipping.'
-          )
+          logger.info('[GpuPassthroughRemediationProvider] nomad_ollama not running — skipping.')
           return
         }
 
@@ -105,7 +101,9 @@ export default class GpuPassthroughRemediationProvider {
         // container, but a CPU-only container does not ship nvidia-smi, so the exec
         // returned an error string that the alphabetic-output check mistook for
         // "healthy" — a false negative that suppressed all auto-remediation.
-        const backend = classifyOllamaComputeBackend(await readOllamaStartupLogs(container, inspect))
+        const backend = classifyOllamaComputeBackend(
+          await readOllamaStartupLogs(container, inspect)
+        )
 
         if (backend === 'gpu') {
           logger.info(
@@ -163,9 +161,12 @@ export default class GpuPassthroughRemediationProvider {
         // reinstall that fails to move Ollama onto the GPU (e.g. an architecture
         // Ollama has no kernels for) would otherwise trigger a reinstall every boot.
         const remediatedAtRaw = await KVStore.getValue('gpu.autoRemediatedAt')
-        const remediatedAtMs = remediatedAtRaw ? new Date(String(remediatedAtRaw)).getTime() : NaN
+        const remediatedAtMs = remediatedAtRaw
+          ? new Date(String(remediatedAtRaw)).getTime()
+          : Number.NaN
         const withinCooldown =
-          Number.isFinite(remediatedAtMs) && Date.now() - remediatedAtMs < AUTO_REMEDIATE_COOLDOWN_MS
+          Number.isFinite(remediatedAtMs) &&
+          Date.now() - remediatedAtMs < AUTO_REMEDIATE_COOLDOWN_MS
         if (withinCooldown) {
           logger.warn(
             `[GpuPassthroughRemediationProvider] Ollama is on CPU but auto-remediation already ran within the last ${AUTO_REMEDIATE_COOLDOWN_MS / 60000}m (at ${remediatedAtRaw}). Skipping to avoid a reinstall loop; the manual "Fix: Reinstall AI Assistant" banner remains available.`

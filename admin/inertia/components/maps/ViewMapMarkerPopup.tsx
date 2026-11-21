@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useTranslation } from 'react-i18next'
 
-import type { MapMarker } from '~/hooks/useMapMarkers'
+import type { MapMarker } from '~/hooks/use_map_markers'
 
 type ViewMapMarkerPopupProps = {
   marker: MapMarker

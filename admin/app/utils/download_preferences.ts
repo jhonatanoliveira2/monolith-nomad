@@ -2,7 +2,7 @@
  * Download engine and mirror preferences.
  *
  * Read from environment variables (all optional, see admin/.env.example) so the defaults can be changed per
- * install without a code change. The defaults target an install in São Paulo, Brazil: country `br`, region
+ * install without a code change. The defaults target an install anywhere in Brazil: country `br`, region
  * `sa` (South America). Location only orders mirrors that were not measured yet — a measured mirror is
  * always ranked by its real performance (see mirror_selection.ts).
  */

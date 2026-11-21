@@ -60,7 +60,8 @@ test('beats a fixed chars-per-token divisor on average', () => {
   let divisorError = 0
   for (const [name, text] of Object.entries(FIXTURES)) {
     const real = REAL_COUNTS[name as keyof typeof FIXTURES]
-    segmenterError += Math.abs(estimateMessagesTokens([{ role: 'user', content: text }]) - real) / real
+    segmenterError +=
+      Math.abs(estimateMessagesTokens([{ role: 'user', content: text }]) - real) / real
     divisorError += Math.abs(Math.ceil(text.length / 3.5) - real) / real
   }
   assert.ok(

@@ -26,7 +26,12 @@ test('not_a_replacement short-circuits before any Qdrant consideration', () => {
   // Even with everything else "off", a non-replacement is the controlling answer.
   assert.equal(
     decideContentReindex(
-      input({ isReplacement: false, qdrantInstalled: false, oldFileWasIndexed: false, qdrantRunning: false })
+      input({
+        isReplacement: false,
+        qdrantInstalled: false,
+        oldFileWasIndexed: false,
+        qdrantRunning: false,
+      })
     ),
     'not_a_replacement'
   )

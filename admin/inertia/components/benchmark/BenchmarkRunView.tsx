@@ -5,7 +5,7 @@ import CoreGrid from './CoreGrid'
 import Sparkline from './Sparkline'
 import LiveReadout from './LiveReadout'
 import ResultsSoFar from './ResultsSoFar'
-import type { BenchmarkRunHook } from '~/hooks/useBenchmarkRun'
+import type { BenchmarkRunHook } from '~/hooks/use_benchmark_run'
 import type { BenchmarkStatus } from '../../../types/benchmark'
 import { useTranslation } from 'react-i18next'
 

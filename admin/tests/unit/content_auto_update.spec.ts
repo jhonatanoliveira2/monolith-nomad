@@ -31,7 +31,9 @@ function makeResource(overrides: Record<string, any> = {}) {
   } as any
 }
 
-function makeCandidate(overrides: Partial<ContentCandidate> & { id?: string } = {}): ContentCandidate {
+function makeCandidate(
+  overrides: Partial<ContentCandidate> & { id?: string } = {}
+): ContentCandidate {
   const { id, ...rest } = overrides
   return {
     resource: makeResource({ resource_id: id ?? 'res' }) as any,

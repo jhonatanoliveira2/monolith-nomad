@@ -1,4 +1,4 @@
-import classNames from '~/lib/classNames'
+import classNames from '~/lib/class_names'
 import { formatBytes } from '~/lib/util'
 import { IconAlertTriangle, IconServer } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'

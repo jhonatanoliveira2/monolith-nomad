@@ -10,9 +10,10 @@ import classNames from 'classnames'
 import DynamicIcon, { DynamicIconName } from './DynamicIcon'
 import StyledButton from './StyledButton'
 import KbGuardrailModal from './KbGuardrailModal'
+import LanguageBadge from './LanguageBadge'
 import { evaluateGuardrail, type GuardrailVerdict } from '~/lib/kb_guardrail'
-import { useSystemInfo } from '~/hooks/useSystemInfo'
-import { getPrimaryDiskInfo } from '~/hooks/useDiskDisplayData'
+import { useSystemInfo } from '~/hooks/use_system_info'
+import { getPrimaryDiskInfo } from '~/hooks/use_disk_display_data'
 import { Trans, useTranslation } from 'react-i18next'
 
 /**
@@ -285,6 +286,7 @@ const TierSelectionModal: React.FC<TierSelectionModalProps> = ({
                                       <IconCheck size={14} className="text-desert-green mr-1.5 mt-0.5 flex-shrink-0" />
                                       <div>
                                         <span className="text-text-primary">{resource.title}</span>
+                                        <LanguageBadge language={resource.language} />
                                         <span className="text-text-muted text-xs ml-1">
                                           ({formatBytes(resource.size_mb * 1024 * 1024, 0)})
                                         </span>

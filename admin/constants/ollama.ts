@@ -19,7 +19,7 @@ export const FALLBACK_RECOMMENDED_OLLAMA_MODELS: NomadOllamaModel[] = [
         context: '128k',
         input: 'Text',
         cloud: false,
-        thinking: false
+        thinking: false,
       },
     ],
   },
@@ -38,7 +38,7 @@ export const FALLBACK_RECOMMENDED_OLLAMA_MODELS: NomadOllamaModel[] = [
         context: '128k',
         input: 'Text',
         cloud: false,
-        thinking: true
+        thinking: true,
       },
     ],
   },
@@ -56,7 +56,7 @@ export const FALLBACK_RECOMMENDED_OLLAMA_MODELS: NomadOllamaModel[] = [
         context: '128k',
         input: 'Text',
         cloud: false,
-        thinking: false
+        thinking: false,
       },
     ],
   },
@@ -86,8 +86,8 @@ export const DEFAULT_OLLAMA_CONTEXT_LENGTH = 8192
  * Smaller models get overwhelmed with too much context, so we cap it.
  */
 export const RAG_CONTEXT_LIMITS: { maxParams: number; maxResults: number; maxTokens: number }[] = [
-  { maxParams: 3, maxResults: 2, maxTokens: 1000 },   // 1-3B models
-  { maxParams: 8, maxResults: 4, maxTokens: 2500 },   // 4-8B models
+  { maxParams: 3, maxResults: 2, maxTokens: 1000 }, // 1-3B models
+  { maxParams: 8, maxResults: 4, maxTokens: 2500 }, // 4-8B models
   { maxParams: Infinity, maxResults: 5, maxTokens: 0 }, // 13B+ (no cap)
 ]
 

@@ -14,10 +14,7 @@ test('failed status takes precedence over any timing', () => {
 })
 
 test('no progress + no activity timestamps → waiting', () => {
-  assert.equal(
-    computeJobHealth({ status: 'waiting', progress: 0, now: NOW }),
-    'waiting'
-  )
+  assert.equal(computeJobHealth({ status: 'waiting', progress: 0, now: NOW }), 'waiting')
 })
 
 test('progress > 0 but no lastBatchAt yet → healthy (first batch just started)', () => {

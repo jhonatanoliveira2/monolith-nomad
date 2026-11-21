@@ -108,7 +108,9 @@ export default class EvalGeneration extends BaseCommand {
       }
       const samplerStyle = this.style ? (this.style as ResponseStyle) : undefined
 
-      let goldens = await corpusService.loadGoldens(this.suite ? this.suite.split(',').map((s) => s.trim()) : undefined)
+      let goldens = await corpusService.loadGoldens(
+        this.suite ? this.suite.split(',').map((s) => s.trim()) : undefined
+      )
       if (this.tag) goldens = goldens.filter((g) => g.tags.includes(this.tag))
       if (this.limit) goldens = goldens.slice(0, Number.parseInt(this.limit, 10))
       if (goldens.length === 0) {
@@ -229,7 +231,8 @@ export default class EvalGeneration extends BaseCommand {
    * The reason this command exists: turn three scores into an attribution.
    */
   private printDecomposition(summaries: Array<{ mode: GenerationMode; agg: GenerationAggregate }>) {
-    const get = (mode: GenerationMode) => summaries.find((s) => s.mode === mode)?.agg.correctness ?? null
+    const get = (mode: GenerationMode) =>
+      summaries.find((s) => s.mode === mode)?.agg.correctness ?? null
     const oracle = get('oracle')
     const e2e = get('e2e')
     const none = get('noretrieval')
@@ -237,11 +240,17 @@ export default class EvalGeneration extends BaseCommand {
     this.logger.info('=== Decomposition ===')
     if (oracle !== null && e2e !== null) {
       const cost = oracle - e2e
-      this.logger.info(`  retrieval cost   ${cost.toFixed(3)}   (oracle ${oracle.toFixed(3)} - e2e ${e2e.toFixed(3)})`)
-      this.logger.info(`  model ceiling    ${oracle.toFixed(3)}   (what this model manages with perfect context)`)
+      this.logger.info(
+        `  retrieval cost   ${cost.toFixed(3)}   (oracle ${oracle.toFixed(3)} - e2e ${e2e.toFixed(3)})`
+      )
+      this.logger.info(
+        `  model ceiling    ${oracle.toFixed(3)}   (what this model manages with perfect context)`
+      )
     }
     if (e2e !== null && none !== null) {
-      this.logger.info(`  RAG contribution ${(e2e - none).toFixed(3)}   (e2e ${e2e.toFixed(3)} - noretrieval ${none.toFixed(3)})`)
+      this.logger.info(
+        `  RAG contribution ${(e2e - none).toFixed(3)}   (e2e ${e2e.toFixed(3)} - noretrieval ${none.toFixed(3)})`
+      )
     }
 
     if (oracle !== null && e2e !== null) {
@@ -267,11 +276,15 @@ export default class EvalGeneration extends BaseCommand {
   }
 
   private printFailures(cases: Array<any>) {
-    const failures = cases.filter((c) => c.correctness.passRate < 1 || c.refusalCorrectness.passRate < 1)
+    const failures = cases.filter(
+      (c) => c.correctness.passRate < 1 || c.refusalCorrectness.passRate < 1
+    )
     if (failures.length === 0) return
     this.logger.info('--- failures ---')
     for (const f of failures) {
-      this.logger.info(`  ${f.id}  correct=${f.correctness.passes}/${f.correctness.repeats} refusal=${f.refusalCorrectness.passes}/${f.refusalCorrectness.repeats}`)
+      this.logger.info(
+        `  ${f.id}  correct=${f.correctness.passes}/${f.correctness.repeats} refusal=${f.refusalCorrectness.passes}/${f.refusalCorrectness.repeats}`
+      )
       const score = f.scores[0]
       if (score?.missedRequired?.length) {
         this.logger.info(`    missed: ${score.missedRequired.join(' | ')}`)

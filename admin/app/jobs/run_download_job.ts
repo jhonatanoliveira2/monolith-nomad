@@ -1,9 +1,13 @@
 import { Job, UnrecoverableError } from 'bullmq'
 import { RunDownloadJobParams, DownloadProgressData } from '../../types/downloads.js'
 import { QueueService } from '#services/queue_service'
-import { GatedContentAuthError, InsufficientDiskSpaceError } from '../utils/downloads.js'
+import {
+  ChecksumMismatchError,
+  GatedContentAuthError,
+  InsufficientDiskSpaceError,
+} from '../utils/downloads.js'
 import { smartDownload } from '../utils/smart_download.js'
-import { createHash } from 'crypto'
+import { createHash } from 'node:crypto'
 import { DockerService } from '#services/docker_service'
 import { ZimService } from '#services/zim_service'
 import { MapService } from '#services/map_service'
@@ -11,7 +15,8 @@ import { RagService } from '#services/rag_service'
 import { OllamaService } from '#services/ollama_service'
 import { EmbedFileJob } from './embed_file_job.js'
 import { basename, join, resolve, sep } from 'node:path'
-import { ZIM_STORAGE_PATH } from '../utils/fs.js'
+import { LIBRARY_STORAGE_PATH, ZIM_STORAGE_PATH } from '../utils/fs.js'
+import { detectDocumentFormat, InvalidDocumentFormatError } from '../utils/document_format.js'
 
 /** Maps live under `<cwd>/storage/maps/pmtiles`; no shared constant exists. */
 const MAP_STORAGE_PATH = '/storage/maps'
@@ -24,15 +29,13 @@ const MAP_STORAGE_PATH = '/storage/maps'
  * resource's own previous file, never another file, even if the
  * InstalledResource row is stale or malformed.
  */
-function isSafeOldContentPath(
-  oldFilePath: string,
-  resourceId: string,
-  filetype: string
-): boolean {
+function isSafeOldContentPath(oldFilePath: string, resourceId: string, filetype: string): boolean {
   const root =
     filetype === 'zim'
       ? join(process.cwd(), ZIM_STORAGE_PATH)
-      : join(process.cwd(), MAP_STORAGE_PATH)
+      : filetype === 'document'
+        ? join(process.cwd(), LIBRARY_STORAGE_PATH)
+        : join(process.cwd(), MAP_STORAGE_PATH)
   const resolved = resolve(oldFilePath)
   if (!resolved.startsWith(root + sep)) return false
   return basename(resolved).startsWith(`${resourceId}_`)
@@ -71,8 +74,17 @@ export class RunDownloadJob {
   }
 
   async handle(job: Job) {
-    const { url, filepath, timeout, allowedMimeTypes, forceNew, filetype, resourceMetadata, requestHeaders } =
-      job.data as RunDownloadJobParams
+    const {
+      url,
+      filepath,
+      timeout,
+      allowedMimeTypes,
+      forceNew,
+      filetype,
+      resourceMetadata,
+      requestHeaders,
+      expectedSha256,
+    } = job.data as RunDownloadJobParams
 
     // Register abort controller for this job
     const abortController = new AbortController()
@@ -117,6 +129,9 @@ export class RunDownloadJob {
         allowedMimeTypes,
         forceNew,
         requestHeaders,
+        // Library documents pin the publisher file's SHA-256 in the manifest (no metalink exists for
+        // them); smartDownload checks it before the file is moved into place.
+        expectedSha256,
         signal: abortController.signal,
         onProgress(progress) {
           const progressPercent = (progress.downloadedBytes / (progress.totalBytes || 1)) * 100
@@ -131,9 +146,27 @@ export class RunDownloadJob {
             // and the Redis write completing — this is expected and safe to ignore.
             if (err?.code !== -1) throw err
           })
-          lastKnownProgress = { downloadedBytes: progress.downloadedBytes, totalBytes: progress.totalBytes }
+          lastKnownProgress = {
+            downloadedBytes: progress.downloadedBytes,
+            totalBytes: progress.totalBytes,
+          }
         },
-        async onComplete(url) {
+        // the canonical URL is the outer `url`: smartDownload never hands a mirror URL to onComplete
+        async onComplete() {
+          // A library document must really be the PDF/EPUB the catalog promised: a moved file is
+          // often answered by an HTML error page with HTTP 200, and continuously rebuilt files carry
+          // no pinned hash. Thrown before anything is recorded, so a bad file never shows as installed.
+          if (filetype === 'document') {
+            const expected = filepath.toLowerCase().endsWith('.epub') ? 'epub' : 'pdf'
+            const actual = await detectDocumentFormat(filepath)
+            if (actual !== expected) {
+              const { deleteFileIfExists } = await import('../utils/fs.js')
+              await deleteFileIfExists(filepath)
+              throw new InvalidDocumentFormatError(
+                `The file served for ${url} is not a valid ${expected.toUpperCase()} (got ${actual ?? 'unknown content'})`
+              )
+            }
+          }
           // The previous file recorded for this resource (if any). Hoisted out of
           // the metadata block below so the ZIM branch can decide whether this
           // download is a content UPDATE (replacing a prior file) vs a fresh
@@ -155,7 +188,10 @@ export class RunDownloadJob {
               oldFilePath = oldEntry?.file_path ?? null
 
               const installed = await InstalledResource.updateOrCreate(
-                { resource_id: resourceMetadata.resource_id, resource_type: filetype as 'zim' | 'map' },
+                {
+                  resource_id: resourceMetadata.resource_id,
+                  resource_type: filetype as 'zim' | 'map',
+                },
                 {
                   version: resourceMetadata.version,
                   collection_ref: resourceMetadata.collection_ref,
@@ -174,9 +210,8 @@ export class RunDownloadJob {
               // never touch the counter.
               if (resourceMetadata.auto === true) {
                 try {
-                  const { recordResourceUpdateSuccess } = await import(
-                    '../utils/content_auto_update_backoff.js'
-                  )
+                  const { recordResourceUpdateSuccess } =
+                    await import('../utils/content_auto_update_backoff.js')
                   await recordResourceUpdateSuccess(installed)
                 } catch (error) {
                   console.error(
@@ -210,10 +245,14 @@ export class RunDownloadJob {
               }
             }
 
-            if (filetype === 'zim') {
+            if (filetype === 'zim' || filetype === 'document') {
               const dockerService = new DockerService()
-              const zimService = new ZimService(dockerService)
-              await zimService.downloadRemoteSuccessCallback([url], true)
+              if (filetype === 'zim') {
+                const zimService = new ZimService(dockerService)
+                await zimService.downloadRemoteSuccessCallback([url], true)
+              }
+              // Library PDFs/EPUBs go through the same knowledge-base path as ZIMs below: the RAG
+              // service already extracts text from both formats (rag_service processPDF/processEPUB).
 
               // Only touch the knowledge base if AI Assistant (Ollama) is installed.
               // skip_embedding opts a ZIM out entirely — Creator Pack video ZIMs are
@@ -285,7 +324,10 @@ export class RunDownloadJob {
                         filePath: filepath,
                       })
                     } catch (error) {
-                      console.error(`[RunDownloadJob] Error dispatching EmbedFileJob for URL ${url}:`, error)
+                      console.error(
+                        `[RunDownloadJob] Error dispatching EmbedFileJob for URL ${url}:`,
+                        error
+                      )
                     }
                   }
                 }
@@ -300,14 +342,16 @@ export class RunDownloadJob {
               error
             )
           }
-          job.updateProgress({
-            percent: 100,
-            downloadedBytes: lastKnownProgress.downloadedBytes,
-            totalBytes: lastKnownProgress.totalBytes,
-            lastProgressTime: Date.now(),
-          } as DownloadProgressData).catch((err) => {
-            if (err?.code !== -1) throw err
-          })
+          job
+            .updateProgress({
+              percent: 100,
+              downloadedBytes: lastKnownProgress.downloadedBytes,
+              totalBytes: lastKnownProgress.totalBytes,
+              lastProgressTime: Date.now(),
+            } as DownloadProgressData)
+            .catch((err) => {
+              if (err?.code !== -1) throw err
+            })
         },
       })
 
@@ -328,6 +372,17 @@ export class RunDownloadJob {
       // stuck download instead of the message above.
       if (error instanceof GatedContentAuthError) {
         throw new UnrecoverableError(error.message)
+      }
+      // A library document whose bytes do not match the pinned SHA-256, or are not a PDF/EPUB at all,
+      // means the publisher changed or moved the file. Retrying for hours cannot fix that; fail now so
+      // the downloads page says so (the catalog keeps the official page as the fallback link).
+      if (
+        filetype === 'document' &&
+        (error instanceof ChecksumMismatchError || error instanceof InvalidDocumentFormatError)
+      ) {
+        throw new UnrecoverableError(
+          `Integrity check failed: the publisher's file changed or is unavailable (${error.message})`
+        )
       }
       // Retrying won't free space; fail now with the reason shown on the downloads page
       if (error instanceof InsufficientDiskSpaceError || error?.code === 'ENOSPC') {

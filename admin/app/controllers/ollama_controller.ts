@@ -38,7 +38,7 @@ export default class OllamaController {
     private ragPipelineService: RagPipelineService,
     private ragService: RagService,
     private tokenCalibration: TokenCalibrationService
-  ) { }
+  ) {}
 
   async availableModels({ request }: HttpContext) {
     const reqData = await request.validateUsing(getAvailableModelsSchema)
@@ -80,13 +80,17 @@ export default class OllamaController {
       const rawPayload = request.input('payload')
       if (typeof rawPayload !== 'string') {
         await cleanupUploadedImages()
-        return response.status(422).send({ message: 'Multipart chat requests require a JSON payload.' })
+        return response
+          .status(422)
+          .send({ message: 'Multipart chat requests require a JSON payload.' })
       }
       try {
         multipartPayload = JSON.parse(rawPayload)
       } catch {
         await cleanupUploadedImages()
-        return response.status(422).send({ message: 'The multipart chat payload is not valid JSON.' })
+        return response
+          .status(422)
+          .send({ message: 'The multipart chat payload is not valid JSON.' })
       }
     }
     // A multipart chat carries the collection inside the JSON payload rather than
@@ -183,10 +187,13 @@ export default class OllamaController {
       const thinkingCapability = modelInfo.hasThinking
       let thinkingEnabled = false
       if (thinkingCapability) {
-        thinkingEnabled = reqData.think ?? ((await KVStore.getValue('ai.autoThinking')) ?? false)
+        thinkingEnabled = reqData.think ?? (await KVStore.getValue('ai.autoThinking')) ?? false
       }
-      const think: boolean | 'medium' =
-        thinkingEnabled ? (reqData.model.startsWith('gpt-oss') ? 'medium' : true) : false
+      const think: boolean | 'medium' = thinkingEnabled
+        ? reqData.model.startsWith('gpt-oss')
+          ? 'medium'
+          : true
+        : false
 
       // Sampler settings for this turn. Chat used to send none of these and
       // inherit the backend's defaults, which on a heavily quantized small model
@@ -200,7 +207,8 @@ export default class OllamaController {
 
       // Separate sessionId and the resolved thinking preference from the Ollama request payload —
       // Ollama rejects unknown fields, and `think` is re-derived above (not forwarded raw).
-      const { sessionId, think: _thinkPref, ...ollamaRequest } = reqData
+      const { sessionId, think: discardedThink, ...ollamaRequest } = reqData
+      void discardedThink
       const upstreamMessages = attachImagesToLatestUserMessage(
         ollamaRequest.messages,
         normalizedImages
@@ -217,7 +225,9 @@ export default class OllamaController {
       }
 
       if (reqData.stream) {
-        logger.debug(`[OllamaController] Initiating streaming response for model: "${reqData.model}" with think: ${think}`)
+        logger.debug(
+          `[OllamaController] Initiating streaming response for model: "${reqData.model}" with think: ${think}`
+        )
         // Headers already flushed above.
         // Abort the upstream generation if the client disconnects — otherwise an abandoned
         // request keeps decoding server-side and, with Ollama's default OLLAMA_NUM_PARALLEL=1,
@@ -236,7 +246,7 @@ export default class OllamaController {
             numCtx,
             numPredict,
             keepAlive,
-          sampler,
+            sampler,
             signal: abortController.signal,
           })
           for await (const chunk of stream) {
@@ -252,7 +262,9 @@ export default class OllamaController {
           }
         } catch (err) {
           if (abortController.signal.aborted) {
-            logger.debug('[OllamaController] Client disconnected; aborted upstream Ollama generation')
+            logger.debug(
+              '[OllamaController] Client disconnected; aborted upstream Ollama generation'
+            )
             return
           }
           unknownVisionUpstreamRejected =
@@ -276,9 +288,13 @@ export default class OllamaController {
           await this.chatService.addMessage(sessionId, 'assistant', fullContent, sources)
           const messageCount = await this.chatService.getMessageCount(sessionId)
           if (messageCount <= 2 && userContent) {
-            this.chatService.generateTitle(sessionId, userContent, fullContent, reqData.model).catch((err) => {
-              logger.error(`[OllamaController] Title generation failed: ${err instanceof Error ? err.message : err}`)
-            })
+            this.chatService
+              .generateTitle(sessionId, userContent, fullContent, reqData.model)
+              .catch((err) => {
+                logger.error(
+                  `[OllamaController] Title generation failed: ${err instanceof Error ? err.message : err}`
+                )
+              })
           }
         }
         return
@@ -295,7 +311,7 @@ export default class OllamaController {
           numCtx,
           numPredict,
           keepAlive,
-        sampler,
+          sampler,
         })
       } catch (err) {
         // A backend that never advertised vision support rejecting a request that
@@ -316,22 +332,25 @@ export default class OllamaController {
         await this.chatService.addMessage(sessionId, 'assistant', result.message.content, sources)
         const messageCount = await this.chatService.getMessageCount(sessionId)
         if (messageCount <= 2 && userContent) {
-          this.chatService.generateTitle(sessionId, userContent, result.message.content, reqData.model).catch((err) => {
-            logger.error(`[OllamaController] Title generation failed: ${err instanceof Error ? err.message : err}`)
-          })
+          this.chatService
+            .generateTitle(sessionId, userContent, result.message.content, reqData.model)
+            .catch((err) => {
+              logger.error(
+                `[OllamaController] Title generation failed: ${err instanceof Error ? err.message : err}`
+              )
+            })
         }
       }
 
       return { ...result, sources }
     } catch (error) {
       if (reqData.stream) {
-        const streamError =
-          unknownVisionUpstreamRejected
-            ? {
-                error: true,
-                message: unknownVisionCompatibilityMessage(reqData.model),
-              }
-            : { error: true }
+        const streamError = unknownVisionUpstreamRejected
+          ? {
+              error: true,
+              message: unknownVisionCompatibilityMessage(reqData.model),
+            }
+          : { error: true }
         response.response.write(`data: ${JSON.stringify(streamError)}\n\n`)
         response.response.end()
         return
@@ -411,7 +430,9 @@ export default class OllamaController {
 
     const ollamaService = await Service.query().where('service_name', SERVICE_NAMES.OLLAMA).first()
     if (!ollamaService) {
-      return response.status(404).send({ success: false, message: 'Ollama service record not found.' })
+      return response
+        .status(404)
+        .send({ success: false, message: 'Ollama service record not found.' })
     }
 
     // Clear path: null or empty URL removes remote config. If a local nomad_ollama container
@@ -488,9 +509,7 @@ export default class OllamaController {
   private async _stopLocalOllamaContainer(): Promise<void> {
     try {
       const containers = await this.dockerService.docker.listContainers({ all: true })
-      const ollamaContainer = containers.find((c) =>
-        c.Names.includes(`/${SERVICE_NAMES.OLLAMA}`)
-      )
+      const ollamaContainer = containers.find((c) => c.Names.includes(`/${SERVICE_NAMES.OLLAMA}`))
       if (!ollamaContainer || ollamaContainer.State !== 'running') {
         return
       }
@@ -508,9 +527,7 @@ export default class OllamaController {
   private async _startLocalOllamaContainerIfExists(): Promise<boolean> {
     try {
       const containers = await this.dockerService.docker.listContainers({ all: true })
-      const ollamaContainer = containers.find((c) =>
-        c.Names.includes(`/${SERVICE_NAMES.OLLAMA}`)
-      )
+      const ollamaContainer = containers.find((c) => c.Names.includes(`/${SERVICE_NAMES.OLLAMA}`))
       if (!ollamaContainer) {
         return false
       }
@@ -555,5 +572,4 @@ export default class OllamaController {
     )
     return models.map((m, i) => ({ ...m, ...capabilities[i] }))
   }
-
 }

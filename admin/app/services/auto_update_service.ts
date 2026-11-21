@@ -162,7 +162,10 @@ export class AutoUpdateService {
       // `Number(null) === 0`, so an *unset* value must fall through to the default
       // rather than silently resolving to a zero cool-off. An explicit 0 is honored.
       cooloffHours:
-        cooloffHours != null && Number.isFinite(parsedCooloff) && parsedCooloff >= 0
+        cooloffHours !== null &&
+        cooloffHours !== undefined &&
+        Number.isFinite(parsedCooloff) &&
+        parsedCooloff >= 0
           ? parsedCooloff
           : DEFAULT_COOLOFF_HOURS,
     }
@@ -469,12 +472,12 @@ export class AutoUpdateService {
       case 'disabled':
         return { updated: false, reason: decision.reason }
 
-      case 'outside-window':
-      case 'no-eligible':
       // A failed release lookup is transient (offline-first appliances are
       // routinely without connectivity) — treat as a skip so it never trips the
       // backoff that auto-disables the feature. Only real update-request failures
       // (the `ready` case below) count toward MAX_CONSECUTIVE_FAILURES.
+      case 'outside-window':
+      case 'no-eligible':
       case 'eligibility-error':
         await this.recordSkip(decision.reason)
         return { updated: false, reason: decision.reason }

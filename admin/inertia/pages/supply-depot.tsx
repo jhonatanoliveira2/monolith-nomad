@@ -2,7 +2,6 @@ import { Head, router } from '@inertiajs/react'
 import { useEffect, useRef, useState } from 'react'
 import {
   IconAlertTriangle,
-  IconArrowRight,
   IconArrowUp,
   IconBook,
   IconBox,
@@ -33,11 +32,11 @@ import ServiceLogsModal from '~/components/ServiceLogsModal'
 import ServiceStatsModal from '~/components/ServiceStatsModal'
 import StyledSectionHeader from '~/components/StyledSectionHeader'
 import UpdateServiceModal from '~/components/UpdateServiceModal'
-import useErrorNotification from '~/hooks/useErrorNotification'
-import { useNotifications } from '~/context/NotificationContext'
-import useInternetStatus from '~/hooks/useInternetStatus'
-import { useAppAutoUpdateStatus } from '~/hooks/useAppAutoUpdateStatus'
-import useServiceInstallationActivity from '~/hooks/useServiceInstallationActivity'
+import useErrorNotification from '~/hooks/use_error_notification'
+import { useNotifications } from '~/context/notification_context'
+import useInternetStatus from '~/hooks/use_internet_status'
+import { useAppAutoUpdateStatus } from '~/hooks/use_app_auto_update_status'
+import useServiceInstallationActivity from '~/hooks/use_service_installation_activity'
 import { useTransmit } from 'react-adonis-transmit'
 import { BROADCAST_CHANNELS } from '../../constants/broadcast'
 import { ServiceSlim } from '../../types/services'

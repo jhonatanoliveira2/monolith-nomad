@@ -5,7 +5,7 @@ import { RagService } from '#services/rag_service'
 import { DockerService } from '#services/docker_service'
 import { OllamaService } from '#services/ollama_service'
 import KbIngestState from '#models/kb_ingest_state'
-import { createHash } from 'crypto'
+import { createHash } from 'node:crypto'
 import logger from '@adonisjs/core/services/logger'
 import fs from 'node:fs/promises'
 import { ZIM_BATCH_SIZE } from '../../constants/zim_extraction.js'
@@ -15,7 +15,7 @@ export interface EmbedFileJobParams {
   fileName: string
   fileSize?: number
   // Batch processing for large ZIM files
-  batchOffset?: number  // Current batch offset (for ZIM files)
+  batchOffset?: number // Current batch offset (for ZIM files)
   totalArticles?: number // Total articles in ZIM (for progress tracking)
   isFinalBatch?: boolean // Whether this is the last batch (prevents premature deletion)
   // Running total of chunks embedded across prior batches in this dispatch chain.
@@ -69,8 +69,8 @@ export class EmbedFileJob {
     // back to whatever the file is already assigned to, so an assignment made *before*
     // the file was indexed still reaches the vectors. Resolving it here rather than at
     // each dispatch site keeps one source of truth and covers batch continuations too.
-    const effectiveCollection =
-      collection ?? (await KbIngestState.findBy('file_path', filePath))?.collection ?? undefined
+    const ingestState = collection ? null : await KbIngestState.findBy('file_path', filePath)
+    const effectiveCollection = collection ?? ingestState?.collection ?? undefined
 
     const isZimBatch = batchOffset !== undefined
     const batchInfo = isZimBatch ? ` (batch offset: ${batchOffset})` : ''
@@ -87,7 +87,9 @@ export class EmbedFileJob {
       const ollamaUrl = await dockerService.getServiceURL('nomad_ollama')
       if (!ollamaUrl) {
         logger.warn('[EmbedFileJob] Ollama is not installed. Skipping embedding for: %s', fileName)
-        throw new UnrecoverableError('Ollama service is not installed. Install AI Assistant to enable file embeddings.')
+        throw new UnrecoverableError(
+          'Ollama service is not installed. Install AI Assistant to enable file embeddings.'
+        )
       }
 
       const existingModels = await ollamaService.getModels()
@@ -99,7 +101,9 @@ export class EmbedFileJob {
       const qdrantUrl = await dockerService.getServiceURL('nomad_qdrant')
       if (!qdrantUrl) {
         logger.warn('[EmbedFileJob] Qdrant is not installed. Skipping embedding for: %s', fileName)
-        throw new UnrecoverableError('Qdrant service is not installed. Install AI Assistant to enable file embeddings.')
+        throw new UnrecoverableError(
+          'Qdrant service is not installed. Install AI Assistant to enable file embeddings.'
+        )
       }
 
       logger.info(`[EmbedFileJob] Services ready. Processing file: ${fileName}`)
@@ -163,9 +167,7 @@ export class EmbedFileJob {
       // For ZIM files with batching, check if more batches are needed
       if (result.hasMoreBatches) {
         const nextOffset = (batchOffset || 0) + (result.articlesProcessed || 0)
-        logger.info(
-          `[EmbedFileJob] Batch complete. Dispatching next batch at offset ${nextOffset}`
-        )
+        logger.info(`[EmbedFileJob] Batch complete. Dispatching next batch at offset ${nextOffset}`)
 
         // Pace continuation batches when embedding is CPU-bound. Sustained 100% CPU
         // saturation across all cores during multi-batch ZIM ingestion can starve
@@ -223,7 +225,10 @@ export class EmbedFileJob {
         // the reported count so the gauge keeps creeping forward monotonically,
         // and never report 100% before the genuinely-final batch (handled below).
         const progress = totalArticles
-          ? Math.min(99, Math.round((nextOffset / Math.max(totalArticles, nextOffset + ZIM_BATCH_SIZE)) * 100))
+          ? Math.min(
+              99,
+              Math.round((nextOffset / Math.max(totalArticles, nextOffset + ZIM_BATCH_SIZE)) * 100)
+            )
           : 50
 
         await this.safeUpdateProgress(job, progress)
@@ -294,7 +299,9 @@ export class EmbedFileJob {
           `[EmbedFileJob] Context-length overflow persisted for ${fileName} after truncation; not retrying.`
         )
         normalizedError = new UnrecoverableError(
-          error instanceof Error ? error.message : 'Embedding input exceeds the model context length'
+          error instanceof Error
+            ? error.message
+            : 'Embedding input exceeds the model context length'
         )
       }
 
@@ -430,9 +437,7 @@ export class EmbedFileJob {
         : force
           ? ' (forced re-dispatch)'
           : ''
-      logger.info(
-        `[EmbedFileJob] Dispatched embedding job for file: ${params.fileName}${label}`
-      )
+      logger.info(`[EmbedFileJob] Dispatched embedding job for file: ${params.fileName}${label}`)
 
       return {
         job,

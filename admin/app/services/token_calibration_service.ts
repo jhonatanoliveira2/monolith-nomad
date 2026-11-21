@@ -82,7 +82,11 @@ export class TokenCalibrationService {
    * messages that were sent — otherwise the factor gets applied twice and the
    * EWMA chases its own tail.
    */
-  async record(model: string, estimatedTokens: number, actualTokens: number | undefined): Promise<void> {
+  async record(
+    model: string,
+    estimatedTokens: number,
+    actualTokens: number | undefined
+  ): Promise<void> {
     if (!actualTokens || !estimatedTokens || estimatedTokens <= 0 || actualTokens <= 0) return
     // Tiny prompts are dominated by chat-template overhead and teach us little
     // about how this model tokenizes real content.
@@ -101,7 +105,10 @@ export class TokenCalibrationService {
     )
 
     const lastWritten = this.persisted.get(model)
-    if (lastWritten === undefined || Math.abs(next - lastWritten) > TokenCalibrationService.PERSIST_THRESHOLD) {
+    if (
+      lastWritten === undefined ||
+      Math.abs(next - lastWritten) > TokenCalibrationService.PERSIST_THRESHOLD
+    ) {
       await this._persist(model, next)
     }
   }

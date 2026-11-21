@@ -2,7 +2,7 @@ import Markdoc from '@markdoc/markdoc'
 import { streamToString } from '../../util/docs.js'
 import { getFile, getFileStatsIfExists, listDirectoryContentsRecursive } from '../utils/fs.js'
 import { blockingFindings, markdocConfig } from '../utils/docs_markdoc.js'
-import path from 'path'
+import path from 'node:path'
 import InternalServerErrorException from '#exceptions/internal_server_error_exception'
 import logger from '@adonisjs/core/services/logger'
 import {
@@ -61,7 +61,10 @@ export class DocsService {
 
       const criticalErrors = blockingFindings(errors)
       if (criticalErrors.length > 0) {
-        logger.error('Markdoc validation errors:', errors.map((e) => JSON.stringify(e.error)).join(', '))
+        logger.error(
+          'Markdoc validation errors:',
+          errors.map((e) => JSON.stringify(e.error)).join(', ')
+        )
         throw new Error('Markdoc validation failed')
       }
 

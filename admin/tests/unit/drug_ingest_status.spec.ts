@@ -65,9 +65,7 @@ test.group('parseDownloadState', () => {
     assert.equal(marker!.completedAtMs, 1717718400000)
   })
 
-  test('defaults totalRecords to 0 for an older marker that predates the field', ({
-    assert,
-  }) => {
+  test('defaults totalRecords to 0 for an older marker that predates the field', ({ assert }) => {
     const raw = JSON.stringify({
       export_date: '2026-06-06',
       totalParts: 1,
@@ -120,7 +118,14 @@ function dl(state: DrugDownloadStatus['state']): DrugDownloadStatus {
   return { state, partsDone: 0, totalParts: 13, currentPartName: null }
 }
 function ing(state: DrugIngestPhaseStatus['state']): DrugIngestPhaseStatus {
-  return { state, records: 0, expectedTotal: 0, partsDone: 0, totalParts: 13, currentPartName: null }
+  return {
+    state,
+    records: 0,
+    expectedTotal: 0,
+    partsDone: 0,
+    totalParts: 13,
+    currentPartName: null,
+  }
 }
 
 test.group('deriveIngestPhase', () => {

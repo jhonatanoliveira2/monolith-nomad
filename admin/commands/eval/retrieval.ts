@@ -86,7 +86,9 @@ export default class EvalRetrieval extends BaseCommand {
     try {
       const chunks = await retrievalService.assertCorpusReady()
       const fingerprint = await corpusService.fingerprint()
-      let goldens = await corpusService.loadGoldens(this.suite ? this.suite.split(',').map((s) => s.trim()) : undefined)
+      let goldens = await corpusService.loadGoldens(
+        this.suite ? this.suite.split(',').map((s) => s.trim()) : undefined
+      )
 
       if (this.tag) {
         goldens = goldens.filter((g) => g.tags.includes(this.tag))
@@ -167,7 +169,9 @@ export default class EvalRetrieval extends BaseCommand {
       const k = result.params.kValues.includes(5) ? 5 : result.params.kValues[0]
       const misses = result.cases.filter((c) => !c.expectRefusal && (c.recall[k] ?? 1) < 1)
       this.logger.info('')
-      this.logger.info(`${misses.length} of ${result.overall.answerable} answerable questions missed at k=${k}`)
+      this.logger.info(
+        `${misses.length} of ${result.overall.answerable} answerable questions missed at k=${k}`
+      )
 
       if (this.verbose && misses.length > 0) {
         this.logger.info('')
@@ -202,7 +206,10 @@ export default class EvalRetrieval extends BaseCommand {
 
       if (this.dump && result.pools) {
         const { writeFile } = await import('node:fs/promises')
-        await writeFile(this.dump, JSON.stringify({ fingerprint, params: result.params, pools: result.pools }, null, 2))
+        await writeFile(
+          this.dump,
+          JSON.stringify({ fingerprint, params: result.params, pools: result.pools }, null, 2)
+        )
         this.logger.info('')
         this.logger.success(`Candidate pools written: ${this.dump}`)
       }
@@ -214,7 +221,11 @@ export default class EvalRetrieval extends BaseCommand {
         })
         const doc = reportService.fromRetrieval(meta, result)
         const slug = `retrieval-${meta.createdAt.replace(/[:.]/g, '-')}`
-        const path = await reportService.write(doc, slug, renderRetrievalMarkdown(doc, result, misses))
+        const path = await reportService.write(
+          doc,
+          slug,
+          renderRetrievalMarkdown(doc, result, misses)
+        )
         this.logger.info('')
         this.logger.success(`Report written: ${path}`)
       }
@@ -302,12 +313,21 @@ export default class EvalRetrieval extends BaseCommand {
     }
   }
 
-  private explainAblation(ablation: { dense: RetrievalAggregate; reranked: RetrievalAggregate; diversified: RetrievalAggregate }, k: number) {
+  private explainAblation(
+    ablation: {
+      dense: RetrievalAggregate
+      reranked: RetrievalAggregate
+      diversified: RetrievalAggregate
+    },
+    k: number
+  ) {
     const verdict = (name: string, before: number | null, after: number | null) => {
       if (before === null || after === null) return
       const delta = after - before
       if (Math.abs(delta) < 1e-6) {
-        this.logger.warning(`  ${name} changed nothing at k=${k} — it is complexity with no measured benefit.`)
+        this.logger.warning(
+          `  ${name} changed nothing at k=${k} — it is complexity with no measured benefit.`
+        )
       } else if (delta < 0) {
         this.logger.warning(`  ${name} made ndcg@${k} worse by ${Math.abs(delta).toFixed(4)}.`)
       } else {
@@ -330,7 +350,9 @@ const pct = (v: number) => `${(v * 100).toFixed(0)}%`
 function renderRetrievalMarkdown(doc: any, result: any, misses: any[]): string {
   const lines: string[] = ['# Retrieval eval', '']
   lines.push(`- corpus: \`${doc.meta.corpusFingerprint}\``)
-  lines.push(`- commit: \`${doc.meta.gitSha ?? 'unknown'}\`${doc.meta.gitDirty ? ' (dirty tree)' : ''}`)
+  lines.push(
+    `- commit: \`${doc.meta.gitSha ?? 'unknown'}\`${doc.meta.gitDirty ? ' (dirty tree)' : ''}`
+  )
   lines.push(`- when: ${doc.meta.createdAt}`)
   lines.push(
     `- params: topK=${result.params.topK} threshold=${result.params.scoreThreshold} minFinalScore=${result.params.minFinalScore}`
@@ -357,7 +379,8 @@ function renderRetrievalMarkdown(doc: any, result: any, misses: any[]): string {
   lines.push('| tag | recall@5 | ndcg@5 |', '|---|---:|---:|')
   for (const [tag, metrics] of Object.entries(doc.byTag).sort()) {
     const m = metrics as Record<string, number | null>
-    const cell = (v: number | null | undefined) => (v === null || v === undefined ? 'n/a' : v.toFixed(4))
+    const cell = (v: number | null | undefined) =>
+      v === null || v === undefined ? 'n/a' : v.toFixed(4)
     lines.push(`| ${tag} | ${cell(m['recall@5'])} | ${cell(m['ndcg@5'])} |`)
   }
   return lines.join('\n') + '\n'

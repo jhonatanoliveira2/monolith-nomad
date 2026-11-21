@@ -1,0 +1,1567 @@
+{
+  "spec_version": "2026-11-21",
+  "areas": [
+    {
+      "slug": "matematica",
+      "name": "Matemática",
+      "description": "Da aritmética ao cálculo, álgebra linear e métodos numéricos.",
+      "icon": "IconSchool"
+    },
+    {
+      "slug": "ciencias",
+      "name": "Física, Química e Biologia",
+      "description": "Livros universitários, simulações e enciclopédias temáticas de ciências.",
+      "icon": "IconBrain"
+    },
+    {
+      "slug": "engenharia",
+      "name": "Engenharia",
+      "description": "Fundamentos físicos aplicados: circuitos, eletromagnetismo e dinâmica.",
+      "icon": "IconTool"
+    },
+    {
+      "slug": "computacao",
+      "name": "Computação",
+      "description": "Sistemas operacionais, Linux, Git, Python e programação.",
+      "icon": "IconCode"
+    },
+    {
+      "slug": "seguranca-digital",
+      "name": "Segurança Digital",
+      "description": "Golpes, senhas, códigos maliciosos, backup e privacidade.",
+      "icon": "IconShieldLock"
+    },
+    {
+      "slug": "direito",
+      "name": "Direito e Cidadania",
+      "description": "Constituição e códigos em edições oficiais do Senado Federal.",
+      "icon": "IconLibrary"
+    },
+    {
+      "slug": "saude",
+      "name": "Saúde e Nutrição",
+      "description": "Publicações oficiais e enciclopédias de saúde.",
+      "icon": "IconStethoscope"
+    },
+    {
+      "slug": "educacao",
+      "name": "Educação Geral",
+      "description": "Livros didáticos, cursos e enciclopédia infantojuvenil.",
+      "icon": "IconBook"
+    },
+    {
+      "slug": "historia-geografia",
+      "name": "História e Geografia",
+      "description": "Enciclopédias temáticas e documentos históricos.",
+      "icon": "IconWorld"
+    },
+    {
+      "slug": "lingua-literatura",
+      "name": "Língua Portuguesa e Literatura",
+      "description": "Dicionário, literatura clássica e textos em domínio público.",
+      "icon": "IconBooks"
+    },
+    {
+      "slug": "idiomas",
+      "name": "Idiomas",
+      "description": "Materiais para aprender outras línguas.",
+      "icon": "IconWorld"
+    },
+    {
+      "slug": "reparos",
+      "name": "Reparos e Manutenção",
+      "description": "Guias práticos de conserto.",
+      "icon": "IconTool"
+    }
+  ],
+  "items": [
+    {
+      "id": "vade-mecum-senado",
+      "version": "2026-07",
+      "title": "Vade Mecum do Senado Federal",
+      "authors": [
+        "Senado Federal, Coordenação de Edições Técnicas"
+      ],
+      "publisher": "Senado Federal",
+      "edition": "4ª edição, atualizada até julho de 2026",
+      "year": "2026",
+      "language": "pt",
+      "description": "Códigos brasileiros em um só volume: Civil, Processo Civil, Penal, Processo Penal, Tributário Nacional, Defesa do Consumidor, Eleitoral e Florestal, com índice sistemático.",
+      "areas": [
+        "direito"
+      ],
+      "subjects": [
+        "Código Civil",
+        "Código de Processo Civil",
+        "Código Penal",
+        "Código de Processo Penal",
+        "Código Tributário Nacional",
+        "Código de Defesa do Consumidor",
+        "Código Eleitoral",
+        "Código Florestal"
+      ],
+      "levels": [
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://www2.senado.leg.br/jspui/handle/id/961972",
+      "license": {
+        "id": "CC-BY-NC-ND-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-SemDerivações 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-nd/4.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; uso não comercial; sem modificações."
+      },
+      "notes": "Não substitui as publicações do Diário Oficial da União e não inclui a CLT. O registro do Senado indica CC0, mas o próprio arquivo traz CC BY-NC-ND 4.0, a licença adotada aqui.",
+      "files": [
+        {
+          "format": "epub",
+          "url": "https://www2.senado.leg.br/jspui/bitstream/id/961972/2/Vade_mecum_Senado_Federal_4ed_2026.epub",
+          "size_bytes": 6722484,
+          "sha256": "6acaede53b8d11c38eb5d62574b3bbc5f734f6074ce25c3014b01102e85229ff"
+        },
+        {
+          "format": "pdf",
+          "url": "https://www2.senado.leg.br/jspui/bitstream/id/961972/1/Vade_mecum_Senado_Federal_4ed_2026.pdf",
+          "size_bytes": 9599304,
+          "sha256": "70c0d5462e1f1249658ffa53b79da042f8ae48faa535a382afac41625399772c"
+        }
+      ]
+    },
+    {
+      "id": "constituicao-federal",
+      "version": "2026-05",
+      "title": "Constituição da República Federativa do Brasil",
+      "authors": [
+        "Senado Federal, Coordenação de Edições Técnicas"
+      ],
+      "publisher": "Senado Federal",
+      "edition": "Texto compilado até a Emenda Constitucional nº 139/2026",
+      "year": "2026",
+      "language": "pt",
+      "description": "Texto constitucional de 1988 com todas as emendas incorporadas, índice temático e a redação anterior dos dispositivos alterados.",
+      "areas": [
+        "direito"
+      ],
+      "subjects": [
+        "Direito constitucional",
+        "Direitos fundamentais",
+        "Organização do Estado e dos Poderes",
+        "Cidadania"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://www2.senado.leg.br/jspui/handle/id/864911",
+      "license": {
+        "id": "CC-BY-NC-ND-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-SemDerivações 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-nd/4.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; uso não comercial; sem modificações."
+      },
+      "notes": "Não substitui as publicações do Diário Oficial da União.",
+      "files": [
+        {
+          "format": "epub",
+          "url": "https://www2.senado.leg.br/jspui/bitstream/id/864911/4/CF88_EC139_ebook.epub",
+          "size_bytes": 1014290,
+          "sha256": "ce94d7366d244658dac6f1bc942c12f077091e851a6ba22ccd99059176b3149e"
+        },
+        {
+          "format": "pdf",
+          "url": "https://www2.senado.leg.br/jspui/bitstream/id/864911/1/CF88_EC139_livro.pdf",
+          "size_bytes": 2821327,
+          "sha256": "897759deeaf7dd8723fe444c7ed3c591d2591e85a38e68362b9e971491061326"
+        }
+      ]
+    },
+    {
+      "id": "maziero-sistemas-operacionais",
+      "version": "2026-06",
+      "title": "Sistemas Operacionais: Conceitos e Mecanismos",
+      "authors": [
+        "Carlos A. Maziero"
+      ],
+      "publisher": "Editora da UFPR",
+      "edition": "Edição de 2019, arquivo revisado em junho de 2026",
+      "year": "2019",
+      "language": "pt",
+      "description": "Livro universitário completo de sistemas operacionais: tarefas e escalonamento, comunicação e coordenação entre processos, impasses, gerência de memória, entrada e saída, sistemas de arquivos, segurança e virtualização.",
+      "areas": [
+        "computacao"
+      ],
+      "subjects": [
+        "Sistemas operacionais",
+        "Processos e threads",
+        "Gerência de memória",
+        "Sistemas de arquivos",
+        "Virtualização",
+        "Segurança de sistemas"
+      ],
+      "levels": [
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://wiki.inf.ufpr.br/maziero/doku.php?id=socm:start",
+      "license": {
+        "id": "CC-BY-NC-SA-3.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 3.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/3.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://wiki.inf.ufpr.br/maziero/lib/exe/fetch.php?media=socm:socm-livro.pdf",
+          "size_bytes": 8505667,
+          "sha256": "59a34ac87d72442bccbb2ffd9f0282e12edd9d322472c4d19282dd1fe6604839"
+        }
+      ]
+    },
+    {
+      "id": "pro-git",
+      "version": "2026-08",
+      "title": "Pro Git",
+      "authors": [
+        "Scott Chacon",
+        "Ben Straub"
+      ],
+      "publisher": "Apress / comunidade de tradução pt-BR",
+      "edition": "2ª edição, versão 2.1.50 da tradução",
+      "year": "2026",
+      "language": "pt",
+      "description": "Guia completo do Git: primeiros passos, ramificações, servidores, fluxos de trabalho distribuídos, GitHub, ferramentas avançadas e funcionamento interno.",
+      "areas": [
+        "computacao"
+      ],
+      "subjects": [
+        "Git",
+        "Controle de versão",
+        "Fluxos de trabalho colaborativos"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://git-scm.com/book/pt-br/v2",
+      "license": {
+        "id": "CC-BY-NC-SA-3.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 3.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/3.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "epub",
+          "url": "https://github.com/progit/progit2-pt-br/releases/download/2.1.50/progit.epub",
+          "size_bytes": 13190736,
+          "sha256": "0018b9ef019582ba04f925d40cd8b9958ca78787210c5b386ff16f3634ea83eb"
+        },
+        {
+          "format": "pdf",
+          "url": "https://github.com/progit/progit2-pt-br/releases/download/2.1.50/progit.pdf",
+          "size_bytes": 18382677,
+          "sha256": "105994542c233f5928eb5fa98f8629129911839e6276bd2ea9de4dac5a514e8d"
+        }
+      ]
+    },
+    {
+      "id": "manual-administrador-debian",
+      "version": "2022",
+      "title": "O Manual do(a) Administrador(a) Debian",
+      "authors": [
+        "Raphaël Hertzog",
+        "Roland Mas"
+      ],
+      "publisher": "Freexian",
+      "edition": "Edição para o Debian 11 (bullseye)",
+      "year": "2022",
+      "language": "pt",
+      "description": "Administração de sistemas Linux com Debian: instalação, pacotes, configuração, serviços de rede, segurança e virtualização. Boa parte vale para o Ubuntu, que deriva do Debian.",
+      "areas": [
+        "computacao"
+      ],
+      "subjects": [
+        "Linux",
+        "Administração de sistemas",
+        "Redes e servidores",
+        "Segurança de sistemas"
+      ],
+      "levels": [
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://debian-handbook.info/get/",
+      "license": {
+        "id": "CC-BY-SA-3.0 OR GPL-2.0-or-later",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 3.0 ou GNU GPL 2.0 ou posterior",
+        "url": "https://debian-handbook.info/about-the-book/",
+        "attribution": "Cite autores e fonte; derivados sob a mesma licença."
+      },
+      "notes": "Tradução em português parcial, segundo o próprio projeto; edição de 2022.",
+      "files": [
+        {
+          "format": "epub",
+          "url": "https://debian-handbook.info/download/pt-BR/stable/debian-handbook.epub",
+          "size_bytes": 5706983,
+          "sha256": "c6c4f3e32bf32432c14d2aa36db2c6a0bb9a3d788a483193c88c8848f6427e9c"
+        }
+      ]
+    },
+    {
+      "id": "documentacao-python",
+      "version": "3.15",
+      "title": "Documentação do Python 3.15",
+      "authors": [
+        "Python Software Foundation",
+        "Equipe de tradução pt-BR"
+      ],
+      "publisher": "Python Software Foundation",
+      "edition": "Python 3.15, edição contínua",
+      "year": "2026",
+      "language": "pt",
+      "description": "Documentação oficial traduzida: tutorial, referência da linguagem, biblioteca padrão, guias de instalação e uso.",
+      "areas": [
+        "computacao"
+      ],
+      "subjects": [
+        "Python",
+        "Biblioteca padrão",
+        "Programação"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://docs.python.org/pt-br/3/download.html",
+      "license": {
+        "id": "PSF-2.0",
+        "name": "Python Software Foundation License 2.0 (documentação do Python)",
+        "url": "https://docs.python.org/pt-br/3/license.html",
+        "attribution": "Mantenha o aviso de copyright da Python Software Foundation."
+      },
+      "notes": "A PSF reconstrói o arquivo continuamente, então o download confere o formato EPUB, e não um hash fixo.",
+      "files": [
+        {
+          "format": "epub",
+          "url": "https://docs.python.org/pt-br/3/archives/python-3.15-docs.epub",
+          "size_bytes": 12191141,
+          "sha256": null
+        }
+      ]
+    },
+    {
+      "id": "cartilha-seguranca-internet",
+      "version": "2012-06",
+      "title": "Cartilha de Segurança para Internet",
+      "authors": [
+        "CERT.br"
+      ],
+      "publisher": "NIC.br",
+      "edition": "Versão 4.0",
+      "year": "2012",
+      "language": "pt",
+      "description": "Guia geral de segurança na internet: golpes, ataques, códigos maliciosos, spam, privacidade, senhas, uso seguro de redes e dispositivos.",
+      "areas": [
+        "seguranca-digital"
+      ],
+      "subjects": [
+        "Segurança da informação",
+        "Golpes e fraudes",
+        "Privacidade",
+        "Senhas"
+      ],
+      "levels": [
+        "iniciante"
+      ],
+      "source_url": "https://cartilha.cert.br/",
+      "license": {
+        "id": "CC-BY-NC-ND-3.0-BR",
+        "name": "Creative Commons Atribuição-NãoComercial-SemDerivações 3.0 Brasil",
+        "url": "https://creativecommons.org/licenses/by-nc-nd/3.0/br/",
+        "attribution": "Cite autor e fonte; uso não comercial; sem modificações."
+      },
+      "notes": "Versão de 2012: parte do conteúdo técnico envelheceu. Os fascículos abaixo são mais recentes.",
+      "files": [
+        {
+          "format": "epub",
+          "url": "https://cartilha.cert.br/livro/cartilha-seguranca-internet.epub",
+          "size_bytes": 2327436,
+          "sha256": "abc50982b7826a7b007a268fd9496b7c213ca3a4b079dea1bacd97ab71565b07"
+        },
+        {
+          "format": "pdf",
+          "url": "https://cartilha.cert.br/livro/cartilha-seguranca-internet.pdf",
+          "size_bytes": 12607309,
+          "sha256": "49ff9c787b8d81b5c512fd1b81ed84fd7c69ce5b67855fefafb677555b757cab"
+        }
+      ]
+    },
+    {
+      "id": "fasciculo-golpes",
+      "version": "2026-03",
+      "title": "Cartilha de Segurança para Internet: Golpes: Evite Fraudes",
+      "authors": [
+        "CERT.br"
+      ],
+      "publisher": "NIC.br",
+      "edition": "Fascículo ilustrado",
+      "year": "2026",
+      "language": "pt",
+      "description": "Como reconhecer e evitar golpes e fraudes na internet.",
+      "areas": [
+        "seguranca-digital"
+      ],
+      "subjects": [
+        "Golpes e fraudes"
+      ],
+      "levels": [
+        "iniciante"
+      ],
+      "source_url": "https://cartilha.cert.br/fasciculos/",
+      "license": {
+        "id": "CC-BY-NC-ND-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-SemDerivações 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-nd/4.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; uso não comercial; sem modificações."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://cartilha.cert.br/fasciculos/golpes-evite-fraudes/fasciculo-golpes-evite-fraudes.pdf",
+          "size_bytes": 751536,
+          "sha256": "5dbe95a2227b714bc6b42c8548ee9e259a865f7ca911d00c740ac4576931332c"
+        }
+      ]
+    },
+    {
+      "id": "fasciculo-inteligencia-artificial",
+      "version": "2026-08",
+      "title": "Cartilha de Segurança para Internet: Inteligência Artificial",
+      "authors": [
+        "CERT.br"
+      ],
+      "publisher": "NIC.br",
+      "edition": "Fascículo ilustrado",
+      "year": "2026",
+      "language": "pt",
+      "description": "Uso seguro de ferramentas de inteligência artificial e riscos associados.",
+      "areas": [
+        "seguranca-digital"
+      ],
+      "subjects": [
+        "Inteligência artificial",
+        "Privacidade"
+      ],
+      "levels": [
+        "iniciante"
+      ],
+      "source_url": "https://cartilha.cert.br/fasciculos/",
+      "license": {
+        "id": "CC-BY-NC-ND-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-SemDerivações 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-nd/4.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; uso não comercial; sem modificações."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://cartilha.cert.br/fasciculos/ia/fasciculo-ia.pdf",
+          "size_bytes": 622177,
+          "sha256": "0687a9cded714dc58910dd57ced8cc5254d3d38ac88b5e1a0fb631750e2e35c6"
+        }
+      ]
+    },
+    {
+      "id": "fasciculo-autenticacao",
+      "version": "2022-11",
+      "title": "Cartilha de Segurança para Internet: Autenticação",
+      "authors": [
+        "CERT.br"
+      ],
+      "publisher": "NIC.br",
+      "edition": "Fascículo ilustrado",
+      "year": "2022",
+      "language": "pt",
+      "description": "Senhas, verificação em duas etapas e outras formas de autenticação.",
+      "areas": [
+        "seguranca-digital"
+      ],
+      "subjects": [
+        "Senhas",
+        "Autenticação"
+      ],
+      "levels": [
+        "iniciante"
+      ],
+      "source_url": "https://cartilha.cert.br/fasciculos/",
+      "license": {
+        "id": "CC-BY-NC-ND-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-SemDerivações 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-nd/4.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; uso não comercial; sem modificações."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://cartilha.cert.br/fasciculos/autenticacao/fasciculo-autenticacao.pdf",
+          "size_bytes": 615458,
+          "sha256": "f54cc01c8e96e436ee59d2657e6545a6be47b856d605f4f30a565a1c9202371f"
+        }
+      ]
+    },
+    {
+      "id": "fasciculo-codigos-maliciosos",
+      "version": "2023-07",
+      "title": "Cartilha de Segurança para Internet: Códigos Maliciosos",
+      "authors": [
+        "CERT.br"
+      ],
+      "publisher": "NIC.br",
+      "edition": "Fascículo ilustrado",
+      "year": "2023",
+      "language": "pt",
+      "description": "Vírus, ransomware e outros códigos maliciosos: como agem e como se proteger.",
+      "areas": [
+        "seguranca-digital"
+      ],
+      "subjects": [
+        "Códigos maliciosos",
+        "Proteção de dispositivos"
+      ],
+      "levels": [
+        "iniciante"
+      ],
+      "source_url": "https://cartilha.cert.br/fasciculos/",
+      "license": {
+        "id": "CC-BY-NC-ND-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-SemDerivações 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-nd/4.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; uso não comercial; sem modificações."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://cartilha.cert.br/fasciculos/codigos-maliciosos/fasciculo-codigos-maliciosos.pdf",
+          "size_bytes": 1080446,
+          "sha256": "3e4283c461e76892bc504ef7ca5924041ca042fc70c5efcf1507e5149bef431f"
+        }
+      ]
+    },
+    {
+      "id": "fasciculo-backup",
+      "version": "2023-05",
+      "title": "Cartilha de Segurança para Internet: Backup",
+      "authors": [
+        "CERT.br"
+      ],
+      "publisher": "NIC.br",
+      "edition": "Fascículo ilustrado",
+      "year": "2023",
+      "language": "pt",
+      "description": "Como fazer e manter cópias de segurança dos seus dados.",
+      "areas": [
+        "seguranca-digital"
+      ],
+      "subjects": [
+        "Backup",
+        "Proteção de dados"
+      ],
+      "levels": [
+        "iniciante"
+      ],
+      "source_url": "https://cartilha.cert.br/fasciculos/",
+      "license": {
+        "id": "CC-BY-NC-ND-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-SemDerivações 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-nd/4.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; uso não comercial; sem modificações."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://cartilha.cert.br/fasciculos/backup/fasciculo-backup.pdf",
+          "size_bytes": 628688,
+          "sha256": "968130de98c1b098a11fccfca27f67d05eb98580fc9b7c5e1a88efeadb644f3d"
+        }
+      ]
+    },
+    {
+      "id": "guia-alimentar-populacao-brasileira",
+      "version": "2014-12",
+      "title": "Guia Alimentar para a População Brasileira",
+      "authors": [
+        "Ministério da Saúde"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "2ª edição, 1ª reimpressão",
+      "year": "2014",
+      "language": "pt",
+      "description": "Recomendações oficiais sobre alimentação saudável: escolha dos alimentos, combinação em refeições, comer em companhia e obstáculos práticos.",
+      "areas": [
+        "saude"
+      ],
+      "subjects": [
+        "Nutrição",
+        "Alimentação saudável",
+        "Culinária"
+      ],
+      "levels": [
+        "iniciante"
+      ],
+      "source_url": "https://bvsms.saude.gov.br/bvs/publicacoes/guia_alimentar_populacao_brasileira_2ed.pdf",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; uso não comercial; derivados sob a mesma licença."
+      },
+      "notes": "Edição de 2014, ainda a vigente.",
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://bvsms.saude.gov.br/bvs/publicacoes/guia_alimentar_populacao_brasileira_2ed.pdf",
+          "size_bytes": 4399651,
+          "sha256": "c9abefded671cafe914193c04f808df25dfaa315e5e744e477163fe24407f139"
+        }
+      ]
+    },
+    {
+      "id": "villate-eletricidade-magnetismo-circuitos",
+      "version": "2020-02",
+      "title": "Eletricidade, Magnetismo e Circuitos",
+      "authors": [
+        "Jaime E. Villate"
+      ],
+      "publisher": "Faculdade de Engenharia da Universidade do Porto",
+      "edition": "Edição de 2020",
+      "year": "2020",
+      "language": "pt-PT",
+      "description": "Física universitária de eletricidade e magnetismo: campo elétrico, voltagem e corrente, resistência, capacidade, circuitos de corrente contínua, potencial, campo magnético e indução.",
+      "areas": [
+        "ciencias",
+        "engenharia"
+      ],
+      "subjects": [
+        "Eletricidade",
+        "Magnetismo",
+        "Circuitos elétricos",
+        "Eletromagnetismo"
+      ],
+      "levels": [
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://repositorio-aberto.up.pt/handle/10216/126073",
+      "license": {
+        "id": "CC-BY-SA-3.0",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 3.0",
+        "url": "https://creativecommons.org/licenses/by-sa/3.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; derivados sob a mesma licença."
+      },
+      "notes": "Português de Portugal.",
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://repositorio-aberto.up.pt/bitstream/10216/126073/2/383706.pdf",
+          "size_bytes": 6792314,
+          "sha256": "67231199d31165f46355652f98e60fe62476c846509d130211d882e358df3181"
+        }
+      ]
+    },
+    {
+      "id": "villate-dinamica-sistemas-dinamicos",
+      "version": "2020-01",
+      "title": "Dinâmica e Sistemas Dinâmicos",
+      "authors": [
+        "Jaime E. Villate"
+      ],
+      "publisher": "Faculdade de Engenharia da Universidade do Porto",
+      "edition": "Edição de 2020",
+      "year": "2020",
+      "language": "pt-PT",
+      "description": "Mecânica universitária: cinemática, mecânica vetorial, corpos rígidos, trabalho e energia, mecânica lagrangiana, sistemas lineares e não lineares, ciclos limite e caos.",
+      "areas": [
+        "ciencias",
+        "engenharia"
+      ],
+      "subjects": [
+        "Cinemática",
+        "Dinâmica",
+        "Trabalho e energia",
+        "Sistemas dinâmicos"
+      ],
+      "levels": [
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://repositorio-aberto.up.pt/handle/10216/125807",
+      "license": {
+        "id": "CC-BY-SA-3.0",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 3.0",
+        "url": "https://creativecommons.org/licenses/by-sa/3.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; derivados sob a mesma licença."
+      },
+      "notes": "Português de Portugal.",
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://repositorio-aberto.up.pt/bitstream/10216/125807/2/379986.pdf",
+          "size_bytes": 9158287,
+          "sha256": "225f34fd1d0e703e87cfe449f48d5124f8efed8d2538d5b1adbf2c5f0631c782"
+        }
+      ]
+    },
+    {
+      "id": "reamat-pre-calculo",
+      "version": "2022-07",
+      "title": "Pré-cálculo",
+      "authors": [
+        "REAMAT – UFRGS"
+      ],
+      "publisher": "Universidade Federal do Rio Grande do Sul",
+      "edition": "Versão de 18/07/2022",
+      "year": "2022",
+      "language": "pt",
+      "description": "Fundamentos para o cálculo: teoria de conjuntos, conjuntos numéricos, divisibilidade, operações, potenciação, expressões algébricas, polinômios e equações.",
+      "areas": [
+        "matematica"
+      ],
+      "subjects": [
+        "Aritmética",
+        "Álgebra",
+        "Polinômios",
+        "Equações"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario"
+      ],
+      "source_url": "https://www.ufrgs.br/reamat/PreCalculo/",
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.ufrgs.br/reamat/PreCalculo/livro/livro.pdf",
+          "size_bytes": 3365931,
+          "sha256": "5688468b59b34357f41f300b5585956f32fb23b7e77a7aacdd90c5ecf96b9486"
+        }
+      ]
+    },
+    {
+      "id": "reamat-calculo",
+      "version": "2023-10",
+      "title": "Cálculo de Funções de Uma Variável",
+      "authors": [
+        "REAMAT – UFRGS"
+      ],
+      "publisher": "Universidade Federal do Rio Grande do Sul",
+      "edition": "Versão de 03/10/2023 (em construção)",
+      "year": "2023",
+      "language": "pt",
+      "description": "Limites, derivadas e suas aplicações, integração, aplicações da integral, sequências e séries.",
+      "areas": [
+        "matematica"
+      ],
+      "subjects": [
+        "Cálculo diferencial e integral",
+        "Limites",
+        "Derivadas",
+        "Integrais"
+      ],
+      "levels": [
+        "intermediario"
+      ],
+      "source_url": "https://www.ufrgs.br/reamat/Calculo/",
+      "license": {
+        "id": "CC-BY-SA-3.0",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 3.0",
+        "url": "https://creativecommons.org/licenses/by-sa/3.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; derivados sob a mesma licença."
+      },
+      "notes": "Livro em construção (47 páginas): bom roteiro, mas ainda incompleto.",
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.ufrgs.br/reamat/Calculo/livro-cfuv/livro.pdf",
+          "size_bytes": 296478,
+          "sha256": "672adf591acfffc7c203f3a77ff87bc47a14de316dd07968613867017e3d6d26"
+        }
+      ]
+    },
+    {
+      "id": "reamat-algebra-linear",
+      "version": "2020-08",
+      "title": "Álgebra Linear",
+      "authors": [
+        "REAMAT – UFRGS"
+      ],
+      "publisher": "Universidade Federal do Rio Grande do Sul",
+      "edition": "Versão de 19/08/2020",
+      "year": "2020",
+      "language": "pt",
+      "description": "Sistemas lineares e escalonamento, vetores e combinações lineares, transformações lineares, matrizes e inversa, espaços vetoriais, bases, determinantes, autovalores e ortogonalidade.",
+      "areas": [
+        "matematica"
+      ],
+      "subjects": [
+        "Álgebra linear",
+        "Matrizes e determinantes",
+        "Sistemas lineares"
+      ],
+      "levels": [
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://www.ufrgs.br/reamat/AlgebraLinear/",
+      "license": {
+        "id": "CC-BY-SA-3.0",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 3.0",
+        "url": "https://creativecommons.org/licenses/by-sa/3.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.ufrgs.br/reamat/AlgebraLinear/livro/livro.pdf",
+          "size_bytes": 1569679,
+          "sha256": "7a0ab02545e21c671213baa342bcd5ee9bf86091d6a2c331c2be96f3fe53bdd3"
+        }
+      ]
+    },
+    {
+      "id": "reamat-calculo-numerico-python",
+      "version": "2020-08",
+      "title": "Cálculo Numérico: versão em Python",
+      "authors": [
+        "REAMAT – UFRGS"
+      ],
+      "publisher": "Universidade Federal do Rio Grande do Sul",
+      "edition": "Versão de 19/08/2020",
+      "year": "2020",
+      "language": "pt",
+      "description": "Aritmética de máquina, equações não lineares, sistemas lineares e não lineares, interpolação, ajuste de curvas, derivação e integração numéricas, com exemplos em Python.",
+      "areas": [
+        "matematica",
+        "computacao"
+      ],
+      "subjects": [
+        "Cálculo numérico",
+        "Métodos numéricos",
+        "Python"
+      ],
+      "levels": [
+        "avancado"
+      ],
+      "source_url": "https://www.ufrgs.br/reamat/CalculoNumerico/",
+      "license": {
+        "id": "CC-BY-SA-3.0",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 3.0",
+        "url": "https://creativecommons.org/licenses/by-sa/3.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; derivados sob a mesma licença."
+      },
+      "notes": "Pressupõe cálculo, álgebra linear e equações diferenciais.",
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.ufrgs.br/reamat/CalculoNumerico/livro-py/livro-py.pdf",
+          "size_bytes": 1866094,
+          "sha256": "8b5b0644488df9595a377db67b861619da3076cbd2167243ae398ec1b1e0f522"
+        }
+      ]
+    },
+    {
+      "id": "lengua-espanola-ii",
+      "version": "2009",
+      "title": "Lengua Española II",
+      "authors": [
+        "Suzana Vinicia Mancilla Barreda"
+      ],
+      "publisher": "UFMS – Educação a Distância (UAB)",
+      "edition": "Edição de 2009",
+      "year": "2009",
+      "language": "es",
+      "description": "Material didático de espanhol da licenciatura em Letras Português/Espanhol da UFMS: leitura, gramática e uso da língua para estudantes brasileiros.",
+      "areas": [
+        "idiomas"
+      ],
+      "subjects": [
+        "Espanhol"
+      ],
+      "levels": [
+        "intermediario"
+      ],
+      "source_url": "https://educapes.capes.gov.br/handle/capes/600495",
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; derivados sob a mesma licença."
+      },
+      "notes": "Texto principalmente em espanhol; pressupõe o nível básico do idioma.",
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://educapes.capes.gov.br/bitstream/capes/600495/2/LETRAS_-_Lingua_Espanhola_II_CC_BY_SA.PDF",
+          "size_bytes": 10026552,
+          "sha256": "0fb157fd0bdca600f733b43b840014575e7eaa56b804ad8426bf964a083b1919"
+        }
+      ]
+    },
+    {
+      "id": "wikilivros",
+      "version": "2026-10",
+      "title": "Wikilivros",
+      "authors": [
+        "Fundação Wikimedia"
+      ],
+      "publisher": "Fundação Wikimedia",
+      "edition": "Arquivo ZIM do Kiwix (2026-10)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Livros didáticos e manuais livres do Wikilivros em português.",
+      "areas": [
+        "educacao"
+      ],
+      "subjects": [
+        "Livros didáticos",
+        "Manuais"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario"
+      ],
+      "source_url": "https://library.kiwix.org/",
+      "license": {
+        "id": "Wikimedia",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 4.0 (projetos Wikimedia)",
+        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br",
+        "attribution": "Cite os autores (histórico de cada artigo) e a fonte."
+      },
+      "notes": "Abre no leitor Kiwix (Biblioteca de Informação). Atualizado pelo catálogo do Kiwix.",
+      "files": [
+        {
+          "format": "zim",
+          "zim_id": "wikibooks_pt_all_maxi"
+        }
+      ]
+    },
+    {
+      "id": "wikiversidade",
+      "version": "2026-10",
+      "title": "Wikiversidade",
+      "authors": [
+        "Fundação Wikimedia"
+      ],
+      "publisher": "Fundação Wikimedia",
+      "edition": "Arquivo ZIM do Kiwix (2026-10)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Cursos e materiais de aprendizagem em português.",
+      "areas": [
+        "educacao"
+      ],
+      "subjects": [
+        "Cursos"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario"
+      ],
+      "source_url": "https://library.kiwix.org/",
+      "license": {
+        "id": "Wikimedia",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 4.0 (projetos Wikimedia)",
+        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br",
+        "attribution": "Cite os autores (histórico de cada artigo) e a fonte."
+      },
+      "notes": "Abre no leitor Kiwix (Biblioteca de Informação). Atualizado pelo catálogo do Kiwix.",
+      "files": [
+        {
+          "format": "zim",
+          "zim_id": "wikiversity_pt_all_maxi"
+        }
+      ]
+    },
+    {
+      "id": "phet-simulacoes",
+      "version": "2026-08",
+      "title": "Simulações interativas PhET",
+      "authors": [
+        "Universidade do Colorado (PhET)"
+      ],
+      "publisher": "Universidade do Colorado (PhET)",
+      "edition": "Arquivo ZIM do Kiwix (2026-08)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Simulações de física, química, biologia e matemática da Universidade do Colorado, em português.",
+      "areas": [
+        "ciencias",
+        "matematica"
+      ],
+      "subjects": [
+        "Física",
+        "Química",
+        "Biologia",
+        "Matemática"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario"
+      ],
+      "source_url": "https://library.kiwix.org/",
+      "license": {
+        "id": "CC-BY-4.0",
+        "name": "Creative Commons Atribuição 4.0 (simulações PhET)",
+        "url": "https://creativecommons.org/licenses/by/4.0/deed.pt-br",
+        "attribution": "Cite PhET Interactive Simulations, Universidade do Colorado."
+      },
+      "notes": "Abre no leitor Kiwix (Biblioteca de Informação). Atualizado pelo catálogo do Kiwix.",
+      "files": [
+        {
+          "format": "zim",
+          "zim_id": "phet_pt_all"
+        }
+      ]
+    },
+    {
+      "id": "vikidia",
+      "version": "2026-09",
+      "title": "Vikidia",
+      "authors": [
+        "Vikidia"
+      ],
+      "publisher": "Vikidia",
+      "edition": "Arquivo ZIM do Kiwix (2026-09)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Enciclopédia livre para crianças e adolescentes, em português.",
+      "areas": [
+        "educacao"
+      ],
+      "subjects": [
+        "Enciclopédia infantojuvenil"
+      ],
+      "levels": [
+        "iniciante"
+      ],
+      "source_url": "https://library.kiwix.org/",
+      "license": {
+        "id": "CC-BY-SA",
+        "name": "Creative Commons Atribuição-CompartilhaIgual (Vikidia)",
+        "url": "https://pt.vikidia.org/",
+        "attribution": "Cite os autores e a fonte."
+      },
+      "notes": "Abre no leitor Kiwix (Biblioteca de Informação). Atualizado pelo catálogo do Kiwix.",
+      "files": [
+        {
+          "format": "zim",
+          "zim_id": "vikidia_pt_all_maxi"
+        }
+      ]
+    },
+    {
+      "id": "wikipedia-matematica",
+      "version": "2026-10",
+      "title": "Wikipédia: Matemática",
+      "authors": [
+        "Fundação Wikimedia"
+      ],
+      "publisher": "Fundação Wikimedia",
+      "edition": "Arquivo ZIM do Kiwix (2026-10)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Seleção de artigos de matemática da Wikipédia em português.",
+      "areas": [
+        "matematica"
+      ],
+      "subjects": [
+        "Matemática"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://library.kiwix.org/",
+      "license": {
+        "id": "Wikimedia",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 4.0 (projetos Wikimedia)",
+        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br",
+        "attribution": "Cite os autores (histórico de cada artigo) e a fonte."
+      },
+      "notes": "Abre no leitor Kiwix (Biblioteca de Informação). Atualizado pelo catálogo do Kiwix.",
+      "files": [
+        {
+          "format": "zim",
+          "zim_id": "wikipedia_pt_mathematics_maxi"
+        }
+      ]
+    },
+    {
+      "id": "wikipedia-fisica",
+      "version": "2026-10",
+      "title": "Wikipédia: Física",
+      "authors": [
+        "Fundação Wikimedia"
+      ],
+      "publisher": "Fundação Wikimedia",
+      "edition": "Arquivo ZIM do Kiwix (2026-10)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Seleção de artigos de física da Wikipédia em português.",
+      "areas": [
+        "ciencias"
+      ],
+      "subjects": [
+        "Física"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://library.kiwix.org/",
+      "license": {
+        "id": "Wikimedia",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 4.0 (projetos Wikimedia)",
+        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br",
+        "attribution": "Cite os autores (histórico de cada artigo) e a fonte."
+      },
+      "notes": "Abre no leitor Kiwix (Biblioteca de Informação). Atualizado pelo catálogo do Kiwix.",
+      "files": [
+        {
+          "format": "zim",
+          "zim_id": "wikipedia_pt_physics_maxi"
+        }
+      ]
+    },
+    {
+      "id": "wikipedia-quimica",
+      "version": "2026-10",
+      "title": "Wikipédia: Química",
+      "authors": [
+        "Fundação Wikimedia"
+      ],
+      "publisher": "Fundação Wikimedia",
+      "edition": "Arquivo ZIM do Kiwix (2026-10)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Seleção de artigos de química da Wikipédia em português.",
+      "areas": [
+        "ciencias"
+      ],
+      "subjects": [
+        "Química"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://library.kiwix.org/",
+      "license": {
+        "id": "Wikimedia",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 4.0 (projetos Wikimedia)",
+        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br",
+        "attribution": "Cite os autores (histórico de cada artigo) e a fonte."
+      },
+      "notes": "Abre no leitor Kiwix (Biblioteca de Informação). Atualizado pelo catálogo do Kiwix.",
+      "files": [
+        {
+          "format": "zim",
+          "zim_id": "wikipedia_pt_chemistry_maxi"
+        }
+      ]
+    },
+    {
+      "id": "wikipedia-biologia-molecular",
+      "version": "2026-10",
+      "title": "Wikipédia: Biologia Molecular e Celular",
+      "authors": [
+        "Fundação Wikimedia"
+      ],
+      "publisher": "Fundação Wikimedia",
+      "edition": "Arquivo ZIM do Kiwix (2026-10)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Seleção de artigos de biologia molecular e celular.",
+      "areas": [
+        "ciencias"
+      ],
+      "subjects": [
+        "Biologia celular",
+        "Biologia molecular"
+      ],
+      "levels": [
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://library.kiwix.org/",
+      "license": {
+        "id": "Wikimedia",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 4.0 (projetos Wikimedia)",
+        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br",
+        "attribution": "Cite os autores (histórico de cada artigo) e a fonte."
+      },
+      "notes": "Abre no leitor Kiwix (Biblioteca de Informação). Atualizado pelo catálogo do Kiwix.",
+      "files": [
+        {
+          "format": "zim",
+          "zim_id": "wikipedia_pt_molcell_maxi"
+        }
+      ]
+    },
+    {
+      "id": "wikipedia-historia",
+      "version": "2026-10",
+      "title": "Wikipédia: História",
+      "authors": [
+        "Fundação Wikimedia"
+      ],
+      "publisher": "Fundação Wikimedia",
+      "edition": "Arquivo ZIM do Kiwix (2026-10)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Seleção de artigos de história da Wikipédia em português.",
+      "areas": [
+        "historia-geografia"
+      ],
+      "subjects": [
+        "História"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario"
+      ],
+      "source_url": "https://library.kiwix.org/",
+      "license": {
+        "id": "Wikimedia",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 4.0 (projetos Wikimedia)",
+        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br",
+        "attribution": "Cite os autores (histórico de cada artigo) e a fonte."
+      },
+      "notes": "Abre no leitor Kiwix (Biblioteca de Informação). Atualizado pelo catálogo do Kiwix.",
+      "files": [
+        {
+          "format": "zim",
+          "zim_id": "wikipedia_pt_history_maxi"
+        }
+      ]
+    },
+    {
+      "id": "wikipedia-geografia",
+      "version": "2026-10",
+      "title": "Wikipédia: Geografia",
+      "authors": [
+        "Fundação Wikimedia"
+      ],
+      "publisher": "Fundação Wikimedia",
+      "edition": "Arquivo ZIM do Kiwix (2026-10)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Seleção de artigos de geografia da Wikipédia em português.",
+      "areas": [
+        "historia-geografia"
+      ],
+      "subjects": [
+        "Geografia"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario"
+      ],
+      "source_url": "https://library.kiwix.org/",
+      "license": {
+        "id": "Wikimedia",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 4.0 (projetos Wikimedia)",
+        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br",
+        "attribution": "Cite os autores (histórico de cada artigo) e a fonte."
+      },
+      "notes": "Abre no leitor Kiwix (Biblioteca de Informação). Atualizado pelo catálogo do Kiwix.",
+      "files": [
+        {
+          "format": "zim",
+          "zim_id": "wikipedia_pt_geography_maxi"
+        }
+      ]
+    },
+    {
+      "id": "wikipedia-medicina",
+      "version": "2026-10",
+      "title": "Wikipédia: Medicina",
+      "authors": [
+        "Fundação Wikimedia"
+      ],
+      "publisher": "Fundação Wikimedia",
+      "edition": "Arquivo ZIM do Kiwix (2026-10)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Artigos de saúde e medicina da Wikipédia em português.",
+      "areas": [
+        "saude"
+      ],
+      "subjects": [
+        "Medicina",
+        "Saúde"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario"
+      ],
+      "source_url": "https://library.kiwix.org/",
+      "license": {
+        "id": "Wikimedia",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 4.0 (projetos Wikimedia)",
+        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br",
+        "attribution": "Cite os autores (histórico de cada artigo) e a fonte."
+      },
+      "notes": "Abre no leitor Kiwix (Biblioteca de Informação). Atualizado pelo catálogo do Kiwix.",
+      "files": [
+        {
+          "format": "zim",
+          "zim_id": "wikipedia_pt_medicine_maxi"
+        }
+      ]
+    },
+    {
+      "id": "wikcionario",
+      "version": "2026-09",
+      "title": "Wikcionário",
+      "authors": [
+        "Vikidia"
+      ],
+      "publisher": "Vikidia",
+      "edition": "Arquivo ZIM do Kiwix (2026-09)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Dicionário livre em português: definições, etimologia, pronúncia e traduções.",
+      "areas": [
+        "lingua-literatura"
+      ],
+      "subjects": [
+        "Dicionário",
+        "Ortografia",
+        "Etimologia"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://library.kiwix.org/",
+      "license": {
+        "id": "Wikimedia",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 4.0 (projetos Wikimedia)",
+        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br",
+        "attribution": "Cite os autores (histórico de cada artigo) e a fonte."
+      },
+      "notes": "Abre no leitor Kiwix (Biblioteca de Informação). Atualizado pelo catálogo do Kiwix.",
+      "files": [
+        {
+          "format": "zim",
+          "zim_id": "wiktionary_pt_all_nopic"
+        }
+      ]
+    },
+    {
+      "id": "wikisource",
+      "version": "2026-10",
+      "title": "Wikisource",
+      "authors": [
+        "Fundação Wikimedia"
+      ],
+      "publisher": "Fundação Wikimedia",
+      "edition": "Arquivo ZIM do Kiwix (2026-10)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Biblioteca de textos livres em português: literatura e documentos históricos.",
+      "areas": [
+        "lingua-literatura",
+        "historia-geografia"
+      ],
+      "subjects": [
+        "Literatura brasileira",
+        "Literatura portuguesa",
+        "Documentos históricos"
+      ],
+      "levels": [
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://library.kiwix.org/",
+      "license": {
+        "id": "Wikimedia",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 4.0 (projetos Wikimedia)",
+        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br",
+        "attribution": "Cite os autores (histórico de cada artigo) e a fonte."
+      },
+      "notes": "Abre no leitor Kiwix (Biblioteca de Informação). Atualizado pelo catálogo do Kiwix.",
+      "files": [
+        {
+          "format": "zim",
+          "zim_id": "wikisource_pt_all_maxi"
+        }
+      ]
+    },
+    {
+      "id": "gutenberg-portugues",
+      "version": "2026-11",
+      "title": "Biblioteca Projeto Gutenberg",
+      "authors": [
+        "Projeto Gutenberg"
+      ],
+      "publisher": "Projeto Gutenberg",
+      "edition": "Arquivo ZIM do Kiwix (2026-11)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Todos os livros em português do Projeto Gutenberg, em domínio público.",
+      "areas": [
+        "lingua-literatura"
+      ],
+      "subjects": [
+        "Literatura clássica"
+      ],
+      "levels": [
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://library.kiwix.org/",
+      "license": {
+        "id": "Domínio público",
+        "name": "Domínio público (licença Project Gutenberg)",
+        "url": "https://www.gutenberg.org/policy/license.html",
+        "attribution": "Mantenha a menção ao Projeto Gutenberg."
+      },
+      "notes": "Abre no leitor Kiwix (Biblioteca de Informação). Atualizado pelo catálogo do Kiwix.",
+      "files": [
+        {
+          "format": "zim",
+          "zim_id": "gutenberg_pt_all"
+        }
+      ]
+    },
+    {
+      "id": "freecodecamp",
+      "version": "2026-10",
+      "title": "freeCodeCamp",
+      "authors": [
+        "freeCodeCamp"
+      ],
+      "publisher": "freeCodeCamp",
+      "edition": "Arquivo ZIM do Kiwix (2026-10)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Cursos de programação do freeCodeCamp em português.",
+      "areas": [
+        "computacao"
+      ],
+      "subjects": [
+        "Programação",
+        "JavaScript",
+        "Algoritmos"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario"
+      ],
+      "source_url": "https://library.kiwix.org/",
+      "license": {
+        "id": "BSD-3-Clause",
+        "name": "BSD 3-Clause (currículo do freeCodeCamp)",
+        "url": "https://github.com/freeCodeCamp/freeCodeCamp/blob/main/LICENSE.md",
+        "attribution": "Mantenha o aviso de copyright do freeCodeCamp."
+      },
+      "notes": "Abre no leitor Kiwix (Biblioteca de Informação). Atualizado pelo catálogo do Kiwix.",
+      "files": [
+        {
+          "format": "zim",
+          "zim_id": "freecodecamp_pt_all"
+        }
+      ]
+    },
+    {
+      "id": "stackoverflow-portugues",
+      "version": "2026-10",
+      "title": "Stack Overflow em Português",
+      "authors": [
+        "Stack Exchange"
+      ],
+      "publisher": "Stack Exchange",
+      "edition": "Arquivo ZIM do Kiwix (2026-10)",
+      "year": "2026",
+      "language": "mul",
+      "description": "Perguntas e respostas para programadores.",
+      "areas": [
+        "computacao"
+      ],
+      "subjects": [
+        "Programação"
+      ],
+      "levels": [
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://library.kiwix.org/",
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "name": "Creative Commons Atribuição-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br",
+        "attribution": "Cite autor e fonte; derivados sob a mesma licença."
+      },
+      "notes": "Abre no leitor Kiwix (Biblioteca de Informação). Atualizado pelo catálogo do Kiwix.",
+      "files": [
+        {
+          "format": "zim",
+          "zim_id": "pt.stackoverflow.com_mul_all"
+        }
+      ]
+    },
+    {
+      "id": "ifixit-portugues",
+      "version": "2026-03",
+      "title": "iFixit em português",
+      "authors": [
+        "iFixit"
+      ],
+      "publisher": "iFixit",
+      "edition": "Arquivo ZIM do Kiwix (2026-03)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Guias de reparo passo a passo para eletrônicos, eletrodomésticos e veículos.",
+      "areas": [
+        "reparos"
+      ],
+      "subjects": [
+        "Reparo de eletrônicos",
+        "Manutenção"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario"
+      ],
+      "source_url": "https://library.kiwix.org/",
+      "license": {
+        "id": "CC-BY-NC-SA-3.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 3.0 (guias iFixit)",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/3.0/deed.pt-br",
+        "attribution": "Cite o iFixit e os autores dos guias."
+      },
+      "notes": "Abre no leitor Kiwix (Biblioteca de Informação). Atualizado pelo catálogo do Kiwix.",
+      "files": [
+        {
+          "format": "zim",
+          "zim_id": "ifixit_pt_all"
+        }
+      ]
+    }
+  ]
+}

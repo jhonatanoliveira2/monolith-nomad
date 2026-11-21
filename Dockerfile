@@ -18,6 +18,12 @@ RUN apt-get update && apt-get install -y \
       ca-certificates \
       && rm -rf /var/lib/apt/lists/*
 
+# Debian's pci.ids lags new GPUs by months, and si.graphics() names cards
+# through it: an RX 9060 XT (1002:7590) showed as "Device 7590" on the System
+# page. Refresh it at build time. Non-fatal so an offline build still
+# succeeds with the distro's copy; it just names fewer recent cards.
+RUN update-pciids -q || echo "warning: update-pciids failed; keeping the distro pci.ids"
+
 # All deps stage
 FROM base AS deps
 WORKDIR /app
@@ -110,6 +116,9 @@ RUN echo "{\"version\":\"${VERSION}\"}" > /app/version.json
 
 # Copy docs and README for access within the container
 COPY admin/docs /app/docs
+# Library catalog shipped with the image: CollectionManifestService falls back to it when GitHub is
+# unreachable and nothing is cached yet, so an offline first boot still lists the library.
+COPY collections/library.json /app/collections/library.json
 COPY README.md /app/README.md
 
 # Empty Calibre library, seeded into storage/books on Calibre-Web install

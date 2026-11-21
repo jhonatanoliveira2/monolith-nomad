@@ -46,11 +46,21 @@ export default class KbIngestState extends BaseModel {
   static async getOrCreate(filePath: string, collection?: string): Promise<KbIngestState> {
     return this.firstOrCreate(
       { file_path: filePath },
-      { file_path: filePath, state: 'pending_decision', chunks_embedded: 0, collection: collection ?? null, active: true }
+      {
+        file_path: filePath,
+        state: 'pending_decision',
+        chunks_embedded: 0,
+        collection: collection ?? null,
+        active: true,
+      }
     )
   }
 
-  static async markIndexed(filePath: string, chunksEmbedded: number, collection?: string): Promise<void> {
+  static async markIndexed(
+    filePath: string,
+    chunksEmbedded: number,
+    collection?: string
+  ): Promise<void> {
     const row = await this.getOrCreate(filePath, collection)
     row.state = 'indexed'
     row.chunks_embedded = chunksEmbedded

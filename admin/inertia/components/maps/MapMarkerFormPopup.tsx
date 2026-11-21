@@ -6,8 +6,8 @@ import {IconIcons} from '@tabler/icons-react'
 import IconSelectorPopover from './IconSelectorPopover'
 import {useTranslation} from 'react-i18next'
 
-import {PIN_COLORS} from '~/hooks/useMapMarkers'
-import type {MapMarker, PinColorId} from '~/hooks/useMapMarkers'
+import {PIN_COLORS} from '~/hooks/use_map_markers'
+import type {MapMarker, PinColorId} from '~/hooks/use_map_markers'
 
 const MAX_MARKER_NOTES_LENGTH = 500
 

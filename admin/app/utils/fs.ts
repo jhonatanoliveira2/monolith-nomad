@@ -1,12 +1,15 @@
-import { mkdir, open, readdir, readFile, stat, unlink } from 'fs/promises'
-import path, { join } from 'path'
+import { mkdir, open, readdir, readFile, stat, unlink } from 'node:fs/promises'
+import { extname, join } from 'node:path'
 import { FileEntry } from '../../types/files.js'
-import { createReadStream } from 'fs'
+import { createReadStream } from 'node:fs'
 import { LSBlockDevice, NomadDiskInfoRaw } from '../../types/system.js'
 
 export const ZIM_STORAGE_PATH = '/storage/zim'
 export const KIWIX_LIBRARY_XML_PATH = '/storage/zim/kiwix-library.xml'
 export const BOOKS_STORAGE_PATH = '/storage/books'
+// Library PDFs/EPUBs (collections/library.json), named <item-id>_<version>.<ext>. Kept apart from
+// storage/books, which is Calibre-Web's library and is indexed by its own metadata.db.
+export const LIBRARY_STORAGE_PATH = '/storage/library'
 // Shared media root (Jellyfin reads it as /media; File Browser shows it as "media"). Per-type
 // subfolders are pre-created on Jellyfin install — see _runPreinstallActions__Jellyfin.
 export const MEDIA_STORAGE_PATH = '/storage/media'
@@ -190,8 +193,10 @@ export function matchesDevice(fsPath: string, deviceName: string): boolean {
   return false
 }
 
-export function determineFileType(filename: string): 'image' | 'pdf' | 'text' | 'docx' | 'epub' | 'zim' | 'unknown' {
-  const ext = path.extname(filename).toLowerCase()
+export function determineFileType(
+  filename: string
+): 'image' | 'pdf' | 'text' | 'docx' | 'epub' | 'zim' | 'unknown' {
+  const ext = extname(filename).toLowerCase()
   if (['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp'].includes(ext)) {
     return 'image'
   } else if (ext === '.pdf') {

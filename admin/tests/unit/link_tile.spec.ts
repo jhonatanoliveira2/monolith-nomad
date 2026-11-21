@@ -37,7 +37,10 @@ test('an explicit https scheme is preserved rather than downgraded', () => {
 
 test('a path survives normalisation', () => {
   assert.equal(normalizeCustomUrl('192.168.1.50:8080/admin'), 'http://192.168.1.50:8080/admin')
-  assert.equal(normalizeCustomUrl('https://nas.local/ui/dashboard'), 'https://nas.local/ui/dashboard')
+  assert.equal(
+    normalizeCustomUrl('https://nas.local/ui/dashboard'),
+    'https://nas.local/ui/dashboard'
+  )
 })
 
 test('a query string and port are both kept', () => {

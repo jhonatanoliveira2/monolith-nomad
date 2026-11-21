@@ -87,13 +87,17 @@ export function mergeContainerConfigPreservingHostPorts<T extends string | null>
 
   let changed = false
   for (const [containerPort, catalogList] of Object.entries(catalogBindings)) {
-    const livePort = Array.isArray(live[containerPort]) ? live[containerPort]![0]?.HostPort : undefined
+    const livePort = Array.isArray(live[containerPort])
+      ? live[containerPort]![0]?.HostPort
+      : undefined
     if (!livePort) continue
 
     const catalogPort = Array.isArray(catalogList) ? catalogList[0]?.HostPort : undefined
     if (catalogPort === undefined || String(catalogPort) === String(livePort)) continue
 
-    catalogBindings[containerPort] = [{ ...(Array.isArray(catalogList) ? catalogList[0] : {}), HostPort: String(livePort) }]
+    catalogBindings[containerPort] = [
+      { ...(Array.isArray(catalogList) ? catalogList[0] : {}), HostPort: String(livePort) },
+    ]
     changed = true
   }
 

@@ -1,4 +1,3 @@
-// eslint-disable-next-line @unicorn/filename-case
 import { useCallback, useEffect, useState } from 'react'
 
 import api from '~/lib/api'

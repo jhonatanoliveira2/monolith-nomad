@@ -80,7 +80,9 @@ test('buildCitations carries the archive date when one is known', () => {
   ])
   assert.equal(withDate.date, '2026-06')
 
-  const [withoutDate] = buildCitations([chunk({ source: '/zim/wiki.zim', archive_title: 'Wikipedia' })])
+  const [withoutDate] = buildCitations([
+    chunk({ source: '/zim/wiki.zim', archive_title: 'Wikipedia' }),
+  ])
   assert.equal(withoutDate.date, undefined)
 })
 

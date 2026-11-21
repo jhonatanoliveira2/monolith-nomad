@@ -13,10 +13,10 @@ import { Head } from '@inertiajs/react'
 import { ListRemoteZimFilesResponse, RemoteZimFileEntry } from '../../../../types/zim'
 import { formatBytes } from '~/lib/util'
 import StyledButton from '~/components/StyledButton'
-import { useModals } from '~/context/ModalContext'
+import { useModals } from '~/context/modal_context'
 import StyledModal from '~/components/StyledModal'
-import { useNotifications } from '~/context/NotificationContext'
-import useInternetStatus from '~/hooks/useInternetStatus'
+import { useNotifications } from '~/context/notification_context'
+import useInternetStatus from '~/hooks/use_internet_status'
 import Alert from '~/components/Alert'
 import useServiceInstalledStatus from '~/hooks/useServiceInstalledStatus'
 import Input from '~/components/inputs/Input'
@@ -26,18 +26,16 @@ import {
   IconFolder,
   IconFileDownload,
   IconChevronRight,
-  IconPlus,
   IconTrash,
-  IconLibrary,
 } from '@tabler/icons-react'
-import useDebounce from '~/hooks/useDebounce'
+import useDebounce from '~/hooks/use_debounce'
 import CategoryCard from '~/components/CategoryCard'
 import CreatorPacksSection from '~/components/CreatorPacksSection'
 import TierSelectionModal from '~/components/TierSelectionModal'
 import WikipediaSelector from '~/components/WikipediaSelector'
 import StyledSectionHeader from '~/components/StyledSectionHeader'
 import type { CategoryWithStatus, SpecTier } from '../../../../types/collections'
-import useDownloads from '~/hooks/useDownloads'
+import useDownloads from '~/hooks/use_downloads'
 import ActiveDownloads from '~/components/ActiveDownloads'
 import { SERVICE_NAMES } from '../../../../constants/service_names'
 import { ZimFileWithMetadata } from '../../../../types/zim'
@@ -50,7 +48,6 @@ const CUSTOM_LIBRARIES_KEY = 'custom-libraries'
 const CATALOG_LANGUAGES_KEY = 'catalog-languages'
 const ZIM_FILES_KEY = 'zim-files'
 
-type CustomLibrary = { id: number; name: string; base_url: string; is_default: boolean }
 type BrowseResult = {
   directories: { name: string; url: string }[]
   files: { name: string; url: string; size_bytes: number | null }[]
@@ -123,7 +120,7 @@ export default function ZimRemoteExplorer() {
     queryKey: [ZIM_FILES_KEY],
     queryFn: async () => {
       const res = await api.listZimFiles()
-      return res.data.files
+      return res?.data.files ?? []
     },
     refetchOnWindowFocus: false,
   })

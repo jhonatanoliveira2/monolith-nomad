@@ -49,12 +49,12 @@ const BENCHMARK_HMAC_SECRET = '778ba65d0bc0e23119e5ffce4b3716648a7d071f0a47ec3f'
 
 // Re-export default weights for use in service
 const SCORE_WEIGHTS = {
-  ai_tokens_per_second: 0.30,
+  ai_tokens_per_second: 0.3,
   cpu: 0.25,
   memory: 0.15,
-  ai_ttft: 0.10,
-  disk_read: 0.10,
-  disk_write: 0.10,
+  ai_ttft: 0.1,
+  disk_read: 0.1,
+  disk_write: 0.1,
 }
 
 // The benchmark_version this client emits. Server dispatches on the major:
@@ -128,7 +128,6 @@ if (Math.abs(WEIGHT_SUM_V2 - 1) > 1e-9) {
 const SYSBENCH_IMAGE =
   'ghcr.io/crosstalk-solutions/nomad-sysbench@sha256:1f08e527f5d440135de9bd49006a2c13342cb1e483c59a53774e2db35e8e13f0'
 const SYSBENCH_DIGEST = 'sha256:1f08e527f5d440135de9bd49006a2c13342cb1e483c59a53774e2db35e8e13f0'
-
 
 const SYSBENCH_CONTAINER_NAME = 'nomad_benchmark_sysbench'
 
@@ -297,7 +296,10 @@ export class BenchmarkService {
   /**
    * Submit benchmark results to central repository
    */
-  async submitToRepository(benchmarkId?: string, anonymous?: boolean): Promise<RepositorySubmitResponse> {
+  async submitToRepository(
+    benchmarkId?: string,
+    anonymous?: boolean
+  ): Promise<RepositorySubmitResponse> {
     // The public leaderboard is an upstream service: off unless configured (constants/project.ts).
     if (!BENCHMARK_LEADERBOARD_URL) {
       throw new Error('Sharing to a public leaderboard is not configured on this install')
@@ -312,11 +314,15 @@ export class BenchmarkService {
 
     // Only allow full benchmarks with AI data to be submitted to repository
     if (result.benchmark_type !== 'full') {
-      throw new Error('Only full benchmarks can be shared with the community. Run a Full Benchmark to share your results.')
+      throw new Error(
+        'Only full benchmarks can be shared with the community. Run a Full Benchmark to share your results.'
+      )
     }
 
     if (!result.ai_tokens_per_second || result.ai_tokens_per_second <= 0) {
-      throw new Error('Benchmark must include AI performance data. Ensure AI Assistant is installed and run a Full Benchmark.')
+      throw new Error(
+        'Benchmark must include AI performance data. Ensure AI Assistant is installed and run a Full Benchmark.'
+      )
     }
 
     if (result.submitted_to_repository) {
@@ -363,9 +369,7 @@ export class BenchmarkService {
       // Generate HMAC signature for submission verification
       const timestamp = Date.now().toString()
       const payload = timestamp + JSON.stringify(submission)
-      const signature = createHmac('sha256', BENCHMARK_HMAC_SECRET)
-        .update(payload)
-        .digest('hex')
+      const signature = createHmac('sha256', BENCHMARK_HMAC_SECRET).update(payload).digest('hex')
 
       const response = await axios.post(`${BENCHMARK_LEADERBOARD_URL}/api/v1/submit`, submission, {
         timeout: 30000,
@@ -389,7 +393,7 @@ export class BenchmarkService {
       const detail = error.response?.data?.error || error.message || 'Unknown error'
       const statusCode = error.response?.status
       logger.error(`Failed to submit benchmark to repository: ${detail} (Status: ${statusCode})`)
-      
+
       // Create an error with the status code and raw detail attached for proper
       // handling upstream (the controller surfaces `detail` as the user-facing reason).
       const err: any = new Error(`Failed to submit benchmark: ${detail}`)
@@ -422,24 +426,38 @@ export class BenchmarkService {
       ['disk write', result.disk_write_mb_per_sec],
     ]
     for (const [label, value] of requiredRaws) {
-      if (value == null || !(value > 0)) {
-        throw new Error(`This benchmark is missing the ${label} raw measurement needed for the v2 leaderboard. ${reRun}`)
+      if (value === null || value === undefined || !(value > 0)) {
+        throw new Error(
+          `This benchmark is missing the ${label} raw measurement needed for the v2 leaderboard. ${reRun}`
+        )
       }
     }
 
-    if (result.ai_time_to_first_token == null || !(result.ai_time_to_first_token > 0)) {
+    if (
+      result.ai_time_to_first_token === null ||
+      result.ai_time_to_first_token === undefined ||
+      !(result.ai_time_to_first_token > 0)
+    ) {
       throw new Error(`This benchmark is missing AI time-to-first-token data. ${reRun}`)
     }
     if (
-      result.cpu_benchmark_threads == null ||
-      result.memory_threads == null ||
-      result.cpu_total_events == null ||
-      result.cpu_total_time == null
+      result.cpu_benchmark_threads === null ||
+      result.cpu_benchmark_threads === undefined ||
+      result.memory_threads === null ||
+      result.memory_threads === undefined ||
+      result.cpu_total_events === null ||
+      result.cpu_total_events === undefined ||
+      result.cpu_total_time === null ||
+      result.cpu_total_time === undefined
     ) {
-      throw new Error(`This benchmark is missing CPU test parameters needed for the v2 leaderboard. ${reRun}`)
+      throw new Error(
+        `This benchmark is missing CPU test parameters needed for the v2 leaderboard. ${reRun}`
+      )
     }
     if (!result.sysbench_digest || !result.ollama_version) {
-      throw new Error(`This benchmark is missing harness provenance (sysbench/Ollama version). ${reRun}`)
+      throw new Error(
+        `This benchmark is missing harness provenance (sysbench/Ollama version). ${reRun}`
+      )
     }
 
     const submission: RepositorySubmissionV2 = {
@@ -470,7 +488,8 @@ export class BenchmarkService {
     // Optional environment metadata — only send fields we actually have.
     if (result.run_environment) submission.run_environment = result.run_environment
     if (result.storage_path_type) submission.storage_path_type = result.storage_path_type
-    if (result.gpu_compute_detected != null) submission.gpu_compute_detected = result.gpu_compute_detected
+    if (result.gpu_compute_detected !== null && result.gpu_compute_detected !== undefined)
+      submission.gpu_compute_detected = result.gpu_compute_detected
 
     // Platform metadata. Optional rather than required so results recorded
     // before this shipped remain submittable.
@@ -532,7 +551,10 @@ export class BenchmarkService {
           diskType = 'nvme'
         } else if (primaryDisk.type?.toLowerCase().includes('ssd')) {
           diskType = 'ssd'
-        } else if (primaryDisk.type?.toLowerCase().includes('hdd') || primaryDisk.interfaceType === 'SATA') {
+        } else if (
+          primaryDisk.type?.toLowerCase().includes('hdd') ||
+          primaryDisk.interfaceType === 'SATA'
+        ) {
           // SATA could be SSD or HDD, check if it's rotational
           diskType = 'hdd'
         }
@@ -546,13 +568,20 @@ export class BenchmarkService {
           const vendor = g.vendor?.toLowerCase() || ''
           const model = g.model?.toLowerCase() || ''
           // NVIDIA GPUs are always discrete
-          if (vendor.includes('nvidia') || model.includes('geforce') || model.includes('rtx') || model.includes('quadro')) {
+          if (
+            vendor.includes('nvidia') ||
+            model.includes('geforce') ||
+            model.includes('rtx') ||
+            model.includes('quadro')
+          ) {
             return true
           }
           // AMD discrete GPUs (Radeon, not integrated APU graphics)
-          if ((vendor.includes('amd') || vendor.includes('ati')) &&
-              (model.includes('radeon') || model.includes('rx ') || model.includes('vega')) &&
-              !model.includes('graphics')) {
+          if (
+            (vendor.includes('amd') || vendor.includes('ati')) &&
+            (model.includes('radeon') || model.includes('rx ') || model.includes('vega')) &&
+            !model.includes('graphics')
+          ) {
             return true
           }
           // Any GPU with dedicated VRAM > 512MB is likely discrete
@@ -588,18 +617,24 @@ export class BenchmarkService {
           const dockerInfo = await this.dockerService.docker.info()
           const runtimes = dockerInfo.Runtimes || {}
           if ('nvidia' in runtimes) {
-            logger.info('[BenchmarkService] NVIDIA container runtime detected, querying GPU model via nvidia-smi')
+            logger.info(
+              '[BenchmarkService] NVIDIA container runtime detected, querying GPU model via nvidia-smi'
+            )
 
-            const systemService = new (await import('./system_service.js')).SystemService(this.dockerService)
+            const systemService = new SystemService(this.dockerService)
             const nvidiaInfo = await systemService.getNvidiaSmiInfo()
             if (Array.isArray(nvidiaInfo) && nvidiaInfo.length > 0) {
               gpuModel = nvidiaInfo[0].model
             } else {
-              logger.warn(`[BenchmarkService] NVIDIA runtime detected but failed to get GPU info: ${typeof nvidiaInfo === 'string' ? nvidiaInfo : JSON.stringify(nvidiaInfo)}`)
+              logger.warn(
+                `[BenchmarkService] NVIDIA runtime detected but failed to get GPU info: ${typeof nvidiaInfo === 'string' ? nvidiaInfo : JSON.stringify(nvidiaInfo)}`
+              )
             }
           }
         } catch (dockerError: any) {
-          logger.warn(`[BenchmarkService] Could not query Docker info for GPU detection: ${dockerError.message}`)
+          logger.warn(
+            `[BenchmarkService] Could not query Docker info for GPU detection: ${dockerError.message}`
+          )
         }
       }
 
@@ -628,7 +663,7 @@ export class BenchmarkService {
       // probe added in PR #804, so reuse that plumbing rather than duplicating it here.
       if (!gpuModel) {
         try {
-          const systemService = new (await import('./system_service.js')).SystemService(this.dockerService)
+          const systemService = new SystemService(this.dockerService)
           const sysInfo = await systemService.getSystemInfo()
           const sysGpuModel = sysInfo?.graphics?.controllers?.[0]?.model
           // Same si.graphics() source as above, so it can carry the same
@@ -705,7 +740,10 @@ export class BenchmarkService {
       if (includeAI && (type === 'full' || type === 'ai')) {
         try {
           aiScores = await this._runAIBenchmark()
-          if (aiScores.ai_tokens_per_second !== undefined && aiScores.ai_tokens_per_second !== null) {
+          if (
+            aiScores.ai_tokens_per_second !== undefined &&
+            aiScores.ai_tokens_per_second !== null
+          ) {
             this._emitPartialResult({
               status: 'running_ai',
               label: 'AI',
@@ -716,7 +754,9 @@ export class BenchmarkService {
         } catch (error: any) {
           // For AI-only benchmarks, failing is fatal - don't save useless results with all zeros
           if (type === 'ai') {
-            throw new Error(`AI benchmark failed: ${error.message}. Make sure AI Assistant is installed and running.`)
+            throw new Error(
+              `AI benchmark failed: ${error.message}. Make sure AI Assistant is installed and running.`
+            )
           }
           // For full benchmarks, AI is optional - continue without it
           logger.warn(`AI benchmark skipped: ${error.message}`)
@@ -865,12 +905,24 @@ export class BenchmarkService {
     // Legacy v1 sub-scores (0-1), normalized against the v1 references. cpu_score
     // uses the multi-thread pass to match historical (4-thread) behaviour closely.
     const scores: SystemScores = {
-      cpu_score: this._normalizeScore(cpuMulti.events_per_second, REFERENCE_SCORES.cpu_events_per_second),
-      memory_score: this._normalizeScore(memoryResult.operations_per_second, REFERENCE_SCORES.memory_ops_per_second),
-      disk_read_score: this._normalizeScore(diskReadResult.read_mb_per_sec, REFERENCE_SCORES.disk_read_mb_per_sec),
-      disk_write_score: this._normalizeScore(diskWriteResult.write_mb_per_sec, REFERENCE_SCORES.disk_write_mb_per_sec),
+      cpu_score: this._normalizeScore(
+        cpuMulti.events_per_second,
+        REFERENCE_SCORES.cpu_events_per_second
+      ),
+      memory_score: this._normalizeScore(
+        memoryResult.operations_per_second,
+        REFERENCE_SCORES.memory_ops_per_second
+      ),
+      disk_read_score: this._normalizeScore(
+        diskReadResult.read_mb_per_sec,
+        REFERENCE_SCORES.disk_read_mb_per_sec
+      ),
+      disk_write_score: this._normalizeScore(
+        diskWriteResult.write_mb_per_sec,
+        REFERENCE_SCORES.disk_write_mb_per_sec
+      ),
     }
-    
+
     // v2 raw channels — the payload of record for the leaderboard.
     const raws: SystemBenchmarkRawsV2 = {
       cpu_events_single: cpuSingle.events_per_second,
@@ -930,12 +982,19 @@ export class BenchmarkService {
         .filter((character) => character.charCodeAt(0) > 8)
         .join('')
         .trim()
-      if (!cleaned || cleaned.toLowerCase().includes('error') || cleaned.toLowerCase().includes('not found')) {
+      if (
+        !cleaned ||
+        cleaned.toLowerCase().includes('error') ||
+        cleaned.toLowerCase().includes('not found')
+      ) {
         return null
       }
 
       // First GPU only: "<util>, <used>, <total>"
-      const parts = cleaned.split('\n')[0].split(',').map((s) => s.trim())
+      const parts = cleaned
+        .split('\n')[0]
+        .split(',')
+        .map((s) => s.trim())
       if (parts.length < 3) return null
       const util = Number.parseInt(parts[0], 10)
       const used = Number.parseInt(parts[1], 10)
@@ -961,7 +1020,9 @@ export class BenchmarkService {
 
       const ollamaAPIURL = await this.dockerService.getServiceURL(SERVICE_NAMES.OLLAMA)
       if (!ollamaAPIURL) {
-        throw new Error('AI Assistant service location could not be determined. Ensure AI Assistant is installed and running.')
+        throw new Error(
+          'AI Assistant service location could not be determined. Ensure AI Assistant is installed and running.'
+        )
       }
 
       // Check if Ollama is available
@@ -969,11 +1030,15 @@ export class BenchmarkService {
         await axios.get(`${ollamaAPIURL}/api/tags`, { timeout: 5000 })
       } catch (error: any) {
         const errorCode = error.code || error.response?.status || 'unknown'
-        throw new Error(`Ollama is not running or not accessible (${errorCode}). Ensure AI Assistant is installed and running.`)
+        throw new Error(
+          `Ollama is not running or not accessible (${errorCode}). Ensure AI Assistant is installed and running.`
+        )
       }
 
       // Record the Ollama version for forensics (null-tolerant — never fail the run on this)
-      const versionResp = await axios.get(`${ollamaAPIURL}/api/version`, { timeout: 5000 }).catch(() => null)
+      const versionResp = await axios
+        .get(`${ollamaAPIURL}/api/version`, { timeout: 5000 })
+        .catch(() => null)
       const ollamaVersion: string | null = versionResp?.data?.version ?? null
 
       // GPU-util overlay (NVIDIA only): probe once; if a GPU answers, poll for the
@@ -1000,7 +1065,8 @@ export class BenchmarkService {
       }
 
       // Check if the benchmark model is available, pull if not
-      const ollamaService = new (await import('./ollama_service.js')).OllamaService()
+      const { OllamaService } = await import('./ollama_service.js')
+      const ollamaService = new OllamaService()
       const modelResponse = await ollamaService.downloadModel(AI_BENCHMARK_MODEL)
       if (!modelResponse.success) {
         throw new Error(`Model does not exist and failed to download: ${modelResponse.message}`)
@@ -1145,7 +1211,7 @@ export class BenchmarkService {
     // Model not cached → a pull is coming. Require headroom on the root FS.
     let freeBytes: number | null = null
     try {
-      const systemService = new (await import('./system_service.js')).SystemService(this.dockerService)
+      const systemService = new SystemService(this.dockerService)
       freeBytes = await getFreeBytes(systemService)
     } catch {
       return // couldn't measure free space — don't block on uncertainty
@@ -1178,7 +1244,9 @@ export class BenchmarkService {
 
       if (loaded.length === 0) return
 
-      logger.info(`[BenchmarkService] Evicting ${loaded.length} resident model(s) before AI benchmark: ${loaded.join(', ')}`)
+      logger.info(
+        `[BenchmarkService] Evicting ${loaded.length} resident model(s) before AI benchmark: ${loaded.join(', ')}`
+      )
       for (const model of loaded) {
         // keep_alive:0 tells Ollama to unload immediately (no prompt needed).
         await axios
@@ -1186,7 +1254,9 @@ export class BenchmarkService {
           .catch((e) => logger.warn(`[BenchmarkService] Failed to unload ${model}: ${e.message}`))
       }
     } catch (error: any) {
-      logger.warn(`[BenchmarkService] Could not enumerate/unload resident models (continuing): ${error.message}`)
+      logger.warn(
+        `[BenchmarkService] Could not enumerate/unload resident models (continuing): ${error.message}`
+      )
     }
   }
 
@@ -1392,9 +1462,13 @@ export class BenchmarkService {
       const repoDigest = (info?.RepoDigests ?? []).find((d: string) => d.includes('@sha256:'))
       const digest = repoDigest?.split('@')[1]
       if (digest) return digest
-      logger.warn('[BenchmarkService] No RepoDigest on the sysbench image; reporting the pinned constant.')
+      logger.warn(
+        '[BenchmarkService] No RepoDigest on the sysbench image; reporting the pinned constant.'
+      )
     } catch (error: any) {
-      logger.warn(`[BenchmarkService] Could not inspect the sysbench image (${error.message}); reporting the pinned constant.`)
+      logger.warn(
+        `[BenchmarkService] Could not inspect the sysbench image (${error.message}); reporting the pinned constant.`
+      )
     }
     return SYSBENCH_DIGEST
   }
@@ -1420,20 +1494,24 @@ export class BenchmarkService {
     const eventsMatch = output.match(/events per second:\s*([\d.]+)/i)
     const totalTimeMatch = output.match(/total time:\s*([\d.]+)s/i)
     const totalEventsMatch = output.match(/total number of events:\s*(\d+)/i)
-    logger.debug(`[BenchmarkService] CPU output parsing (${threads}T) - events/s: ${eventsMatch?.[1]}, total_time: ${totalTimeMatch?.[1]}, total_events: ${totalEventsMatch?.[1]}`)
+    logger.debug(
+      `[BenchmarkService] CPU output parsing (${threads}T) - events/s: ${eventsMatch?.[1]}, total_time: ${totalTimeMatch?.[1]}, total_events: ${totalEventsMatch?.[1]}`
+    )
 
     // Scored primary metric: fail loudly instead of silently scoring zero on a parse miss
-    const eventsPerSecond = eventsMatch ? parseFloat(eventsMatch[1]) : Number.NaN
+    const eventsPerSecond = eventsMatch ? Number.parseFloat(eventsMatch[1]) : Number.NaN
     if (!eventsMatch || !Number.isFinite(eventsPerSecond) || eventsPerSecond <= 0) {
-      throw new Error('sysbench CPU benchmark produced no parseable events/sec — aborting (output may have changed or the test failed)')
+      throw new Error(
+        'sysbench CPU benchmark produced no parseable events/sec — aborting (output may have changed or the test failed)'
+      )
     }
 
-    const totalTime = totalTimeMatch ? parseFloat(totalTimeMatch[1]) : 30
+    const totalTime = totalTimeMatch ? Number.parseFloat(totalTimeMatch[1]) : 30
     // total_events feeds the leaderboard's W6 cross-check (events/sec must equal
     // total_events/total_time within 2%). If the count line ever fails to parse,
     // derive it from the rate so we submit a self-consistent payload rather than
     // a zero that would be rejected as "internally inconsistent".
-    const parsedTotalEvents = totalEventsMatch ? parseInt(totalEventsMatch[1]) : Number.NaN
+    const parsedTotalEvents = totalEventsMatch ? Number.parseInt(totalEventsMatch[1]) : Number.NaN
     const totalEvents =
       Number.isFinite(parsedTotalEvents) && parsedTotalEvents > 0
         ? parsedTotalEvents
@@ -1465,15 +1543,15 @@ export class BenchmarkService {
     const timeMatch = output.match(/total time:\s*([\d.]+)s/i)
 
     // Scored primary metric: fail loudly instead of silently scoring zero on a parse miss
-    const opsPerSecond = opsMatch ? parseFloat(opsMatch[1]) : Number.NaN
+    const opsPerSecond = opsMatch ? Number.parseFloat(opsMatch[1]) : Number.NaN
     if (!opsMatch || !Number.isFinite(opsPerSecond) || opsPerSecond <= 0) {
       throw new Error('sysbench memory benchmark produced no parseable ops/sec — aborting')
     }
 
     return {
       operations_per_second: opsPerSecond,
-      transfer_rate_mb_per_sec: transferMatch ? parseFloat(transferMatch[1]) : 0,
-      total_time: timeMatch ? parseFloat(timeMatch[1]) : 0,
+      transfer_rate_mb_per_sec: transferMatch ? Number.parseFloat(transferMatch[1]) : 0,
+      total_time: timeMatch ? Number.parseFloat(timeMatch[1]) : 0,
     }
   }
 
@@ -1498,16 +1576,18 @@ export class BenchmarkService {
     const readMatch = output.match(/read,\s*MiB\/s:\s*([\d.]+)/i)
     const readsPerSecMatch = output.match(/reads\/s:\s*([\d.]+)/i)
 
-    logger.debug(`[BenchmarkService] Disk read output parsing - read: ${readMatch?.[1]}, reads/s: ${readsPerSecMatch?.[1]}`)
+    logger.debug(
+      `[BenchmarkService] Disk read output parsing - read: ${readMatch?.[1]}, reads/s: ${readsPerSecMatch?.[1]}`
+    )
 
     // Scored primary metric: fail loudly instead of silently scoring zero on a parse miss
-    const readMbPerSec = readMatch ? parseFloat(readMatch[1]) : Number.NaN
+    const readMbPerSec = readMatch ? Number.parseFloat(readMatch[1]) : Number.NaN
     if (!readMatch || !Number.isFinite(readMbPerSec) || readMbPerSec <= 0) {
       throw new Error('sysbench disk-read benchmark produced no parseable MiB/s — aborting')
     }
 
     return {
-      reads_per_second: readsPerSecMatch ? parseFloat(readsPerSecMatch[1]) : 0,
+      reads_per_second: readsPerSecMatch ? Number.parseFloat(readsPerSecMatch[1]) : 0,
       writes_per_second: 0,
       read_mb_per_sec: readMbPerSec,
       write_mb_per_sec: 0,
@@ -1534,17 +1614,19 @@ export class BenchmarkService {
     const writeMatch = output.match(/written,\s*MiB\/s:\s*([\d.]+)/i)
     const writesPerSecMatch = output.match(/writes\/s:\s*([\d.]+)/i)
 
-    logger.debug(`[BenchmarkService] Disk write output parsing - written: ${writeMatch?.[1]}, writes/s: ${writesPerSecMatch?.[1]}`)
+    logger.debug(
+      `[BenchmarkService] Disk write output parsing - written: ${writeMatch?.[1]}, writes/s: ${writesPerSecMatch?.[1]}`
+    )
 
     // Scored primary metric: fail loudly instead of silently scoring zero on a parse miss
-    const writeMbPerSec = writeMatch ? parseFloat(writeMatch[1]) : Number.NaN
+    const writeMbPerSec = writeMatch ? Number.parseFloat(writeMatch[1]) : Number.NaN
     if (!writeMatch || !Number.isFinite(writeMbPerSec) || writeMbPerSec <= 0) {
       throw new Error('sysbench disk-write benchmark produced no parseable MiB/s — aborting')
     }
 
     return {
       reads_per_second: 0,
-      writes_per_second: writesPerSecMatch ? parseFloat(writesPerSecMatch[1]) : 0,
+      writes_per_second: writesPerSecMatch ? Number.parseFloat(writesPerSecMatch[1]) : 0,
       read_mb_per_sec: 0,
       write_mb_per_sec: writeMbPerSec,
       total_time: 30,
@@ -1573,7 +1655,7 @@ export class BenchmarkService {
 
       // Wait for completion
       await container.wait()
-      
+
       // Get logs after container has finished
       const logs = await container.logs({
         stdout: true,
@@ -1581,7 +1663,10 @@ export class BenchmarkService {
       })
 
       // Parse logs (Docker logs include header bytes)
-      const output = logs.toString('utf8')
+      const output = logs
+        .toString('utf8')
+
+        // eslint-disable-next-line no-control-regex -- strips the control bytes Docker log headers carry
         .replace(/[\x00-\x08]/g, '') // Remove control characters
         .trim()
 
@@ -1615,7 +1700,7 @@ export class BenchmarkService {
    * accumulated stdout so the caller's final-report regexes (the SCORED numbers)
    * parse exactly as before. onLine parsing must never throw.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   // @ts-ignore TS6133: Reserved for future live sysbench telemetry mode.
   private async _runSysbenchCommandStreaming(
     cmd: string[],
@@ -1679,6 +1764,8 @@ export class BenchmarkService {
       })
       const cleaned = logs
         .toString('utf8')
+
+        // eslint-disable-next-line no-control-regex -- strips the control bytes Docker log headers carry
         .replace(/[\x00-\x08]/g, '') // Remove control characters
         .trim()
 

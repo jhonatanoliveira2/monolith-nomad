@@ -7,13 +7,19 @@ import app from '@adonisjs/core/services/app'
 import { randomBytes } from 'node:crypto'
 import { sanitizeFilename } from '../utils/fs.js'
 import { basename } from 'node:path'
-import { deleteFileSchema, embedFileSchema, estimateBatchSchema, fileSourceSchema, getJobStatusSchema } from '#validators/rag'
+import {
+  deleteFileSchema,
+  embedFileSchema,
+  estimateBatchSchema,
+  fileSourceSchema,
+  getJobStatusSchema,
+} from '#validators/rag'
 import logger from '@adonisjs/core/services/logger'
 import { sanitizeCollectionName } from '../../constants/kb_collections.js'
 
 @inject()
 export default class RagController {
-  constructor(private ragService: RagService) { }
+  constructor(private ragService: RagService) {}
 
   public async upload({ request, response }: HttpContext) {
     const uploadedFile = request.file('file')

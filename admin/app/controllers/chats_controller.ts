@@ -9,14 +9,19 @@ import logger from '@adonisjs/core/services/logger'
 
 @inject()
 export default class ChatsController {
-  constructor(private chatService: ChatService, private systemService: SystemService) {}
+  constructor(
+    private chatService: ChatService,
+    private systemService: SystemService
+  ) {}
 
   async inertia({ inertia, response }: HttpContext) {
-    const aiAssistantInstalled = await this.systemService.checkServiceInstalled(SERVICE_NAMES.OLLAMA)
+    const aiAssistantInstalled = await this.systemService.checkServiceInstalled(
+      SERVICE_NAMES.OLLAMA
+    )
     if (!aiAssistantInstalled) {
       return response.status(404).json({ error: 'AI Assistant service not installed' })
     }
-    
+
     const chatSuggestionsEnabled = await KVStore.getValue('chat.suggestionsEnabled')
     return inertia.render('chat', {
       settings: {
@@ -30,7 +35,7 @@ export default class ChatsController {
   }
 
   async show({ params, response }: HttpContext) {
-    const sessionId = parseInt(params.id)
+    const sessionId = Number.parseInt(params.id)
     const session = await this.chatService.getSession(sessionId)
 
     if (!session) {
@@ -67,7 +72,7 @@ export default class ChatsController {
 
   async update({ params, request, response }: HttpContext) {
     try {
-      const sessionId = parseInt(params.id)
+      const sessionId = Number.parseInt(params.id)
       const data = await request.validateUsing(updateSessionSchema)
       const session = await this.chatService.updateSession(sessionId, data)
       return session
@@ -81,7 +86,7 @@ export default class ChatsController {
 
   async destroy({ params, response }: HttpContext) {
     try {
-      const sessionId = parseInt(params.id)
+      const sessionId = Number.parseInt(params.id)
       await this.chatService.deleteSession(sessionId)
       return response.status(204)
     } catch (error) {
@@ -94,7 +99,7 @@ export default class ChatsController {
 
   async addMessage({ params, request, response }: HttpContext) {
     try {
-      const sessionId = parseInt(params.id)
+      const sessionId = Number.parseInt(params.id)
       const data = await request.validateUsing(addMessageSchema)
       const message = await this.chatService.addMessage(sessionId, data.role, data.content)
       return response.status(201).json(message)

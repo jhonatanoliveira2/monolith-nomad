@@ -85,3 +85,43 @@ test('isWikipediaSelectorFile matches selector options across release dates only
   assert.equal(isWikipediaSelectorFile('wikipedia_en_simple_all_nopic_2026-01.zim', options), false)
   assert.equal(isWikipediaSelectorFile('wikipedia_en_all_maxi_2026-05.zim', []), false)
 })
+
+test('findReplacedWikipediaFiles cleans up older releases of a Portuguese Wikipedia too', () => {
+  // The selector now offers wikipedia_pt_* (Brazilian catalog). The old `wikipedia_en_` prefix check
+  // left every superseded pt release on disk forever.
+  assert.deepEqual(
+    findReplacedWikipediaFiles('wikipedia_pt_all_nopic_2026-11.zim', [
+      'wikipedia_pt_all_nopic_2026-05.zim',
+      'wikipedia_pt_all_nopic_2026-11.zim',
+      'wikipedia_pt_medicine_maxi_2026-10.zim',
+      'wikipedia_en_all_nopic_2026-05.zim',
+    ]),
+    ['wikipedia_pt_all_nopic_2026-05.zim']
+  )
+})
+
+test('isWikipediaSelectorFile recognises Portuguese selector options and not pt themed corpora', async () => {
+  const { isWikipediaSelectorFile } = await import('../../app/utils/zim_filename.js')
+  const options = ['https://download.kiwix.org/zim/wikipedia/wikipedia_pt_top_mini_2026-10.zim']
+  assert.equal(isWikipediaSelectorFile('wikipedia_pt_top_mini_2027-01.zim', options), true)
+  assert.equal(isWikipediaSelectorFile('wikipedia_pt_medicine_maxi_2026-10.zim', options), false)
+})
+
+test('isWikipediaZimUrl matches Wikipedia ZIMs in any language and nothing else', async () => {
+  const { isWikipediaZimUrl } = await import('../../app/utils/zim_filename.js')
+  for (const u of [
+    'https://download.kiwix.org/zim/wikipedia/wikipedia_en_all_nopic_2026-06.zim',
+    'https://download.kiwix.org/zim/wikipedia/wikipedia_pt_top_mini_2026-10.zim',
+    'https://lb.download.kiwix.org/zim/wikipedia/wikipedia_pt_all_maxi_2026-05.zim',
+  ]) {
+    assert.equal(isWikipediaZimUrl(u), true, u)
+  }
+  for (const u of [
+    'https://download.kiwix.org/zim/wikibooks/wikibooks_pt_all_maxi_2026-10.zim',
+    'https://download.kiwix.org/zim/other/vikidia_pt_all_maxi_2026-09.zim',
+    'https://example.org/notwikipedia_pt_all.zim',
+    '',
+  ]) {
+    assert.equal(isWikipediaZimUrl(u), false, u)
+  }
+})

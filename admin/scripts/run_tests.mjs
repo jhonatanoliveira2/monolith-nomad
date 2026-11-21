@@ -3,7 +3,7 @@
  * Runs the unit specs with the runner each one needs (tests/unit mixes two kinds):
  *
  *   node scripts/run_tests.mjs unit   plain `node --test` specs (pure functions, no services): fast, no setup
- *   node scripts/run_tests.mjs app    specs that need the booted AdonisJS app (`node ace test`): the Japa specs
+ *   node scripts/run_tests.mjs app    specs that need the booted AdonisJS app (`node ace test`): the Japa specs,
  *                                     and the node:test specs listed in APP_NODE_SPECS. Booting the app needs
  *                                     MySQL (migrated) and Redis; scripts/test-in-docker.sh provides both.
  *
@@ -55,9 +55,15 @@ if (kind === 'unit') {
   )
 } else if (kind === 'app') {
   const files = specs('app').flatMap((f) => ['--files', f])
-  process.exit(
-    run(process.execPath, ['ace', 'test', 'unit', ...files, ...extra], { NODE_ENV: 'test' })
-  )
+  const unitStatus = run(process.execPath, ['ace', 'test', 'unit', ...files, ...extra], {
+    NODE_ENV: 'test',
+  })
+  // tests/functional (HTTP-level specs: OpenAPI completeness, library routes) boots the HTTP server
+  // too. It used to be skipped here entirely, so those specs never ran anywhere.
+  const functionalStatus = run(process.execPath, ['ace', 'test', 'functional', ...extra], {
+    NODE_ENV: 'test',
+  })
+  process.exit(unitStatus || functionalStatus)
 } else if (kind === 'list') {
   for (const k of ['unit', 'app']) console.log(`${k}:\n  ${specs(k).join('\n  ')}`)
 } else {

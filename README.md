@@ -42,6 +42,7 @@ Tudo é acessado pelo navegador. Não é preciso ambiente gráfico no servidor: 
 **O que este fork acrescenta:**
 
 - **Downloads inteligentes**: metalink do Kiwix com mirrors oficiais, benchmark de mirrors (a medição decide, a distância só desempata), aria2c com download segmentado, retomada, retry com backoff exponencial, fallback automático e verificação SHA-256 antes de instalar. Detalhes em [`docs/downloads.md`](docs/downloads.md).
+- **Catálogo em português**: Wikipédia em português como padrão do seletor e pacotes ZIM já existentes em português (Wikilivros, Wikiversidade, Wikcionário, Wikisource, PhET, iFixit, freeCodeCamp, Stack Overflow em Português, Projeto Gutenberg e outros) antes dos originais em inglês, que continuam disponíveis. Cada pacote mostra o idioma (PT, EN, MULTI). Nada é traduzido. Detalhes em [`docs/catalogo.md`](docs/catalogo.md).
 - **Tema Nothing**: interface escura por padrão, monocromática, com textura de pontos e fontes locais (Doto, Space Grotesk, Space Mono).
 - **Português brasileiro**: interface, instalador e documentação em pt-BR, com datas e números no formato brasileiro. A estrutura de tradução permite novos idiomas ([`admin/inertia/locales/README.md`](admin/inertia/locales/README.md)).
 - **AMD/ROCm**: o instalador detecta GPUs AMD e o modelo (gfx) da placa, e o Assistente de IA usa aceleração ROCm sem depender de NVIDIA/CUDA. GPUs NVIDIA continuam com suporte.
@@ -217,6 +218,7 @@ Para reportar uma vulnerabilidade, veja [`SECURITY.md`](SECURITY.md).
 ## Documentação
 
 - [`docs/downloads.md`](docs/downloads.md): downloads inteligentes (mirrors, benchmark, aria2c, SHA-256, fallback) e as medições.
+- [`docs/catalogo.md`](docs/catalogo.md): catálogo de conteúdos em português (ZIMs já existentes, sem tradução), idioma de cada pacote e como verificar a disponibilidade.
 - [`docs/distribuicao.md`](docs/distribuicao.md): independência do fork, publicação das imagens e variáveis.
 - [`admin/docs/`](admin/docs/): documentação exibida na Central de Comando ([primeiros passos](admin/docs/getting-started.md), [FAQ](admin/docs/faq.md), [Depósito de Apps](admin/docs/supply-depot-apps.md), [atualizações](admin/docs/updates.md), [referência da API](admin/docs/api-reference.md), [complementos da comunidade](admin/docs/community-add-ons.md), [notas de versão](admin/docs/release-notes.md)).
 - [`FAQ.md`](FAQ.md): perguntas frequentes.

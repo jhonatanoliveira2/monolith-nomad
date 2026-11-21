@@ -108,9 +108,9 @@ function parseEffectiveTime(raw: string | undefined): string | null {
   const year = raw.slice(0, 4)
   const month = raw.slice(4, 6)
   const day = raw.slice(6, 8)
-  const y = parseInt(year, 10)
-  const m = parseInt(month, 10)
-  const d = parseInt(day, 10)
+  const y = Number.parseInt(year, 10)
+  const m = Number.parseInt(month, 10)
+  const d = Number.parseInt(day, 10)
   // Basic sanity check: year in a plausible FDA range, month 1–12, day 1–31
   if (y < 1900 || y > 2100 || m < 1 || m > 12 || d < 1 || d > 31) return null
   return `${year}-${month}-${day}`
@@ -198,10 +198,7 @@ export function mapDrugLabelRecord(record: OpenFdaLabelRecord): DrugLabelRow | n
  * Example: ("Tylenol Extra Strength", "acetaminophen") → "tylenol extra strength acetaminophen"
  * Example: ("Silicea", "SILICEA") → "silicea" (deduped)
  */
-export function normalizeDrugName(
-  brand: string | null,
-  generic: string | null
-): string | null {
+export function normalizeDrugName(brand: string | null, generic: string | null): string | null {
   const parts: string[] = []
   if (brand && brand.trim().length > 0) parts.push(brand.trim())
   if (generic && generic.trim().length > 0) parts.push(generic.trim())
@@ -258,21 +255,19 @@ export function parseDrugLabelManifest(json: unknown): DrugLabelManifest {
     throw new Error('Unexpected FDA manifest format: missing "results.drug.label"')
   }
 
-  const export_date = label['export_date']
-  if (typeof export_date !== 'string' || export_date.trim() === '') {
+  const exportDate = label['export_date']
+  if (typeof exportDate !== 'string' || exportDate.trim() === '') {
     throw new Error('Unexpected FDA manifest format: missing or invalid "export_date"')
   }
 
-  const total_records = label['total_records']
-  if (typeof total_records !== 'number') {
+  const totalRecords = label['total_records']
+  if (typeof totalRecords !== 'number') {
     throw new Error('Unexpected FDA manifest format: missing or invalid "total_records"')
   }
 
   const rawPartitions = label['partitions']
   if (!Array.isArray(rawPartitions) || rawPartitions.length === 0) {
-    throw new Error(
-      'Unexpected FDA manifest format: "partitions" is missing or empty'
-    )
+    throw new Error('Unexpected FDA manifest format: "partitions" is missing or empty')
   }
 
   const partitions: DrugLabelPartition[] = []
@@ -303,8 +298,8 @@ export function parseDrugLabelManifest(json: unknown): DrugLabelManifest {
   }
 
   return {
-    export_date: export_date.trim(),
-    total_records,
+    export_date: exportDate.trim(),
+    total_records: totalRecords,
     partitions,
   }
 }
@@ -494,7 +489,10 @@ export function resolveIngestRecordsShown(
  * and return just that sentence; otherwise fall back to the first line,
  * hard-capped. Pure + unit-testable.
  */
-export function summarizeJobError(raw: string | null | undefined, maxLen = 300): string | undefined {
+export function summarizeJobError(
+  raw: string | null | undefined,
+  maxLen = 300
+): string | undefined {
   if (!raw) return undefined
   const msg = String(raw).trim()
   if (!msg) return undefined

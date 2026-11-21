@@ -34,9 +34,7 @@ export default class extends BaseSchema {
   async down() {
     // ── Drop guarded — index may not exist if up() guard caught an error ────
     try {
-      await this.db.rawQuery(
-        `ALTER TABLE drug_labels DROP INDEX ft_drug_labels_name_indications`
-      )
+      await this.db.rawQuery(`ALTER TABLE drug_labels DROP INDEX ft_drug_labels_name_indications`)
     } catch {
       // Index never existed — nothing to drop.
     }

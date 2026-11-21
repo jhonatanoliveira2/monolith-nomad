@@ -76,4 +76,6 @@ for (const spec of SPECS) {
   console.log(`generated app/data/${spec.name}.ts  ←  collections/${spec.name}.json`)
 }
 
-console.log('\nDone. Run `npm run format` is applied by the gen script; commit both the JSON and the generated .ts.')
+console.log(
+  '\nDone. Run `npm run format` is applied by the gen script; commit both the JSON and the generated .ts.'
+)

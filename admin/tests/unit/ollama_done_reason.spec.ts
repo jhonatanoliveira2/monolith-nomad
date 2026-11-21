@@ -85,12 +85,14 @@ test('non-streaming native and compat responses carry done_reason', async () => 
     done: true,
     done_reason: 'length',
   })
-  assert.equal((await native._chatNative(request)).done_reason, 'length')
+  const nativeResult = await native._chatNative(request)
+  assert.equal(nativeResult.done_reason, 'length')
 
   const compat = serviceWithCompat([], {
     model: 'm',
     choices: [{ message: { content: 'done' }, finish_reason: 'stop' }],
     usage: { prompt_tokens: 1, completion_tokens: 1 },
   })
-  assert.equal((await compat._chatCompat(request)).done_reason, 'stop')
+  const compatResult = await compat._chatCompat(request)
+  assert.equal(compatResult.done_reason, 'stop')
 })

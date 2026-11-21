@@ -34,7 +34,10 @@ test('deriveOsName takes the name preceding the version', () => {
 
 test('deriveOsName handles multi-word distro names', () => {
   assert.equal(deriveOsName('Debian GNU/Linux 12 (bookworm)', '12'), 'Debian GNU/Linux')
-  assert.equal(deriveOsName('Red Hat Enterprise Linux 9.4 (Plow)', '9.4'), 'Red Hat Enterprise Linux')
+  assert.equal(
+    deriveOsName('Red Hat Enterprise Linux 9.4 (Plow)', '9.4'),
+    'Red Hat Enterprise Linux'
+  )
 })
 
 test('deriveOsName falls back to the full description without a usable version', () => {

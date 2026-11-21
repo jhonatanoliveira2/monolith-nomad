@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import useEmbedJobs from '~/hooks/useEmbedJobs'
+import useEmbedJobs from '~/hooks/use_embed_jobs'
 import HorizontalBarChart from './HorizontalBarChart'
 import StyledSectionHeader from './StyledSectionHeader'
 import {

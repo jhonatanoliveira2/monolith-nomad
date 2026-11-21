@@ -5,7 +5,7 @@ import StyledButton from '~/components/StyledButton'
 import type { DynamicIconName } from '~/lib/icons'
 import StyledSectionHeader from '~/components/StyledSectionHeader'
 import StyledTable from '~/components/StyledTable'
-import { useNotifications } from '~/context/NotificationContext'
+import { useNotifications } from '~/context/notification_context'
 import api from '~/lib/api'
 import {
   groupAndSortKbFiles,
@@ -21,13 +21,11 @@ import {
   IconArrowsSort,
   IconChevronDown,
   IconChevronRight,
-  IconDownload,
-  IconEye,
   IconSortAscending,
   IconSortDescending,
   IconX,
 } from '@tabler/icons-react'
-import { useModals } from '~/context/ModalContext'
+import { useModals } from '~/context/modal_context'
 import StyledModal from '../StyledModal'
 import ActiveEmbedJobs from '~/components/ActiveEmbedJobs'
 import { SERVICE_NAMES } from '../../../constants/service_names'

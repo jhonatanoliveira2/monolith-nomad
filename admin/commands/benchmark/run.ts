@@ -96,7 +96,6 @@ export default class BenchmarkRun extends BaseCommand {
           this.logger.error(`Failed to submit: ${error.message}`)
         }
       }
-
     } catch (error) {
       this.logger.error(`Benchmark failed: ${error.message}`)
       this.exitCode = 1

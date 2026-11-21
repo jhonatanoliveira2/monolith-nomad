@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { IconX } from '@tabler/icons-react'
 import StyledButton from '~/components/StyledButton'
 import MarkdownEditor from '~/components/MarkdownEditor'
-import { useNotifications } from '~/context/NotificationContext'
+import { useNotifications } from '~/context/notification_context'
 import api from '~/lib/api'
 import { useTranslation } from 'react-i18next'
 

@@ -17,6 +17,9 @@ export const specResourceValidator = vine.object({
   // silently drop the field on manifest fetch and every gated download would go
   // out with no Authorization header and 401.
   auth: vine.enum(['nomad_app_key']).optional(),
+  // Content language badge (pt, en, mul). Declared for the same reason: an
+  // undeclared key would be stripped and the UI could never show it.
+  language: vine.string().minLength(2).maxLength(5).optional(),
 })
 
 // ---- ZIM Categories spec (versioned) ----
@@ -48,32 +51,37 @@ export const zimCategoriesSpecSchema = vine.object({
 
 export const mapsSpecSchema = vine.object({
   spec_version: vine.string(),
-  collections: vine.array(
-    vine.object({
-      slug: vine.string(),
-      name: vine.string(),
-      description: vine.string(),
-      icon: vine.string(),
-      language: vine.string().minLength(2).maxLength(5),
-      resources: vine.array(specResourceValidator).minLength(1),
-    })
-  ).minLength(1),
+  collections: vine
+    .array(
+      vine.object({
+        slug: vine.string(),
+        name: vine.string(),
+        description: vine.string(),
+        icon: vine.string(),
+        language: vine.string().minLength(2).maxLength(5),
+        resources: vine.array(specResourceValidator).minLength(1),
+      })
+    )
+    .minLength(1),
 })
 
 // ---- Wikipedia spec (versioned) ----
 
 export const wikipediaSpecSchema = vine.object({
   spec_version: vine.string(),
-  options: vine.array(
-    vine.object({
-      id: vine.string(),
-      name: vine.string(),
-      description: vine.string(),
-      size_mb: vine.number().min(0),
-      url: vine.string().url().nullable(),
-      version: vine.string().nullable(),
-    })
-  ).minLength(1),
+  options: vine
+    .array(
+      vine.object({
+        id: vine.string(),
+        name: vine.string(),
+        description: vine.string(),
+        size_mb: vine.number().min(0),
+        url: vine.string().url().nullable(),
+        version: vine.string().nullable(),
+        language: vine.string().minLength(2).maxLength(5).optional(),
+      })
+    )
+    .minLength(1),
 })
 
 // ---- Creator Packs spec (versioned) ----
@@ -83,22 +91,24 @@ export const wikipediaSpecSchema = vine.object({
 // this public catalog. See project_content_creator_packs.
 export const creatorPacksSpecSchema = vine.object({
   spec_version: vine.string(),
-  packs: vine.array(
-    vine.object({
-      id: vine.string(),
-      name: vine.string(),
-      creator: vine.string(),
-      description: vine.string(),
-      version: vine.string(),
-      resource_id: vine.string(),
-      video_count: vine.number().min(0),
-      size_mb: vine.number().min(0),
-      license_id: vine.string(),
-      banner_url: vine.string().url().optional(),
-      poster_url: vine.string().url().optional(),
-      logo_url: vine.string().url().optional(),
-    })
-  ).minLength(1),
+  packs: vine
+    .array(
+      vine.object({
+        id: vine.string(),
+        name: vine.string(),
+        creator: vine.string(),
+        description: vine.string(),
+        version: vine.string(),
+        resource_id: vine.string(),
+        video_count: vine.number().min(0),
+        size_mb: vine.number().min(0),
+        license_id: vine.string(),
+        banner_url: vine.string().url().optional(),
+        poster_url: vine.string().url().optional(),
+        logo_url: vine.string().url().optional(),
+      })
+    )
+    .minLength(1),
 })
 
 // ---- Wikipedia validators (used by ZimService) ----
@@ -109,6 +119,7 @@ export const wikipediaOptionSchema = vine.object({
   description: vine.string(),
   size_mb: vine.number().min(0),
   url: vine.string().url().nullable(),
+  language: vine.string().minLength(2).maxLength(5).optional(),
 })
 
 export const wikipediaOptionsFileSchema = vine.object({

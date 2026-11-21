@@ -71,7 +71,9 @@ export function evaluateBindMounts(
     // the checks below can't be bypassed by a parse-differential. (The validator blocks this too;
     // this keeps the guard self-defending for any caller that skips validation.)
     if (hostPath.includes(':') || containerPath.includes(':')) {
-      blocked.push(`Volume paths must not contain a colon (":"): "${hostPath}" → "${containerPath}".`)
+      blocked.push(
+        `Volume paths must not contain a colon (":"): "${hostPath}" → "${containerPath}".`
+      )
       continue
     }
 

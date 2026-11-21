@@ -218,7 +218,7 @@ export async function readOllamaStartupLogs(
   try {
     const state = inspect ?? (await container.inspect())
     const startedAtRaw = state?.State?.StartedAt
-    const startedAtMs = startedAtRaw ? new Date(startedAtRaw).getTime() : NaN
+    const startedAtMs = startedAtRaw ? new Date(startedAtRaw).getTime() : Number.NaN
 
     const logsOpts: {
       stdout: true

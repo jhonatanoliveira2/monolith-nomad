@@ -20,9 +20,21 @@ export function findReplacedWikipediaFiles(
 ): string[] {
   const currentStem = zimFilenameStem(currentFilename)
   return existingNames.filter(
-    (n) =>
-      n.startsWith('wikipedia_en_') && n !== currentFilename && zimFilenameStem(n) === currentStem
+    (n) => WIKIPEDIA_FILENAME.test(n) && n !== currentFilename && zimFilenameStem(n) === currentStem
   )
+}
+
+/**
+ * `wikipedia_<lang>_…`, any language. The selector used to be English-only and the code matched the
+ * literal `wikipedia_en_`; the Brazilian catalog offers `wikipedia_pt_*`, which that check silently
+ * skipped (old releases never cleaned up, a cancelled download never marked the selection failed).
+ */
+const WIKIPEDIA_FILENAME = /^wikipedia_[a-z]{2,3}(?:-[a-z]+)?_/i
+
+/** True for the URL (or bare filename) of a Wikipedia ZIM in any language. */
+export function isWikipediaZimUrl(url: string): boolean {
+  const name = url.split('/').pop() ?? ''
+  return WIKIPEDIA_FILENAME.test(name) && name.endsWith('.zim')
 }
 
 /**
@@ -31,7 +43,10 @@ export function findReplacedWikipediaFiles(
  * Medicine tier's `wikipedia_en_medicine_maxi_*.zim`, which must never be treated as "the"
  * Wikipedia (it would take over the selection and be deleted when the selection changes).
  */
-export function isWikipediaSelectorFile(filename: string, optionUrls: Array<string | null>): boolean {
+export function isWikipediaSelectorFile(
+  filename: string,
+  optionUrls: Array<string | null>
+): boolean {
   const stem = zimFilenameStem(filename)
   return optionUrls.some((url) => !!url && zimFilenameStem(url.split('/').pop() ?? '') === stem)
 }

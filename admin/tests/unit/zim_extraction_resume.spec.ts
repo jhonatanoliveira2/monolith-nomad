@@ -10,7 +10,9 @@ import { fileURLToPath } from 'node:url'
 import { test } from '@japa/runner'
 import { ZIMExtractionService } from '../../app/services/zim_extraction_service.js'
 
-const ZIM = fileURLToPath(new URL('../../../install/wikipedia_en_100_mini_2026-01.zim', import.meta.url))
+const ZIM = fileURLToPath(
+  new URL('../../../install/wikipedia_en_100_mini_2026-01.zim', import.meta.url)
+)
 const BATCH = 7
 
 function articlePaths(chunks: { articlePath: string }[]) {
@@ -25,7 +27,11 @@ test('chained seek batches cover the archive exactly once', async () => {
   let startOffset = 0
   let resumeAtDirent: number | undefined
   for (;;) {
-    const r = await service.extractZIMContent(ZIM, { startOffset, batchSize: BATCH, resumeAtDirent })
+    const r = await service.extractZIMContent(ZIM, {
+      startOffset,
+      batchSize: BATCH,
+      resumeAtDirent,
+    })
     batched.push(...articlePaths(r.chunks))
     if (r.articlesProcessed < BATCH) break
     startOffset += r.articlesProcessed

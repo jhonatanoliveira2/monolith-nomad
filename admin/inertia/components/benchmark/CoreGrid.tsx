@@ -1,4 +1,4 @@
-import classNames from '~/lib/classNames'
+import classNames from '~/lib/class_names'
 import { useTranslation } from 'react-i18next'
 
 interface CoreGridProps {

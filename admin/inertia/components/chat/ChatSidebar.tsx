@@ -1,4 +1,4 @@
-import classNames from '~/lib/classNames'
+import classNames from '~/lib/class_names'
 import StyledButton from '../StyledButton'
 import { router, usePage } from '@inertiajs/react'
 import { ChatSession } from '../../../types/chat'

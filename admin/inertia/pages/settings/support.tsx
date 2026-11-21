@@ -3,7 +3,7 @@ import { IconExternalLink } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 import SettingsLayout from '~/layouts/SettingsLayout'
 import StyledSectionHeader from '~/components/StyledSectionHeader'
-import { useProject } from '~/hooks/useProject'
+import { useProject } from '~/hooks/use_project'
 
 const UPSTREAM_REPO_URL = 'https://github.com/Crosstalk-Solutions/project-nomad'
 

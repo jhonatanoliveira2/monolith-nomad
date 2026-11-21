@@ -54,7 +54,10 @@ test('refuses to compare across corpus fingerprints', () => {
 })
 
 test('refuses to compare a retrieval report against a generation report', () => {
-  const result = compareReports(report({ mrr: 0.9 }), report({ correctness: 0.9 }, { kind: 'generation' }))
+  const result = compareReports(
+    report({ mrr: 0.9 }),
+    report({ correctness: 0.9 }, { kind: 'generation' })
+  )
   assert.equal(result.comparable, false)
   assert.match(result.incomparableReason!, /retrieval report against a generation/)
 })
@@ -85,7 +88,10 @@ test('a fall in a lower-is-better metric is an improvement, not a regression', (
 })
 
 test('emptyRateOnAnswerable is treated as lower-is-better', () => {
-  const r = compareReports(report({ emptyRateOnAnswerable: 0.1 }), report({ emptyRateOnAnswerable: 0.6 }))
+  const r = compareReports(
+    report({ emptyRateOnAnswerable: 0.1 }),
+    report({ emptyRateOnAnswerable: 0.6 })
+  )
   assert.equal(r.regressions.length, 1)
 })
 
@@ -151,22 +157,26 @@ test('markdown leads with the regression count', () => {
 })
 
 test('markdown says so plainly when nothing regressed', () => {
-  const md = renderComparisonMarkdown('b.json', 'c.json', compareReports(report({ mrr: 0.9 }), report({ mrr: 0.9 })))
+  const md = renderComparisonMarkdown(
+    'b.json',
+    'c.json',
+    compareReports(report({ mrr: 0.9 }), report({ mrr: 0.9 }))
+  )
   assert.match(md, /## No regressions/)
 })
 
 test('markdown explains an incomparable pair instead of printing an empty table', () => {
-  const r = compareReports(report({ mrr: 0.9 }), report({ mrr: 0.9 }, { corpusFingerprint: 'other' }))
+  const r = compareReports(
+    report({ mrr: 0.9 }),
+    report({ mrr: 0.9 }, { corpusFingerprint: 'other' })
+  )
   const md = renderComparisonMarkdown('b.json', 'c.json', r)
   assert.match(md, /## Not comparable/)
   assert.match(md, /fingerprint changed/)
 })
 
 test('markdown orders the worst regression first', () => {
-  const r = compareReports(
-    report({ small: 0.9, big: 0.9 }),
-    report({ small: 0.85, big: 0.2 })
-  )
+  const r = compareReports(report({ small: 0.9, big: 0.9 }), report({ small: 0.85, big: 0.2 }))
   const md = renderComparisonMarkdown('b.json', 'c.json', r)
   assert.ok(md.indexOf('| big |') < md.indexOf('| small |'), 'worst regression should come first')
 })

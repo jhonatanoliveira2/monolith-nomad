@@ -15,7 +15,12 @@ import {
   SYSTEM_PROMPTS,
 } from '../../constants/ollama.js'
 import type { OllamaChatMessage } from '../../types/ollama.js'
-import type { PipelineOptions, PipelineTrace, RetrievalFloorStats, RetrievedChunk } from '../../types/rag.js'
+import type {
+  PipelineOptions,
+  PipelineTrace,
+  RetrievalFloorStats,
+  RetrievedChunk,
+} from '../../types/rag.js'
 import { planPrompt } from '../utils/context_budget.js'
 import { estimateMessagesTokens } from '../utils/token_estimate.js'
 import { resolveMinFinalScore } from '../utils/rag_relevance.js'
@@ -172,7 +177,11 @@ export class RagPipelineService {
               ? opts.relevanceCheckModel
               : await this.relevanceJudge.resolveModel(model)
           if (checkModel) {
-            const verdict = await this.relevanceJudge.judge(retrievalQuery, relevantDocs, checkModel)
+            const verdict = await this.relevanceJudge.judge(
+              retrievalQuery,
+              relevantDocs,
+              checkModel
+            )
             relevantDocs = verdict.kept
             trace.retrieved = relevantDocs
             trace.relevanceCheckModel = checkModel
@@ -292,7 +301,8 @@ export class RagPipelineService {
       // chat model evicts that model's cached prefix, so the conversation is
       // re-prefilled from scratch on every turn no matter how stable we keep the
       // ordering. A small dedicated model keeps the chat model's cache intact.
-      const rewriteModel = (await resolveTasksModel(this.ollamaService, model, undefined, '[RAG]')) ?? model
+      const rewriteModel =
+        (await resolveTasksModel(this.ollamaService, model, undefined, '[RAG]')) ?? model
 
       // A rewrite is a mechanical transformation, and QUERY_REWRITE_MAX_TOKENS is far
       // too small a budget for a reasoning model to think and then answer — it would
@@ -359,5 +369,4 @@ export class RagPipelineService {
       return { query: lastUserMessage?.content ?? null, didRewrite: false }
     }
   }
-
 }

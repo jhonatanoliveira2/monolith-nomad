@@ -806,12 +806,14 @@ export class DrugReferenceService {
 
     const download: DrugDownloadStatus = {
       state: downloadPhaseState,
-      partsDone: downloadPhaseState === 'completed' ? (marker?.totalParts ?? dlData.totalParts ?? 0) : (dlData.partIndex ?? 0),
+      partsDone:
+        downloadPhaseState === 'completed'
+          ? (marker?.totalParts ?? dlData.totalParts ?? 0)
+          : (dlData.partIndex ?? 0),
       totalParts: dlData.totalParts ?? marker?.totalParts ?? 0,
       bytesDownloaded: dlData.bytesDownloaded,
       currentPartName: dlData.currentPartName ?? null,
-      failedReason:
-        dlState === 'failed' ? summarizeJobError(downloadJob?.failedReason) : undefined,
+      failedReason: dlState === 'failed' ? summarizeJobError(downloadJob?.failedReason) : undefined,
     }
 
     // ── Ingest sub-status ───────────────────────────────────────────────────
@@ -868,8 +870,7 @@ export class DrugReferenceService {
           ? (dlData.startedAt ?? null)
           : null
 
-    const error =
-      phase === 'failed' ? (ingest.failedReason ?? download.failedReason) : undefined
+    const error = phase === 'failed' ? (ingest.failedReason ?? download.failedReason) : undefined
 
     return {
       phase,

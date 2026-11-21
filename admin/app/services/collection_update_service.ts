@@ -4,11 +4,8 @@ import { DateTime } from 'luxon'
 import InstalledResource from '#models/installed_resource'
 import { RunDownloadJob } from '../jobs/run_download_job.js'
 import { ZIM_STORAGE_PATH } from '../utils/fs.js'
-import { join } from 'path'
-import type {
-  ResourceUpdateInfo,
-  ContentUpdateCheckResult,
-} from '../../types/collections.js'
+import { join } from 'node:path'
+import type { ResourceUpdateInfo, ContentUpdateCheckResult } from '../../types/collections.js'
 import { KiwixCatalogService, reconcileResourceUpdateState } from './kiwix_catalog_service.js'
 import { CollectionManifestService } from './collection_manifest_service.js'
 
@@ -122,8 +119,7 @@ export class CollectionUpdateService {
       url: update.download_url,
       filepath,
       timeout: 30000,
-      allowedMimeTypes:
-        update.resource_type === 'zim' ? ZIM_MIME_TYPES : PMTILES_MIME_TYPES,
+      allowedMimeTypes: update.resource_type === 'zim' ? ZIM_MIME_TYPES : PMTILES_MIME_TYPES,
       filetype: update.resource_type,
       title: update.resource_id,
       totalBytes: update.size_bytes,
@@ -146,9 +142,9 @@ export class CollectionUpdateService {
     return { success: true, jobId: result.job.id }
   }
 
-  async applyAllUpdates(
-    updates: ResourceUpdateInfo[]
-  ): Promise<{ results: Array<{ resource_id: string; success: boolean; jobId?: string; error?: string }> }> {
+  async applyAllUpdates(updates: ResourceUpdateInfo[]): Promise<{
+    results: Array<{ resource_id: string; success: boolean; jobId?: string; error?: string }>
+  }> {
     const results = await Promise.all(
       updates.map(async (update) => {
         const result = await this.applyUpdate(update)

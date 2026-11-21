@@ -10,5 +10,7 @@
 export function isExecTimeout(err: unknown): boolean {
   if (!err || typeof err !== 'object') return false
   const e = err as { killed?: unknown; signal?: unknown; code?: unknown }
-  return e.killed === true && typeof e.signal === 'string' && (e.code === null || e.code === undefined)
+  return (
+    e.killed === true && typeof e.signal === 'string' && (e.code === null || e.code === undefined)
+  )
 }

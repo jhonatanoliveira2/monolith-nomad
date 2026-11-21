@@ -54,7 +54,6 @@ export default class EvalCorpus extends BaseCommand {
   }
 
   private async dispatch(service: any) {
-
     // Default to --status so a bare invocation is always safe.
     if (!this.ingest && !this.reset && !this.check) this.status = true
 

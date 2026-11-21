@@ -25,17 +25,13 @@ export default class DrugInstallRowProvider {
 
     setImmediate(async () => {
       try {
-        const KVStore = (await import('#models/kv_store')).default
-        const { DrugReferenceService, DRUG_DATASET_RESOURCE_ID } = await import(
-          '#services/drug_reference_service'
-        )
-        const { CollectionManifestService } = await import(
-          '#services/collection_manifest_service'
-        )
+        const { default: KVStore } = await import('#models/kv_store')
+        const { DrugReferenceService, DRUG_DATASET_RESOURCE_ID } =
+          await import('#services/drug_reference_service')
+        const { CollectionManifestService } = await import('#services/collection_manifest_service')
         const { parseDownloadState } = await import('../util/drug_labels.js')
-        const { decideDrugRowReconcile, findDatasetCategorySlug } = await import(
-          '../app/utils/drug_install_row_reconcile.js'
-        )
+        const { decideDrugRowReconcile, findDatasetCategorySlug } =
+          await import('../app/utils/drug_install_row_reconcile.js')
 
         const drugService = new DrugReferenceService()
 
@@ -71,7 +67,9 @@ export default class DrugInstallRowProvider {
         }
 
         // Cached spec only: no network at boot, and the box may be offline.
-        const spec = await new CollectionManifestService().getCachedSpec<ZimCategoriesSpec>('zim_categories')
+        const spec = await new CollectionManifestService().getCachedSpec<ZimCategoriesSpec>(
+          'zim_categories'
+        )
         const collectionRef = findDatasetCategorySlug(spec, DRUG_DATASET_RESOURCE_ID)
 
         await drugService.recordInstalledRow({

@@ -45,7 +45,7 @@ services:
     environment:
       - NODE_ENV=production
       # Time zone for logs and the auto-update window (02:00-05:00), instead of UTC. The installer sets it
-      # to the host's zone; America/Sao_Paulo is this distribution's default (configured for Brazil).
+      # to the host's zone; America/Sao_Paulo is this distribution's default: it is the IANA zone for Brasília time (BRT, UTC-3), the country's official time, not a São Paulo-specific setting.
       - TZ=America/Sao_Paulo
       # NOMAD_STORAGE_PATH should equal the host path of the /app/storage volume above. The admin
       # normally auto-detects that mount, so this is a fallback used only if the container can't be

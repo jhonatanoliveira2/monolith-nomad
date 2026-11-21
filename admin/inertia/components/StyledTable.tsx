@@ -1,5 +1,5 @@
 import { capitalizeFirstLetter } from '~/lib/util'
-import classNames from '~/lib/classNames'
+import classNames from '~/lib/class_names'
 import LoadingSpinner from '~/components/LoadingSpinner'
 import React, { RefObject, useState } from 'react'
 import { useTranslation } from 'react-i18next'

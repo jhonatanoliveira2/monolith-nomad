@@ -14,12 +14,7 @@ test('returns true when the global map key already exists on disk', () => {
 })
 
 test('returns false when the global map key is missing', () => {
-  assert.equal(
-    hasDownloadedGlobalMap('20260402.pmtiles', [
-      { name: 'california.pmtiles' },
-    ]),
-    false
-  )
+  assert.equal(hasDownloadedGlobalMap('20260402.pmtiles', [{ name: 'california.pmtiles' }]), false)
 })
 
 test('returns true when an older global map build is already on disk', () => {

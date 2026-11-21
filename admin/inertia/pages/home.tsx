@@ -1,5 +1,6 @@
 import {
   IconBolt,
+  IconBooks,
   IconBox,
   IconHelp,
   IconMapRoute,
@@ -12,12 +13,12 @@ import AppLayout from '~/layouts/AppLayout'
 import { getServiceLink } from '~/lib/navigation'
 import { ServiceSlim } from '../../types/services'
 import DynamicIcon, { DynamicIconName } from '~/components/DynamicIcon'
-import { useUpdateAvailable } from '~/hooks/useUpdateAvailable'
-import { useSystemSetting } from '~/hooks/useSystemSetting'
+import { useUpdateAvailable } from '~/hooks/use_update_available'
+import { useSystemSetting } from '~/hooks/use_system_setting'
 import {
   useBenchmarkRerunBanner,
   BENCHMARK_RERUN_BANNER_QUERY_KEY,
-} from '~/hooks/useBenchmarkRerunBanner'
+} from '~/hooks/use_benchmark_rerun_banner'
 import { useQueryClient } from '@tanstack/react-query'
 import api from '~/lib/api'
 import Alert from '~/components/Alert'
@@ -38,6 +39,18 @@ const MAPS_ITEM = {
   icon: <IconMapRoute size={48} />,
   installed: true,
   displayOrder: 4,
+  poweredBy: null,
+}
+
+// Library: PDF/EPUB/ZIM works by area and level, with an offline reader (collections/library.json).
+const LIBRARY_ITEM = {
+  label: 'Library',
+  to: '/library',
+  target: '',
+  description: 'Books and manuals in Portuguese to download and read offline',
+  icon: <IconBooks size={48} />,
+  installed: true,
+  displayOrder: 4.5,
   poweredBy: null,
 }
 
@@ -211,6 +224,7 @@ export default function Home(props: {
 
   // Add Maps as a Core Capability
   items.push(MAPS_ITEM)
+  items.push(LIBRARY_ITEM)
 
   // Add the offline medical-reference tiles only once the FDA drug dataset is
   // installed (or installing) via the curated Medicine tier. Both tiles read the

@@ -73,9 +73,7 @@ export default class BenchmarkController {
       success: true,
       job_id: job?.id || benchmarkId,
       benchmark_id: benchmarkId,
-      message: created
-        ? `${benchmarkType} benchmark started`
-        : 'Benchmark job already exists',
+      message: created ? `${benchmarkType} benchmark started` : 'Benchmark job already exists',
     })
   }
 
@@ -174,7 +172,10 @@ export default class BenchmarkController {
     const anonymous = request.input('anonymous') === true || request.input('anonymous') === 'true'
 
     try {
-      const submitResult = await this.benchmarkService.submitToRepository(payload.benchmark_id, anonymous)
+      const submitResult = await this.benchmarkService.submitToRepository(
+        payload.benchmark_id,
+        anonymous
+      )
       return response.send({
         success: true,
         repository_id: submitResult.repository_id,
@@ -191,7 +192,8 @@ export default class BenchmarkController {
       // validation message) and fall back to a safe generic only when we have none.
       let errorMessage: string
       if (statusCode === 429) {
-        errorMessage = 'You can only submit one benchmark per hour. Please wait a bit and try again.'
+        errorMessage =
+          'You can only submit one benchmark per hour. Please wait a bit and try again.'
       } else {
         errorMessage =
           (error as any).detail || (error as any).message || 'Failed to submit benchmark results.'

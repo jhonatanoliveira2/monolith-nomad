@@ -47,7 +47,10 @@ test('groups messages into whole turns', () => {
     { role: 'assistant', content: 'd' },
   ])
   assert.equal(turns.length, 2)
-  assert.deepEqual(turns[0].map((m) => m.role), ['user', 'assistant'])
+  assert.deepEqual(
+    turns[0].map((m) => m.role),
+    ['user', 'assistant']
+  )
 })
 
 test('a leading assistant message does not start a phantom turn', () => {
@@ -71,9 +74,7 @@ test('short conversations pass through untouched', () => {
 test('never exceeds the prompt budget', () => {
   // 200 turns against a small window: the old code would have handed all of this
   // to the backend and let it truncate silently.
-  const result = planPrompt(
-    makeInputs({ history: history(200), contextWindow: 4096 })
-  )
+  const result = planPrompt(makeInputs({ history: history(200), contextWindow: 4096 }))
   assert.ok(
     result.trace.estimatedPromptTokens <= result.trace.promptBudget,
     `prompt ${result.trace.estimatedPromptTokens} exceeds budget ${result.trace.promptBudget}`
@@ -175,7 +176,9 @@ test('growing the conversation keeps the retained prefix stable across turns', (
   const seen: string[] = []
   for (let turnCount = 40; turnCount < 44; turnCount++) {
     const result = planPrompt(makeInputs({ history: history(turnCount), contextWindow: 8192 }))
-    const oldest = result.messages.find((m) => m.role === 'user' && m.content.startsWith('Question'))
+    const oldest = result.messages.find(
+      (m) => m.role === 'user' && m.content.startsWith('Question')
+    )
     seen.push(oldest!.content)
   }
   assert.equal(new Set(seen).size, 1, `prefix shifted between turns: ${JSON.stringify(seen)}`)
@@ -240,7 +243,11 @@ test('front placement reproduces the historical ordering', () => {
 test('placement does not change what survives the budget', () => {
   // Only the ordering should differ, so an eval comparison isolates the KV-cache
   // effect rather than a difference in retained content.
-  const base = { history: history(30), ragChunks: [{ text: words(200, 'ctx') }], contextWindow: 8192 }
+  const base = {
+    history: history(30),
+    ragChunks: [{ text: words(200, 'ctx') }],
+    contextWindow: 8192,
+  }
   const tail = planPrompt(makeInputs({ ...base, ragPlacement: 'tail' }))
   const front = planPrompt(makeInputs({ ...base, ragPlacement: 'front' }))
   assert.equal(tail.trace.chunksKept, front.trace.chunksKept)

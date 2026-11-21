@@ -177,7 +177,11 @@ export class EvalRetrievalService {
     const results = cases.map((c) => scoreCase(c, kValues))
 
     const aggregateStage = (stageCases: RetrievalCase[]) =>
-      aggregate(stageCases, stageCases.map((c) => scoreCase(c, kValues)), kValues)
+      aggregate(
+        stageCases,
+        stageCases.map((c) => scoreCase(c, kValues)),
+        kValues
+      )
 
     return {
       params: { topK, scoreThreshold, minFinalScore, kValues },
@@ -228,7 +232,9 @@ function toCase(golden: Golden, retrieved: ScoredChunk[]): RetrievalCase {
   }
 }
 
-function stageToChunks(stage: Array<{ source?: string; score: number }> | undefined): ScoredChunk[] {
+function stageToChunks(
+  stage: Array<{ source?: string; score: number }> | undefined
+): ScoredChunk[] {
   return (stage ?? []).map((entry) => ({
     docId: docIdFromSource(entry.source),
     score: entry.score,

@@ -2,12 +2,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import api from '~/lib/api'
 
-export type useDownloadsProps = {
+export type UseDownloadsProps = {
   filetype?: string
   enabled?: boolean
 }
 
-const useDownloads = (props: useDownloadsProps) => {
+const useDownloads = (props: UseDownloadsProps) => {
   const queryClient = useQueryClient()
 
   const queryKey = useMemo(() => {
@@ -30,7 +30,13 @@ const useDownloads = (props: useDownloadsProps) => {
     queryClient.invalidateQueries({ queryKey: queryKey })
   }
 
-  return { ...queryData, invalidate }
+  return {
+    data: queryData.data,
+    isLoading: queryData.isLoading,
+    error: queryData.error,
+    refetch: queryData.refetch,
+    invalidate,
+  }
 }
 
 export default useDownloads

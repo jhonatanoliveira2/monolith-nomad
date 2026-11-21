@@ -1,7 +1,7 @@
-import { access, readFile, writeFile, mkdir } from 'fs/promises'
-import { join, resolve } from 'path'
-import { createHash } from 'crypto'
-import { tmpdir } from 'os'
+import { access, readFile, writeFile, mkdir } from 'node:fs/promises'
+import { join, resolve } from 'node:path'
+import { createHash } from 'node:crypto'
+import { tmpdir } from 'node:os'
 import logger from '@adonisjs/core/services/logger'
 import type { Country, CountryCode, CountryGroup } from '../../types/maps.js'
 
@@ -29,14 +29,7 @@ const COUNTRY_GEOJSON_PATH = join(
 // by ~11 km to pull in adjacent tiles without ballooning the extract size.
 const REGION_BUFFER_DEGREES = 0.1
 
-const GROUP_ORDER = [
-  'north-america',
-  'south-america',
-  'europe',
-  'africa',
-  'asia',
-  'oceania',
-]
+const GROUP_ORDER = ['north-america', 'south-america', 'europe', 'africa', 'asia', 'oceania']
 
 const GROUP_META: Record<string, { id: string; name: string; description: string }> = {
   'North America': {
@@ -49,22 +42,22 @@ const GROUP_META: Record<string, { id: string; name: string; description: string
     name: 'South America',
     description: 'All countries in South America.',
   },
-  Europe: {
+  'Europe': {
     id: 'europe',
     name: 'Europe',
     description: 'All countries in Europe.',
   },
-  Africa: {
+  'Africa': {
     id: 'africa',
     name: 'Africa',
     description: 'All countries in Africa.',
   },
-  Asia: {
+  'Asia': {
     id: 'asia',
     name: 'Asia',
     description: 'All countries in Asia.',
   },
-  Oceania: {
+  'Oceania': {
     id: 'oceania',
     name: 'Oceania',
     description: 'Australia, New Zealand, and Pacific island nations.',
@@ -248,9 +241,7 @@ function bufferGeometry(geometry: unknown, buffer: number): unknown {
   if (geom?.type === 'MultiPolygon') {
     return {
       type: 'MultiPolygon',
-      coordinates: geom.coordinates.map((poly: number[][][]) =>
-        bufferPolygonRings(poly, buffer)
-      ),
+      coordinates: geom.coordinates.map((poly: number[][][]) => bufferPolygonRings(poly, buffer)),
     }
   }
   return geometry
@@ -305,4 +296,3 @@ function resolveIso3(p: Record<string, any>): string | null {
   if (adm && adm !== '-99') return adm.toUpperCase()
   return null
 }
-
