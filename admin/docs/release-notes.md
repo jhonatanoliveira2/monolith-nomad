@@ -1,6 +1,6 @@
 # Release Notes
 
-## Unreleased
+## Version 1.1.0 - November 21, 2026
 
 ### Features
 
