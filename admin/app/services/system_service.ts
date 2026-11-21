@@ -27,6 +27,7 @@ import {
   findUnacceleratedGpuVendor,
   isUnresolvedGpuModel,
 } from '../utils/gpu_model.js'
+import { applyDrmVram, readDrmGpus } from '../utils/gpu_sysfs.js'
 import {
   classifyOllamaComputeBackend,
   diagnoseAmdCpuFallback,
@@ -68,7 +69,8 @@ export class SystemService {
     // connectivity checks at a specific endpoint), then the UI-configurable value
     // stored in KVStore, and finally the built-in defaults.
     const envTestUrl = env.get('INTERNET_STATUS_TEST_URL')?.trim()
-    const kvTestUrl = (await KVStore.getValue('system.internetStatusTestUrl'))?.trim()
+    const storedTestUrl = await KVStore.getValue('system.internetStatusTestUrl')
+    const kvTestUrl = storedTestUrl?.trim()
     const customTestUrl = envTestUrl || kvTestUrl
 
     // If a custom test URL is provided and valid, use it exclusively.
@@ -248,7 +250,8 @@ export class SystemService {
         }
       }
 
-      const ollamaUrl = remoteOllamaUrl || (await this.dockerService.getServiceURL(SERVICE_NAMES.OLLAMA))
+      const ollamaUrl =
+        remoteOllamaUrl || (await this.dockerService.getServiceURL(SERVICE_NAMES.OLLAMA))
       if (!ollamaUrl) {
         return null
       }
@@ -396,6 +399,16 @@ export class SystemService {
         si.graphics(),
       ])
 
+      // si.graphics() takes `vram` from lspci, which has no VRAM figure: it is
+      // the size of the first PCI memory region. On AMD that is the VRAM
+      // aperture, 256 or 512 MiB with Resizable BAR off on any card, so a 16 GB
+      // RX 9060 XT showed as "512 MB" — big enough to pass the bogus-BAR
+      // threshold below. amdgpu publishes the real figure in sysfs; take it
+      // wherever the driver offers it, independent of Docker or Ollama, and
+      // keep those readings out of the bogus-VRAM heuristic, which exists only
+      // to second-guess lspci.
+      const sysfsVram: Set<object> = applyDrmVram(graphics.controllers || [], await readDrmGpus())
+
       let diskInfo: NomadDiskInfoRaw | undefined
       let disk: NomadDiskInfo[] = []
 
@@ -459,6 +472,7 @@ export class SystemService {
           return v === 'nvidia' || v === 'amd'
         }
         const isBogusDgpuVram = (c: { vendor?: string; vram?: number | null }) =>
+          !sysfsVram.has(c) &&
           isDiscreteGpuVendor(c.vendor) &&
           typeof c.vram === 'number' &&
           c.vram < DGPU_BOGUS_VRAM_THRESHOLD_MIB
@@ -525,10 +539,13 @@ export class SystemService {
         //   2. Marker file at /app/storage/.nomad-gpu-type (written by install_nomad.sh)
         // The marker file matters because the System page should reflect AMD presence
         // even before AI Assistant has been installed for the first time.
-        let savedGpuType: string | null | undefined = await KVStore.getValue('gpu.type') as string | undefined
+        let savedGpuType: string | null | undefined = (await KVStore.getValue('gpu.type')) as
+          | string
+          | undefined
         if (!savedGpuType) {
           try {
-            savedGpuType = (await readFile('/app/storage/.nomad-gpu-type', 'utf8')).trim()
+            const markerRaw = await readFile('/app/storage/.nomad-gpu-type', 'utf8')
+            savedGpuType = markerRaw.trim()
           } catch {}
         }
         const amdEnabledRaw = await KVStore.getValue('ai.amdGpuAcceleration')
@@ -1152,8 +1169,8 @@ export class SystemService {
         const config = svc.container_config ? JSON.parse(svc.container_config) : null
         const bindings = config?.HostConfig?.PortBindings ?? {}
         for (const binding of Object.values(bindings) as any[]) {
-          const port = parseInt(binding?.[0]?.HostPort, 10)
-          if (!isNaN(port)) occupied.add(port)
+          const port = Number.parseInt(binding?.[0]?.HostPort, 10)
+          if (!Number.isNaN(port)) occupied.add(port)
         }
       }
 
