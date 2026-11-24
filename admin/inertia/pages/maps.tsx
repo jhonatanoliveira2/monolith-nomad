@@ -57,14 +57,18 @@ export default function Maps(props: {
   }
 
   const alertMessage = !props.maps.baseAssetsExist
-    ? t('The base map assets have not been installed. Please download them first to enable map functionality.')
-    : !props.maps.worldBasemapExists
     ? t(
-        'The world base map has not been downloaded yet, so the map may appear blank outside downloaded regions. Connect this monolith-nomad to the internet and download it (~15 MB) from Map Settings.'
+        'The base map assets have not been installed. Please download them first to enable map functionality.'
       )
-    : props.maps.regionFiles.length === 0
-    ? t('No map regions have been downloaded yet. Please download some regions to enable map functionality.')
-    : null
+    : !props.maps.worldBasemapExists
+      ? t(
+          'The world base map has not been downloaded yet, so the map may appear blank outside downloaded regions. Connect this monolith-nomad to the internet and download it (~15 MB) from Map Settings.'
+        )
+      : props.maps.regionFiles.length === 0
+        ? t(
+            'No map regions have been downloaded yet. Please download some regions to enable map functionality.'
+          )
+        : null
 
   return (
     <MapsLayout>
@@ -73,14 +77,21 @@ export default function Maps(props: {
       <div className="relative w-full h-screen overflow-hidden">
         {/* Navbar */}
         <div
-          className="absolute top-0 left-0 right-0 z-50 flex justify-between p-4 bg-surface-secondary backdrop-blur-sm shadow-sm"
+          className="absolute top-0 left-0 right-0 z-50 flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 nd-glass border-b border-border-subtle"
           onMouseEnter={() => setIsHoveringUI(true)}
           onMouseLeave={() => setIsHoveringUI(false)}
         >
-          <Link href="/home" className="flex items-center">
-            <IconArrowLeft className="mr-2" size={24} />
-            <p className="text-lg text-text-secondary">{t('Back to Home')}</p>
+          <Link
+            href="/home"
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm text-text-secondary hover:bg-surface-elevated hover:text-text-primary lg:hidden"
+          >
+            <IconArrowLeft size={16} />
+            {t('Back to Home')}
           </Link>
+          <p className="hidden lg:flex items-center gap-2 nd-eyebrow px-2">
+            <span className="nd-led text-led" aria-hidden="true" />
+            {t('Maps')}
+          </p>
 
           <div className="flex items-center gap-2">
             <input
@@ -91,42 +102,47 @@ export default function Maps(props: {
               onKeyDown={(event) => {
                 if (event.key === 'Enter') handleCoordinateAction('fly')
               }}
-              className="w-52 rounded border border-border-default bg-surface-primary px-2 py-1 text-sm text-text-primary placeholder:text-text-muted focus:border-desert-green focus:outline-none"
+              className="nd-field !w-44 sm:!w-52 !py-1.5 nd-mono !text-xs"
+              aria-label={t('Coordinates (lat,lng)')}
             />
 
             <button
               type="button"
               onClick={() => handleCoordinateAction('fly')}
-              className="rounded border border-border-default bg-surface-primary p-2 text-text-secondary hover:bg-surface-secondary"
+              className="inline-flex size-9 items-center justify-center rounded-full border border-border-default bg-surface-primary text-text-secondary hover:border-text-muted hover:text-text-primary cursor-pointer"
               title={t('Fly to coordinates')}
+              aria-label={t('Fly to coordinates')}
             >
-              <IconPlaneTilt size={18}/>
+              <IconPlaneTilt size={18} />
             </button>
 
             <button
               type="button"
               onClick={() => handleCoordinateAction('marker')}
-              className="rounded border border-border-default bg-surface-primary p-2 text-text-secondary hover:bg-surface-secondary"
+              className="inline-flex size-9 items-center justify-center rounded-full border border-border-default bg-surface-primary text-text-secondary hover:border-text-muted hover:text-text-primary cursor-pointer"
               title={t('Add marker at coordinates')}
+              aria-label={t('Add marker at coordinates')}
             >
-              <IconMapPin size={18}/>
+              <IconMapPin size={18} />
             </button>
 
             <button
               type="button"
               onClick={() => setShowCoordinatesEnabled((prev) => !prev)}
-              className={`rounded border border-border-default p-2 transition-colors ${
+              className={`inline-flex size-9 items-center justify-center rounded-full border transition-colors cursor-pointer ${
                 showCoordinatesEnabled
-                  ? 'bg-desert-green text-white'
-                  : 'bg-surface-primary text-text-secondary hover:bg-surface-secondary'
+                  ? 'bg-accent text-accent-contrast border-accent'
+                  : 'border-border-default bg-surface-primary text-text-secondary hover:border-text-muted hover:text-text-primary'
               }`}
+              aria-pressed={showCoordinatesEnabled}
               title={showCoordinatesEnabled ? t('Hide coordinates') : t('Show coordinates')}
+              aria-label={showCoordinatesEnabled ? t('Hide coordinates') : t('Show coordinates')}
             >
-              <IconCrosshair size={18}/>
+              <IconCrosshair size={18} />
             </button>
 
-            <Link href="/settings/maps" className="mr-4">
-              <StyledButton variant="primary" icon="IconSettings">
+            <Link href="/settings/maps">
+              <StyledButton variant="primary" icon="IconSettings" size="sm">
                 {t('Manage Map Regions')}
               </StyledButton>
             </Link>

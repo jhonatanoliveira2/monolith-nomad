@@ -81,12 +81,15 @@ export default function CoreAutoUpdateSection() {
   return (
     <>
       <StyledSectionHeader title={t('Automatic Core Updates')} className="mt-8" />
-      <div className="bg-surface-primary rounded-lg border shadow-md overflow-hidden mt-6 p-6">
+      <div className="bg-surface-primary rounded-xl border overflow-hidden mt-6 p-6">
         {autoDisabled && (
           <Alert
             type="warning"
             title={t('Automatic Core Updates Disabled')}
-            message={status?.autoDisabledReason || t('Automatic core updates were disabled after repeated failures.')}
+            message={
+              status?.autoDisabledReason ||
+              t('Automatic core updates were disabled after repeated failures.')
+            }
             variant="bordered"
             className="mb-4"
           />
@@ -97,7 +100,9 @@ export default function CoreAutoUpdateSection() {
           onChange={handleToggle}
           disabled={saveMutation.isPending || isLoading}
           label={t('Enable Automatic Core Updates')}
-          description={t('Automatically install minor and patch updates during your chosen window. Major versions always require a manual update due to their potentially breaking nature.')}
+          description={t(
+            'Automatically install minor and patch updates during your chosen window. Major versions always require a manual update due to their potentially breaking nature.'
+          )}
         />
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -126,7 +131,9 @@ export default function CoreAutoUpdateSection() {
             >
               {t('Cool-off Period')}
             </label>
-            <p className="mt-1 text-sm text-text-muted">{t('Delay after a release is published')}</p>
+            <p className="mt-1 text-sm text-text-muted">
+              {t('Delay after a release is published')}
+            </p>
             <select
               id="autoUpdateCooloff"
               value={cooloff}
@@ -144,12 +151,7 @@ export default function CoreAutoUpdateSection() {
         </div>
 
         <div className="mt-4 flex justify-end">
-          <StyledButton
-            variant="primary"
-            size="sm"
-            onClick={handleSaveWindow}
-            disabled={!enabled}
-          >
+          <StyledButton variant="primary" size="sm" onClick={handleSaveWindow} disabled={!enabled}>
             {t('Save Schedule')}
           </StyledButton>
         </div>
@@ -159,20 +161,24 @@ export default function CoreAutoUpdateSection() {
             <p className="text-desert-stone-dark">
               <span className="font-medium">{t('Status:')} </span>
               {status.eligibleTarget
-                ? t('Eligible update ready: {{version}}', { version: status.eligibleTarget.version })
-                : t('No eligible update — system is current or the latest release is a major version / still in cool-off.')}
+                ? t('Eligible update ready: {{version}}', {
+                    version: status.eligibleTarget.version,
+                  })
+                : t(
+                    'No eligible update — system is current or the latest release is a major version / still in cool-off.'
+                  )}
             </p>
             <p className="text-desert-stone">
               <span className="font-medium">{t('Update window:')} </span>
-              {status.withinWindow ? t('Currently inside the window') : t('Currently outside the window')}
+              {status.withinWindow
+                ? t('Currently inside the window')
+                : t('Currently outside the window')}
             </p>
             {status.lastResult && (
               <p className="text-desert-stone">
                 <span className="font-medium">{t('Last check:')} </span>
                 {status.lastResult}
-                {status.lastAttemptAt
-                  ? ` (${formatDateTime(status.lastAttemptAt)})`
-                  : ''}
+                {status.lastAttemptAt ? ` (${formatDateTime(status.lastAttemptAt)})` : ''}
               </p>
             )}
             {status.lastError && (

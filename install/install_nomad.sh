@@ -515,12 +515,18 @@ download_management_compose_file() {
   sed -i "s|MYSQL_ROOT_PASSWORD=replaceme|MYSQL_ROOT_PASSWORD=${db_root_password}|g" "$compose_file_path"
   sed -i "s|MYSQL_PASSWORD=replaceme|MYSQL_PASSWORD=${db_user_password}|g" "$compose_file_path"
 
-  # Fuso horário: o do host (ex.: America/Sao_Paulo), para logs e a janela de atualização automática.
-  # Sem um nome de fuso válido, fica o padrão do compose.
-  local host_tz=''
-  host_tz=$(timedatectl show -p Timezone --value 2>/dev/null || true)
-  if [[ -z "$host_tz" && -L /etc/localtime ]]; then
-    host_tz=$(readlink /etc/localtime | sed 's|.*/zoneinfo/||')
+  # Fuso horário, para logs e a janela de atualização automática. Ordem: NOMAD_TZ (ex.: America/Manaus),
+  # o fuso do host e, se o host estiver em UTC (padrão do Ubuntu Server) ou sem fuso, o padrão do compose,
+  # America/Sao_Paulo (horário de Brasília). Depois da instalação, a Configuração Rápida permite trocar.
+  local host_tz="${NOMAD_TZ:-}"
+  if [[ -z "$host_tz" ]]; then
+    host_tz=$(timedatectl show -p Timezone --value 2>/dev/null || true)
+    if [[ -z "$host_tz" && -L /etc/localtime ]]; then
+      host_tz=$(readlink /etc/localtime | sed 's|.*/zoneinfo/||')
+    fi
+  fi
+  if [[ "$host_tz" =~ ^(Etc/)?(UTC|UCT|GMT|Universal|Zulu)$ ]]; then
+    host_tz=''
   fi
   if [[ "$host_tz" =~ ^[A-Za-z_]+(/[A-Za-z0-9_+-]+)*$ ]]; then
     sed -i "s|TZ=America/Sao_Paulo|TZ=${host_tz}|g" "$compose_file_path"
@@ -528,6 +534,19 @@ download_management_compose_file() {
   fi
   
   echo -e "${GREEN}#${RESET} Arquivo docker compose configurado com sucesso.\\n"
+}
+
+# Locale pt_BR.UTF-8 no host (datas, números e mensagens em português nos utilitários do sistema).
+# Só gera o locale quando falta; não muda o locale padrão do sistema nem o layout de teclado.
+ensure_ptbr_locale() {
+  if locale -a 2>/dev/null | grep -qiE '^pt_BR\.utf-?8$'; then
+    return 0
+  fi
+  if command -v locale-gen >/dev/null 2>&1; then
+    echo -e "${YELLOW}#${RESET} Gerando o locale pt_BR.UTF-8...\\n"
+    sudo locale-gen pt_BR.UTF-8 >/dev/null 2>&1 \
+      || echo -e "${YELLOW}#${RESET} Não foi possível gerar o locale pt_BR.UTF-8 (opcional, a instalação continua).\\n"
+  fi
 }
 
 download_helper_scripts() {
@@ -853,6 +872,7 @@ main() {
   run_host_preflight "$preflight_compose_file"
 
   create_nomad_directory
+  ensure_ptbr_locale
   download_helper_scripts
   download_management_compose_file "$preflight_compose_file"
   start_management_containers

@@ -25,7 +25,13 @@ export function hasAcknowledgedDrugDisclaimer(): boolean {
  * acceptance is saved to this browser's localStorage so it isn't shown again on
  * this browser — other browsers/devices see it on their first open.
  */
-export default function DrugDisclaimerModal({ open, onAcknowledge }: { open: boolean; onAcknowledge: () => void }) {
+export default function DrugDisclaimerModal({
+  open,
+  onAcknowledge,
+}: {
+  open: boolean
+  onAcknowledge: () => void
+}) {
   const { t } = useTranslation()
   const acknowledge = () => {
     try {
@@ -41,7 +47,7 @@ export default function DrugDisclaimerModal({ open, onAcknowledge }: { open: boo
       <DialogBackdrop className="fixed inset-0 bg-black/60" />
       <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
         <div className="flex min-h-full items-end justify-center p-4 sm:items-center sm:p-0">
-          <DialogPanel className="relative w-full transform overflow-hidden rounded-lg bg-surface-primary px-5 pb-5 pt-6 text-left shadow-xl transition-all sm:my-8 sm:max-w-lg sm:p-6">
+          <DialogPanel className="relative w-full transform overflow-hidden rounded-xl bg-surface-primary px-5 pb-5 pt-6 text-left shadow-xl transition-all sm:my-8 sm:max-w-lg sm:p-6">
             <div className="flex flex-col items-center text-center">
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-desert-orange/15 text-desert-orange-dark">
                 <IconAlertTriangle size={26} />
@@ -90,7 +96,9 @@ export default function DrugDisclaimerModal({ open, onAcknowledge }: { open: boo
                 </li>
               </ul>
               <p className="text-xs text-text-muted">
-                {t('Data is from openFDA (U.S. FDA, public domain). monolith-nomad is not affiliated with or endorsed by the FDA.')}
+                {t(
+                  'Data is from openFDA (U.S. FDA, public domain). monolith-nomad is not affiliated with or endorsed by the FDA.'
+                )}
               </p>
             </div>
 

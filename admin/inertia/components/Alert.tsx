@@ -15,6 +15,13 @@ export type AlertProps = React.HTMLAttributes<HTMLDivElement> & {
   buttonProps?: StyledButtonProps
 }
 
+type Tone = 'warning' | 'error' | 'success' | 'info'
+
+/**
+ * Notice block. Semantic colour only where it carries meaning (warning, error, success); information is
+ * monochrome. `solid` is the strong form: a filled block for warning/error/success, and a raised
+ * neutral panel for information, so the inverted primary button inside stays readable in both themes.
+ */
 export default function Alert({
   title,
   message,
@@ -28,185 +35,118 @@ export default function Alert({
   ...props
 }: AlertProps) {
   const { t } = useTranslation()
-  const getDefaultIcon = (): DynamicIconName => {
-    switch (type) {
-      case 'warning':
-        return 'IconAlertTriangle'
-      case 'error':
-        return 'IconXboxX'
-      case 'success':
-        return 'IconCircleCheck'
-      case 'info':
-        return 'IconInfoCircle'
-      default:
-        return 'IconInfoCircle'
+  const tone: Tone = type === 'info-inverted' ? 'info' : type
+  // Strong alerts are tinted panels with a semantic border, never a full slab of colour
+  // (Nothing: accent colour used sparingly; meaning is carried by icon, title and border).
+  const filled = false
+
+  const defaultIcon: DynamicIconName =
+    tone === 'warning'
+      ? 'IconAlertTriangle'
+      : tone === 'error'
+        ? 'IconAlertCircle'
+        : tone === 'success'
+          ? 'IconCircleCheck'
+          : 'IconInfoCircle'
+
+  const container = (() => {
+    if (filled) {
+      return {
+        warning: 'bg-desert-orange border-desert-orange text-white',
+        error: 'bg-desert-red border-desert-red text-white',
+        success: 'bg-desert-olive border-desert-olive text-white',
+        info: '',
+      }[tone]
     }
-  }
-
-  const getIconColor = () => {
-    if (variant === 'solid') return 'text-white'
-    switch (type) {
-      case 'warning':
-        return 'text-desert-orange'
-      case 'error':
-        return 'text-desert-red'
-      case 'success':
-        return 'text-desert-olive'
-      case 'info':
-        return 'text-desert-stone'
-      default:
-        return 'text-desert-stone'
-    }
-  }
-
-  const getVariantStyles = () => {
-    const baseStyles = 'rounded-lg transition-all duration-200'
-    const variantStyles: string[] = []
-
-    switch (variant) {
-      case 'bordered':
-        variantStyles.push(
-          type === 'warning'
-            ? 'border-desert-orange'
-            : type === 'error'
-              ? 'border-desert-red'
-              : type === 'success'
-                ? 'border-desert-olive'
-                : type === 'info'
-                  ? 'border-desert-stone'
-                  : type === 'info-inverted'
-                    ? 'border-desert-tan'
-                  : ''
-        )
-        return classNames(baseStyles, 'border-2 bg-desert-white shadow-md', ...variantStyles)
-      case 'solid':
-        variantStyles.push(
-          type === 'warning'
-            ? 'bg-desert-orange text-white border border-desert-orange-dark'
-            : type === 'error'
-              ? 'bg-desert-red text-white border border-desert-red-dark'
-              : type === 'success'
-                ? 'bg-desert-olive text-white border border-desert-olive-dark'
-                : type === 'info'
-                  ? 'bg-desert-green text-white border border-desert-green-dark'
-                  : type === 'info-inverted'
-                    ? 'bg-desert-tan text-white border border-desert-tan-dark'
-                  : ''
-        )
-        return classNames(baseStyles, 'shadow-lg', ...variantStyles)
-      default:
-        variantStyles.push(
-          type === 'warning'
-            ? 'bg-desert-orange-lighter bg-opacity-20 border-desert-orange-light'
-            : type === 'error'
-              ? 'bg-desert-red-lighter bg-opacity-20 border-desert-red-light'
-              : type === 'success'
-                ? 'bg-desert-olive-lighter bg-opacity-20 border-desert-olive-light'
-                : type === 'info'
-                  ? 'bg-desert-green bg-opacity-20 border-desert-green-light'
-                  : type === 'info-inverted'
-                  ? 'bg-desert-tan bg-opacity-20 border-desert-tan-light'
-                  : ''
-        )
-        return classNames(baseStyles, 'border-l-4 border-y border-r shadow-sm', ...variantStyles)
-    }
-  }
-
-  const getTitleColor = () => {
-    if (variant === 'solid') return 'text-white'
-
-    switch (type) {
-      case 'warning':
-        return 'text-desert-orange-dark'
-      case 'error':
-        return 'text-desert-red-dark'
-      case 'success':
-        return 'text-desert-olive-dark'
-      case 'info':
-        return 'text-desert-stone-dark'
-      case 'info-inverted':
-        return 'text-desert-tan-dark'
-      default:
-        return 'text-desert-stone-dark'
-    }
-  }
-
-  const getMessageColor = () => {
-    if (variant === 'solid') return 'text-white text-opacity-90'
-
-    switch (type) {
-      case 'warning':
-        return 'text-desert-orange-dark text-opacity-80'
-      case 'error':
-        return 'text-desert-red-dark text-opacity-80'
-      case 'success':
-        return 'text-desert-olive-dark text-opacity-80'
-      case 'info':
-        return 'text-desert-stone-dark text-opacity-80'
-      default:
-        return 'text-desert-stone-dark text-opacity-80'
-    }
-  }
-
-  const getCloseButtonStyles = () => {
     if (variant === 'solid') {
-      return 'text-white hover:text-white hover:bg-black hover:bg-opacity-20'
+      return {
+        warning: 'bg-desert-orange-lighter border-desert-orange',
+        error: 'bg-desert-red-lighter border-desert-red',
+        success: 'bg-desert-olive-lighter border-desert-olive',
+        info: 'bg-surface-elevated border-border-default',
+      }[tone]
     }
+    if (variant === 'bordered') {
+      return {
+        warning: 'bg-surface-primary border-desert-orange-light',
+        error: 'bg-surface-primary border-desert-red-light',
+        success: 'bg-surface-primary border-desert-olive-light',
+        info: 'bg-surface-elevated border-border-default',
+      }[tone]
+    }
+    return {
+      warning: 'bg-desert-orange-lighter border-desert-orange-light',
+      error: 'bg-desert-red-lighter border-desert-red-light',
+      success: 'bg-desert-olive-lighter border-desert-olive-light',
+      info: 'bg-surface-secondary border-border-default',
+    }[tone]
+  })()
 
-    switch (type) {
-      case 'warning':
-        return 'text-desert-orange hover:text-desert-orange-dark hover:bg-desert-orange-lighter hover:bg-opacity-30'
-      case 'error':
-        return 'text-desert-red hover:text-desert-red-dark hover:bg-desert-red-lighter hover:bg-opacity-30'
-      case 'success':
-        return 'text-desert-olive hover:text-desert-olive-dark hover:bg-desert-olive-lighter hover:bg-opacity-30'
-      case 'info':
-        return 'text-desert-stone hover:text-desert-stone-dark hover:bg-desert-stone-lighter hover:bg-opacity-30'
-      default:
-        return 'text-desert-stone hover:text-desert-stone-dark hover:bg-desert-stone-lighter hover:bg-opacity-30'
-    }
-  }
+  const accent = filled
+    ? 'text-white'
+    : {
+        warning: 'text-desert-orange-dark',
+        error: 'text-desert-red-dark',
+        success: 'text-desert-olive-dark',
+        info: 'text-text-primary',
+      }[tone]
+
+  const body = filled
+    ? 'text-white/90'
+    : variant !== 'bordered' && tone !== 'info'
+      ? accent
+      : 'text-text-secondary'
 
   return (
-    <div {...props} className={classNames(getVariantStyles(), 'p-5', props.className)} role="alert">
-      <div className="flex gap-4 items-center">
-        <div className="flex-shrink-0 mt-0.5">
-          <DynamicIcon icon={icon || getDefaultIcon()} className={classNames(getIconColor(), 'size-6')} />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <h3 className={classNames('text-base font-semibold leading-tight', getTitleColor())}>{title}</h3>
-          {message && (
-            <div className={classNames('mt-2 text-sm leading-relaxed', getMessageColor())}>
-              <p>{message}</p>
-            </div>
-          )}
-          {children && <div className="mt-3">{children}</div>}
-        </div>
-
-        {buttonProps && (
-          <div className="flex-shrink-0 ml-auto">
-            <StyledButton {...buttonProps} />
-          </div>
-        )}
-
-        {dismissible && (
-          <button
-            type="button"
-            onClick={onDismiss}
-            className={classNames(
-              'flex-shrink-0 rounded-lg p-1.5 transition-all duration-200',
-              getCloseButtonStyles(),
-              'focus:outline-none focus:ring-2 focus:ring-offset-1',
-              type === 'warning' ? 'focus:ring-desert-orange' : '',
-              type === 'error' ? 'focus:ring-desert-red' : '',
-              type === 'success' ? 'focus:ring-desert-olive' : '',
-              type === 'info' ? 'focus:ring-desert-stone' : ''
+    <div
+      {...props}
+      className={classNames(
+        'rounded-[var(--radius-card)] border px-5 py-4 animate-nd-fade',
+        container,
+        props.className
+      )}
+      role={tone === 'error' || tone === 'warning' ? 'alert' : 'status'}
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <div className="flex min-w-0 flex-1 gap-3">
+          <DynamicIcon
+            icon={icon || defaultIcon}
+            className={classNames('mt-0.5 size-5 shrink-0', accent)}
+          />
+          <div className="min-w-0 flex-1">
+            <h3 className={classNames('text-sm font-medium leading-snug', accent)}>{title}</h3>
+            {message && (
+              <p className={classNames('mt-1 text-sm leading-relaxed', body)}>{message}</p>
             )}
-            aria-label={t('Dismiss alert')}
-          >
-            <DynamicIcon icon="IconX" className="size-4" />
-          </button>
+            {children && <div className="mt-3">{children}</div>}
+          </div>
+        </div>
+
+        {(buttonProps || dismissible) && (
+          <div className="flex shrink-0 items-center gap-2 self-end sm:self-center">
+            {buttonProps && (
+              <StyledButton
+                size="sm"
+                {...buttonProps}
+                variant={filled ? 'secondary' : buttonProps.variant}
+              />
+            )}
+            {dismissible && (
+              <button
+                type="button"
+                onClick={onDismiss}
+                className={classNames(
+                  'rounded-full p-1.5 transition-colors duration-[140ms] cursor-pointer',
+                  filled
+                    ? 'text-white hover:bg-black/20'
+                    : 'text-text-muted hover:bg-surface-elevated hover:text-text-primary'
+                )}
+                aria-label={t('Dismiss alert')}
+              >
+                <DynamicIcon icon="IconX" className="size-4" />
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

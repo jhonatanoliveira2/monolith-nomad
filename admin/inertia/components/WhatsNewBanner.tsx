@@ -64,7 +64,7 @@ export default function WhatsNewBanner() {
   }
 
   return (
-    <div className="flex justify-center items-center p-4 w-full">
+    <div className="w-full">
       <Alert
         title={t(WHATS_NEW.title)}
         type="info-inverted"
@@ -79,7 +79,7 @@ export default function WhatsNewBanner() {
           onClick: () => router.visit('/docs/release-notes'),
         }}
       >
-        <ul className="mt-1 list-disc list-inside space-y-1 text-white text-opacity-90 text-sm leading-relaxed">
+        <ul className="mt-1 list-disc list-inside space-y-1 text-text-secondary text-sm leading-relaxed">
           {WHATS_NEW.highlights.map((highlight) => (
             <li key={highlight}>{t(highlight)}</li>
           ))}

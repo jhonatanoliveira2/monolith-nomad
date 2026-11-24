@@ -3,7 +3,8 @@ import { join, resolve } from 'node:path'
 import { createHash } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import logger from '@adonisjs/core/services/logger'
-import type { Country, CountryCode, CountryGroup } from '../../types/maps.js'
+import type { Country, CountryCode, CountryGroup, Subdivision } from '../../types/maps.js'
+import { BRAZIL_STATES } from '../../constants/brazil.js'
 
 interface NEFeature {
   type: 'Feature'
@@ -21,6 +22,16 @@ const COUNTRY_GEOJSON_PATH = join(
   'resources',
   'geodata',
   'ne_50m_admin_0_countries.geojson'
+)
+
+// Brazilian federative units (ISO 3166-2, e.g. BR-SP) for state and region map extracts. Natural Earth
+// admin-1, public domain, filtered to Brazil. Registered in the same code index as countries so the
+// region file and the pmtiles dry run work unchanged; listed separately from countries.
+const BRAZIL_GEOJSON_PATH = join(
+  process.cwd(),
+  'resources',
+  'geodata',
+  'ne_50m_admin_1_brazil.geojson'
 )
 
 // Natural Earth country polygons are land-only (no territorial waters), so a
@@ -70,6 +81,7 @@ export class CountriesService {
   private countries: Country[] = []
   private byCode: Map<CountryCode, { country: Country; feature: NEFeature }> = new Map()
   private groups: CountryGroup[] = []
+  private subdivisions: Subdivision[] = []
 
   static getInstance(): CountriesService {
     if (!this.instance) {
@@ -139,9 +151,12 @@ export class CountriesService {
       return [{ id: meta.id, name: meta.name, description: meta.description, countries: codes }]
     })
 
+    const subdivisions = await this.loadBrazilSubdivisions(byCode)
+
     this.countries = countries
     this.byCode = byCode
     this.groups = groups
+    this.subdivisions = subdivisions
 
     logger.info(
       `[CountriesService] Loaded ${countries.length} countries across ${groups.length} groups`
@@ -156,6 +171,50 @@ export class CountriesService {
   async listGroups(): Promise<CountryGroup[]> {
     await this.ensureLoaded()
     return this.groups
+  }
+
+  /** States/provinces of a country available for extracts (today: Brazil's 27 federative units). */
+  async listSubdivisions(country: CountryCode): Promise<Subdivision[]> {
+    await this.ensureLoaded()
+    const code = country.toUpperCase()
+    return this.subdivisions.filter((s) => s.country === code)
+  }
+
+  private async loadBrazilSubdivisions(
+    byCode: Map<CountryCode, { country: Country; feature: NEFeature }>
+  ): Promise<Subdivision[]> {
+    let fc: NEFeatureCollection
+    try {
+      fc = JSON.parse(await readFile(BRAZIL_GEOJSON_PATH, 'utf8')) as NEFeatureCollection
+    } catch (err) {
+      logger.warn(`[CountriesService] Brazilian states not loaded: ${(err as Error).message}`)
+      return []
+    }
+    const meta = new Map(BRAZIL_STATES.map((s) => [s.code, s]))
+    const out: Subdivision[] = []
+    for (const feature of fc.features) {
+      const code = String(feature.properties.iso_3166_2 ?? '').toUpperCase()
+      const state = meta.get(code)
+      if (!state) continue
+      const country: Country = {
+        code,
+        code3: code,
+        name: state.name,
+        continent: 'South America',
+        subregion: state.region,
+        population: 0,
+      }
+      byCode.set(code, { country, feature })
+      out.push({
+        code,
+        country: 'BR',
+        uf: state.uf,
+        name: state.name,
+        region: state.region,
+        timezone: state.timezone,
+      })
+    }
+    return out.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
   }
 
   /** Throws when a supplied code does not map to a known country. */

@@ -7,18 +7,19 @@ export interface StyledSectionHeaderProps {
   className?: string
 }
 
+/** Section title inside a page: a lit LED, the title and a dotted rule to the edge (Nothing). */
 const StyledSectionHeader = ({ title, level = 2, className }: StyledSectionHeaderProps) => {
   const Heading = `h${level}` as keyof JSX.IntrinsicElements
   return (
     <Heading
       className={classNames(
-        'text-2xl font-bold text-desert-green mb-6 flex items-center gap-2',
+        'text-xl font-medium text-text-primary mb-5 flex items-center gap-3',
         className
       )}
     >
-      {/* Nothing theme: a lit LED instead of the colour bar */}
-      <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-accent" />
-      {title}
+      <span aria-hidden="true" className="nd-led text-led" />
+      <span className="shrink-0">{title}</span>
+      <span aria-hidden="true" className="nd-rule flex-1 min-w-8" />
     </Heading>
   )
 }

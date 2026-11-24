@@ -33,7 +33,7 @@ export default function Switch({
           {label && (
             <label
               htmlFor={switchId}
-              className="text-base font-medium text-text-primary cursor-pointer"
+              className="text-sm font-medium text-text-primary cursor-pointer"
             >
               {label}
             </label>
@@ -51,15 +51,16 @@ export default function Switch({
           onClick={() => !disabled && onChange(indeterminate ? true : !checked)}
           className={clsx(
             'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent',
-            'transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-desert-green focus:ring-offset-2',
-            indeterminate ? 'bg-desert-orange' : checked ? 'bg-desert-green' : 'bg-border-default',
+            'transition-colors duration-[240ms] ease-[cubic-bezier(0.2,0,0,1)] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary',
+            indeterminate ? 'bg-desert-orange' : checked ? 'bg-accent' : 'bg-led-off',
             disabled ? 'opacity-50 cursor-not-allowed' : ''
           )}
         >
           <span
             className={clsx(
-              'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0',
-              'transition duration-200 ease-in-out',
+              'pointer-events-none inline-block h-5 w-5 transform rounded-full ring-0',
+              'transition duration-[240ms] ease-[cubic-bezier(0.2,0,0,1)]',
+              checked && !indeterminate ? 'bg-accent-contrast' : 'bg-white',
               indeterminate ? 'translate-x-2.5' : checked ? 'translate-x-5' : 'translate-x-0'
             )}
           />

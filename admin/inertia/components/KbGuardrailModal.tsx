@@ -59,7 +59,7 @@ export default function KbGuardrailModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-lg bg-surface-primary shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-xl bg-surface-primary shadow-xl transition-all">
                 <div className="bg-desert-orange-lighter px-6 py-4 border-b border-desert-orange-light flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
                     <IconAlertTriangle className="h-6 w-6 text-desert-orange-dark flex-shrink-0 mt-0.5" />
@@ -85,12 +85,17 @@ export default function KbGuardrailModal({
 
                   {freeReason && (
                     <p className="text-text-secondary text-sm">
-                      {t("That's more than 10% of your remaining free disk space ({{free}} free). Embedding can take several hours and is hard to interrupt cleanly once started.", { free: formatBytes(freeReason.freeBytes, 1) })}
+                      {t(
+                        "That's more than 10% of your remaining free disk space ({{free}} free). Embedding can take several hours and is hard to interrupt cleanly once started.",
+                        { free: formatBytes(freeReason.freeBytes, 1) }
+                      )}
                     </p>
                   )}
 
                   <p className="text-text-secondary text-sm">
-                    {t("If you'd rather review per-item before indexing, cancel here and switch your Auto-index setting to Manual from the Knowledge Base panel.")}
+                    {t(
+                      "If you'd rather review per-item before indexing, cancel here and switch your Auto-index setting to Manual from the Knowledge Base panel."
+                    )}
                   </p>
                 </div>
 

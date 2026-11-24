@@ -5,7 +5,11 @@ import StyledButton from '~/components/StyledButton'
 import InteractionColumn from '~/components/drug-reference/InteractionColumn'
 import IngestStatus from '~/components/drug-reference/IngestStatus'
 import { IconAlertTriangle, IconArrowLeft } from '@tabler/icons-react'
-import type { DrugSearchResult, DrugIngestStatus, DrugInteractionEntry } from '../../../types/drug_reference'
+import type {
+  DrugSearchResult,
+  DrugIngestStatus,
+  DrugInteractionEntry,
+} from '../../../types/drug_reference'
 import { MAX_COMPARE, parseCompareIds } from '../../../util/compare_ids'
 import { Trans, useTranslation } from 'react-i18next'
 
@@ -79,27 +83,30 @@ export default function DrugReferenceInteractions({ ingestStatus, rowCount }: Pa
   }, [selectedIds])
 
   // ── Picker search ──────────────────────────────────────────────────────────
-  const doSearch = useCallback(async (q: string) => {
-    if (!q.trim()) {
-      setPickerResults([])
-      setPickerSearched(false)
-      return
-    }
-    setPickerLoading(true)
-    setPickerError(null)
-    try {
-      const params = new URLSearchParams({ q, limit: '20' })
-      const resp = await fetch(`/api/drug-reference/search?${params}`)
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
-      const json = (await resp.json()) as { results: DrugSearchResult[] }
-      setPickerResults(json.results ?? [])
-      setPickerSearched(true)
-    } catch (err) {
-      setPickerError(err instanceof Error ? err.message : t('Search failed'))
-    } finally {
-      setPickerLoading(false)
-    }
-  }, [t])
+  const doSearch = useCallback(
+    async (q: string) => {
+      if (!q.trim()) {
+        setPickerResults([])
+        setPickerSearched(false)
+        return
+      }
+      setPickerLoading(true)
+      setPickerError(null)
+      try {
+        const params = new URLSearchParams({ q, limit: '20' })
+        const resp = await fetch(`/api/drug-reference/search?${params}`)
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+        const json = (await resp.json()) as { results: DrugSearchResult[] }
+        setPickerResults(json.results ?? [])
+        setPickerSearched(true)
+      } catch (err) {
+        setPickerError(err instanceof Error ? err.message : t('Search failed'))
+      } finally {
+        setPickerLoading(false)
+      }
+    },
+    [t]
+  )
 
   const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value
@@ -126,27 +133,32 @@ export default function DrugReferenceInteractions({ ingestStatus, rowCount }: Pa
     <AppLayout compact>
       <Head title={t('Compare label warnings')} />
 
-      <div className="p-4 max-w-7xl mx-auto">
+      <div className="nd-page">
         {/* Back nav */}
         <Link
           href="/drug-reference"
-          className="inline-flex items-center gap-1 text-sm text-desert-green hover:underline mb-4"
+          className="nd-eyebrow inline-flex items-center gap-1.5 hover:!text-text-primary mb-4"
         >
           <IconArrowLeft size={16} />
           {t('Drug Reference')}
         </Link>
 
         <div className="mb-5">
-          <h1 className="text-2xl font-bold mb-1">{t('Compare label warnings')}</h1>
+          <h1 className="text-3xl sm:text-4xl font-medium text-text-primary leading-tight mb-2">
+            {t('Compare label warnings')}
+          </h1>
           <p className="text-sm opacity-70">
-            {t("View each drug's FDA-labeled interaction warnings side by side. Select up to {{max}} drugs.", {
-              max: MAX_COMPARE,
-            })}
+            {t(
+              "View each drug's FDA-labeled interaction warnings side by side. Select up to {{max}} drugs.",
+              {
+                max: MAX_COMPARE,
+              }
+            )}
           </p>
         </div>
 
         {/* ── Prominent amber disclaimer — always visible ──────────────────── */}
-        <div className="flex gap-3 items-start bg-desert-orange-lighter border border-desert-orange-light rounded-lg px-4 py-3 mb-6">
+        <div className="flex gap-3 items-start bg-desert-orange-lighter border border-desert-orange-light rounded-xl px-4 py-3 mb-6">
           <IconAlertTriangle size={20} className="text-desert-orange-dark flex-shrink-0 mt-0.5" />
           <p className="text-sm text-desert-orange-dark leading-relaxed">
             <Trans
@@ -158,10 +170,12 @@ export default function DrugReferenceInteractions({ ingestStatus, rowCount }: Pa
 
         {isEmpty ? (
           // ── Empty state (no data ingested) ─────────────────────────────────
-          <div className="border-2 border-dashed border-border-default rounded-lg p-8 text-center">
+          <div className="border-2 border-dashed border-border-default rounded-xl p-8 text-center">
             <p className="text-lg font-semibold mb-2">{t('No FDA drug data yet')}</p>
             <p className="mb-6 opacity-70">
-              {t('Download the openFDA drug-label dataset to enable offline search and comparison.')}
+              {t(
+                'Download the openFDA drug-label dataset to enable offline search and comparison.'
+              )}
             </p>
             <Link href="/drug-reference">
               <StyledButton variant="primary" onClick={() => {}}>
@@ -177,9 +191,11 @@ export default function DrugReferenceInteractions({ ingestStatus, rowCount }: Pa
         ) : (
           <>
             {/* ── Drug picker ───────────────────────────────────────────────── */}
-            <div className="mb-6 border border-border-subtle rounded-lg p-4 bg-surface-secondary">
+            <div className="mb-6 border border-border-subtle rounded-xl p-4 bg-surface-secondary">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-text-primary">{t('Select drugs to compare')}</h2>
+                <h2 className="text-sm font-semibold text-text-primary">
+                  {t('Select drugs to compare')}
+                </h2>
                 {atMax && (
                   <span className="text-xs text-desert-orange-dark bg-desert-orange-lighter border border-desert-orange-light rounded px-2 py-0.5">
                     {t('Maximum {{max}} drugs reached', { max: MAX_COMPARE })}
@@ -199,7 +215,9 @@ export default function DrugReferenceInteractions({ ingestStatus, rowCount }: Pa
                       <button
                         type="button"
                         onClick={() => removeId(entry.id)}
-                        aria-label={t('Remove {{name}}', { name: entry.brand_name ?? entry.generic_name })}
+                        aria-label={t('Remove {{name}}', {
+                          name: entry.brand_name ?? entry.generic_name,
+                        })}
                         className="hover:opacity-70 transition-opacity leading-none"
                       >
                         ×
@@ -246,10 +264,12 @@ export default function DrugReferenceInteractions({ ingestStatus, rowCount }: Pa
                 <div className="mt-2 text-xs text-desert-red-dark">{pickerError}</div>
               )}
               {pickerSearched && pickerResults.length === 0 && !pickerLoading && (
-                <div className="mt-2 text-xs text-text-secondary">{t('No results for "{{query}}"', { query })}</div>
+                <div className="mt-2 text-xs text-text-secondary">
+                  {t('No results for "{{query}}"', { query })}
+                </div>
               )}
               {pickerResults.length > 0 && !atMax && (
-                <div className="mt-2 border border-border-subtle rounded-lg overflow-hidden divide-y divide-border-subtle max-h-64 overflow-y-auto bg-surface-primary">
+                <div className="mt-2 border border-border-subtle rounded-xl overflow-hidden divide-y divide-border-subtle max-h-64 overflow-y-auto bg-surface-primary">
                   {pickerResults.map((r) => (
                     <PickerRow
                       key={r.id}
@@ -264,8 +284,10 @@ export default function DrugReferenceInteractions({ ingestStatus, rowCount }: Pa
 
             {/* ── Comparison columns ────────────────────────────────────────── */}
             {selectedIds.length === 0 ? (
-              <div className="text-center py-12 text-text-muted border-2 border-dashed border-border-subtle rounded-lg">
-                <p className="text-sm">{t('Select drugs above to compare their labeled interaction warnings.')}</p>
+              <div className="text-center py-12 text-text-muted border-2 border-dashed border-border-subtle rounded-xl">
+                <p className="text-sm">
+                  {t('Select drugs above to compare their labeled interaction warnings.')}
+                </p>
               </div>
             ) : loadingEntries ? (
               <div className="text-center py-12 text-text-muted">

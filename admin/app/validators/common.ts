@@ -161,6 +161,12 @@ export const downloadCategoryTierValidator = vine.compile(
   vine.object({
     categorySlug: vine.string().trim().minLength(1),
     tierSlug: vine.string().trim().minLength(1),
+    // Optional subset (setup wizard: Portuguese-only profiles, English opt-ins, custom picks).
+    // Every id must belong to the category; omitted = the whole tier, as before.
+    resourceIds: vine
+      .array(vine.string().trim().minLength(1).maxLength(200))
+      .maxLength(200)
+      .optional(),
   })
 )
 
@@ -189,13 +195,25 @@ export const applyAllContentUpdatesValidator = vine.compile(
 
 // --- Map extract (regional pmtiles download) ---
 
-// ISO 3166-1 alpha-2, 2 letters. Loose regex; CountriesService.resolveCodes
-// does the authoritative check against the polygon dataset.
+// ISO 3166-1 alpha-2 country (BR) or ISO 3166-2 subdivision (BR-SP). Loose regex;
+// CountriesService.resolveCodes does the authoritative check against the polygon dataset.
 const countryCodeSchema = vine
   .string()
   .trim()
   .toUpperCase()
-  .regex(/^[A-Z]{2}$/)
+  .regex(/^[A-Z]{2}(-[A-Z0-9]{1,3})?$/)
+
+export const countrySubdivisionsValidator = vine.compile(
+  vine.object({
+    params: vine.object({
+      code: vine
+        .string()
+        .trim()
+        .toUpperCase()
+        .regex(/^[A-Z]{2}$/),
+    }),
+  })
+)
 
 const countriesArraySchema = vine.array(countryCodeSchema).minLength(1).maxLength(300)
 

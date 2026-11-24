@@ -325,7 +325,16 @@ export class ZimService {
     return manifestService.getCategoriesWithStatus()
   }
 
-  async downloadCategoryTier(categorySlug: string, tierSlug: string): Promise<string[] | null> {
+  /**
+   * Queue the resources of a category tier. With `resourceIds`, only that subset is queued (the setup
+   * wizard's Portuguese-first profiles and custom selections); the ids must belong to the category.
+   * Installed resources and downloads already in flight are always skipped (no duplicates).
+   */
+  async downloadCategoryTier(
+    categorySlug: string,
+    tierSlug: string,
+    resourceIds?: string[]
+  ): Promise<string[] | null> {
     const manifestService = new CollectionManifestService()
     const spec =
       await manifestService.getSpecWithFallback<
@@ -345,7 +354,18 @@ export class ZimService {
       throw new Error(`Tier not found: ${tierSlug}`)
     }
 
-    const allResources = CollectionManifestService.resolveTierResources(tier, category.tiers)
+    let allResources = CollectionManifestService.resolveTierResources(tier, category.tiers)
+    if (resourceIds) {
+      // any resource of the category may be picked, whatever tier introduces it (custom selection)
+      const byId = new Map(
+        category.tiers.flatMap((t) => t.resources).map((r) => [r.id, r] as const)
+      )
+      const unknown = resourceIds.filter((id) => !byId.has(id))
+      if (unknown.length > 0) {
+        throw new Error(`Resource(s) not in category ${categorySlug}: ${unknown.join(', ')}`)
+      }
+      allResources = [...new Set(resourceIds)].map((id) => byId.get(id)!)
+    }
 
     // Filter out already installed. Includes 'dataset' rows (the FDA drug labels)
     // alongside 'zim' so an installed dataset is filtered out here — without it,

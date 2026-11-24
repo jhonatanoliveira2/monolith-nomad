@@ -7,11 +7,15 @@ import { useTranslation } from 'react-i18next'
 
 export interface CuratedCollectionCardProps {
   collection: CollectionWithStatus
-  onClick?: (collection: CollectionWithStatus) => void;
+  onClick?: (collection: CollectionWithStatus) => void
   size?: 'small' | 'large'
 }
 
-const CuratedCollectionCard: React.FC<CuratedCollectionCardProps> = ({ collection, onClick, size = 'small' }) => {
+const CuratedCollectionCard: React.FC<CuratedCollectionCardProps> = ({
+  collection,
+  onClick,
+  size = 'small',
+}) => {
   const { t } = useTranslation()
   const totalSizeBytes = collection.resources?.reduce(
     (acc, resource) => acc + resource.size_mb * 1024 * 1024,
@@ -20,10 +24,15 @@ const CuratedCollectionCard: React.FC<CuratedCollectionCardProps> = ({ collectio
   return (
     <div
       className={classNames(
-        'flex flex-col bg-desert-green rounded-lg p-6 text-white border border-b-desert-green shadow-sm hover:shadow-lg transition-shadow cursor-pointer',
-        { 'opacity-65 cursor-not-allowed !hover:shadow-sm': collection.all_installed },
-        { 'h-56': size === 'small', 'h-80': size === 'large' }
+        'flex flex-col bg-neutral-950 rounded-[var(--radius-card)] p-6 text-white border border-neutral-800 cursor-pointer',
+        'transition-[border-color,transform] duration-[140ms] ease-[cubic-bezier(0.2,0,0,1)] hover:border-neutral-500 active:scale-[0.995]',
+        'focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+        { 'opacity-65 cursor-not-allowed hover:border-neutral-800': collection.all_installed },
+        { 'min-h-56': size === 'small', 'min-h-80': size === 'large' }
       )}
+      role="button"
+      tabIndex={collection.all_installed ? -1 : 0}
+      aria-disabled={collection.all_installed || undefined}
       onClick={() => {
         if (collection.all_installed) {
           return
@@ -32,12 +41,18 @@ const CuratedCollectionCard: React.FC<CuratedCollectionCardProps> = ({ collectio
           onClick(collection)
         }
       }}
+      onKeyDown={(e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && !collection.all_installed && onClick) {
+          e.preventDefault()
+          onClick(collection)
+        }
+      }}
     >
       <div className="flex items-center mb-4">
         <div className="flex justify-between w-full items-center">
           <div className="flex">
             <DynamicIcon icon={collection.icon as DynamicIconName} className="w-6 h-6 mr-2" />
-            <h3 className="text-lg font-semibold">{collection.name}</h3>
+            <h3 className="text-lg font-medium">{collection.name}</h3>
           </div>
           {collection.all_installed && (
             <div className="flex items-center">
@@ -51,8 +66,11 @@ const CuratedCollectionCard: React.FC<CuratedCollectionCardProps> = ({ collectio
         </div>
       </div>
       <p className="text-neutral-200 grow">{collection.description}</p>
-      <p className="text-neutral-200 text-xs mt-2">
-        {t('Items: {{count}} | Size: {{size}}', { count: collection.resources?.length ?? 0, size: formatBytes(totalSizeBytes, 0) })}
+      <p className="nd-mono text-neutral-400 text-[11px] mt-3">
+        {t('Items: {{count}} | Size: {{size}}', {
+          count: collection.resources?.length ?? 0,
+          size: formatBytes(totalSizeBytes, 0),
+        })}
       </p>
     </div>
   )

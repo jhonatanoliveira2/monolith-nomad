@@ -8,11 +8,12 @@ removidos pelo mantenedor do monolith-nomad** em relação ao commit `f633b36` d
 O que mudou e por quê está descrito no [`CHANGELOG.md`](CHANGELOG.md) e em [`docs/`](docs/). Créditos e licenças de
 terceiros: [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
-Gerado por `scripts/list-modifications.sh` (não edite à mão): 356 modificados, 118
+Gerado por `scripts/list-modifications.sh` (não edite à mão): 384 modificados, 172
 adicionados, 30 removidos.
 
 | Situação | Arquivo |
 |---|---|
+| Modificado | `admin/adonisrc.ts` |
 | Modificado | `admin/app/controllers/benchmark_controller.ts` |
 | Modificado | `admin/app/controllers/chats_controller.ts` |
 | Modificado | `admin/app/controllers/creator_packs_controller.ts` |
@@ -53,6 +54,7 @@ adicionados, 30 removidos.
 | Modificado | `admin/app/services/docker_service.ts` |
 | Modificado | `admin/app/services/docs_service.ts` |
 | Modificado | `admin/app/services/download_service.ts` |
+| Adicionado | `admin/app/services/drug_reference_availability.ts` |
 | Modificado | `admin/app/services/drug_reference_service.ts` |
 | Modificado | `admin/app/services/eval_corpus_service.ts` |
 | Modificado | `admin/app/services/eval_generation_service.ts` |
@@ -101,6 +103,7 @@ adicionados, 30 removidos.
 | Adicionado | `admin/app/utils/metalink.ts` |
 | Adicionado | `admin/app/utils/mirror_benchmark.ts` |
 | Adicionado | `admin/app/utils/mirror_selection.ts` |
+| Adicionado | `admin/app/utils/server_timezone.ts` |
 | Modificado | `admin/app/utils/service_catalog_merge.ts` |
 | Adicionado | `admin/app/utils/smart_download.ts` |
 | Modificado | `admin/app/utils/version.ts` |
@@ -127,6 +130,7 @@ adicionados, 30 removidos.
 | Modificado | `admin/config/inertia.ts` |
 | Modificado | `admin/config/logger.ts` |
 | Modificado | `admin/config/transmit.ts` |
+| Adicionado | `admin/constants/brazil.ts` |
 | Modificado | `admin/constants/broadcast.ts` |
 | Modificado | `admin/constants/kiwix.ts` |
 | Modificado | `admin/constants/kv_store.ts` |
@@ -151,17 +155,27 @@ adicionados, 30 removidos.
 | Modificado | `admin/database/migrations/1778800000001_add_dataset_to_installed_resources_type.ts` |
 | Adicionado | `admin/database/migrations/1786000000005_add_document_to_installed_resources_type.ts` |
 | Modificado | `admin/database/seeders/service_seeder.ts` |
+| Modificado | `admin/docs/about.md` |
 | Adicionado | `admin/docs/about.pt-BR.md` |
+| Modificado | `admin/docs/api-reference.md` |
 | Adicionado | `admin/docs/api-reference.pt-BR.md` |
+| Modificado | `admin/docs/community-add-ons.md` |
 | Adicionado | `admin/docs/community-add-ons.pt-BR.md` |
+| Modificado | `admin/docs/drug-reference.md` |
 | Adicionado | `admin/docs/drug-reference.pt-BR.md` |
 | Modificado | `admin/docs/faq.md` |
 | Adicionado | `admin/docs/faq.pt-BR.md` |
+| Modificado | `admin/docs/getting-started.md` |
 | Adicionado | `admin/docs/getting-started.pt-BR.md` |
+| Modificado | `admin/docs/home.md` |
 | Adicionado | `admin/docs/home.pt-BR.md` |
+| Modificado | `admin/docs/release-notes.md` |
 | Adicionado | `admin/docs/release-notes.pt-BR.md` |
+| Modificado | `admin/docs/supply-depot-apps.md` |
 | Adicionado | `admin/docs/supply-depot-apps.pt-BR.md` |
+| Modificado | `admin/docs/updates.md` |
 | Adicionado | `admin/docs/updates.pt-BR.md` |
+| Modificado | `admin/docs/use-cases.md` |
 | Adicionado | `admin/docs/use-cases.pt-BR.md` |
 | Modificado | `admin/.env.example` |
 | Adicionado | `admin/.env.test` |
@@ -198,6 +212,10 @@ adicionados, 30 removidos.
 | Modificado | `admin/inertia/components/CreatorPacksSection.tsx` |
 | Modificado | `admin/inertia/components/CuratedCollectionCard.tsx` |
 | Modificado | `admin/inertia/components/CustomAppModal.tsx` |
+| Adicionado | `admin/inertia/components/dashboard/DashboardClock.tsx` |
+| Adicionado | `admin/inertia/components/dashboard/DownloadsActivity.tsx` |
+| Adicionado | `admin/inertia/components/dashboard/ModuleCard.tsx` |
+| Adicionado | `admin/inertia/components/dashboard/SystemStatusRow.tsx` |
 | Modificado | `admin/inertia/components/DebugInfoModal.tsx` |
 | Modificado | `admin/inertia/components/DownloadURLModal.tsx` |
 | Modificado | `admin/inertia/components/drug-reference/DrugDisclaimerModal.tsx` |
@@ -206,6 +224,7 @@ adicionados, 30 removidos.
 | Modificado | `admin/inertia/components/drug-reference/IngredientGroup.tsx` |
 | Modificado | `admin/inertia/components/drug-reference/InteractionColumn.tsx` |
 | Modificado | `admin/inertia/components/drug-reference/LabelBlocks.tsx` |
+| Modificado | `admin/inertia/components/file-uploader/index.css` |
 | Modificado | `admin/inertia/components/file-uploader/index.tsx` |
 | Modificado | `admin/inertia/components/Footer.tsx` |
 | Modificado | `admin/inertia/components/GpuPassthroughAlert.tsx` |
@@ -218,7 +237,12 @@ adicionados, 30 removidos.
 | Modificado | `admin/inertia/components/KbGuardrailModal.tsx` |
 | Adicionado | `admin/inertia/components/LanguageBadge.tsx` |
 | Modificado | `admin/inertia/components/layout/BackToHomeHeader.tsx` |
+| Adicionado | `admin/inertia/components/library/LevelDots.tsx` |
+| Adicionado | `admin/inertia/components/library/LibraryFilterPanel.tsx` |
+| Adicionado | `admin/inertia/components/library/WorkCard.tsx` |
+| Adicionado | `admin/inertia/components/library/WorkDetails.tsx` |
 | Modificado | `admin/inertia/components/LinkTileModal.tsx` |
+| Modificado | `admin/inertia/components/LoadingSpinner.tsx` |
 | Adicionado | `admin/inertia/components/LocaleToggle.tsx` |
 | Modificado | `admin/inertia/components/maps/IconSelectorPopover.tsx` |
 | Modificado | `admin/inertia/components/maps/MapComponent.tsx` |
@@ -228,12 +252,43 @@ adicionados, 30 removidos.
 | Modificado | `admin/inertia/components/maps/ScaleUnitSelector.tsx` |
 | Modificado | `admin/inertia/components/maps/ViewMapMarkerPopup.tsx` |
 | Modificado | `admin/inertia/components/markdoc/Heading.tsx` |
+| Modificado | `admin/inertia/components/markdoc/Image.tsx` |
+| Modificado | `admin/inertia/components/markdoc/ListItem.tsx` |
 | Modificado | `admin/inertia/components/markdoc/List.tsx` |
 | Modificado | `admin/inertia/components/MarkdocRenderer.tsx` |
+| Modificado | `admin/inertia/components/markdoc/Table.tsx` |
 | Modificado | `admin/inertia/components/MarkdownEditor.tsx` |
+| Adicionado | `admin/inertia/components/nd/Badge.tsx` |
+| Adicionado | `admin/inertia/components/nd/Chip.tsx` |
+| Adicionado | `admin/inertia/components/nd/DotMeter.tsx` |
+| Adicionado | `admin/inertia/components/nd/Drawer.tsx` |
+| Adicionado | `admin/inertia/components/nd/EmptyState.tsx` |
+| Adicionado | `admin/inertia/components/nd/IconButton.tsx` |
+| Adicionado | `admin/inertia/components/nd/index.ts` |
+| Adicionado | `admin/inertia/components/nd/PageHeader.tsx` |
+| Adicionado | `admin/inertia/components/nd/Section.tsx` |
+| Adicionado | `admin/inertia/components/nd/SegmentedControl.tsx` |
+| Adicionado | `admin/inertia/components/nd/StatTile.tsx` |
+| Adicionado | `admin/inertia/components/nd/StatusDot.tsx` |
 | Modificado | `admin/inertia/components/ProgressBar.tsx` |
+| Adicionado | `admin/inertia/components/reader/EpubReader.tsx` |
+| Adicionado | `admin/inertia/components/reader/PdfReader.tsx` |
+| Adicionado | `admin/inertia/components/reader/ReaderSearchPanel.tsx` |
+| Adicionado | `admin/inertia/components/reader/ReaderToc.tsx` |
+| Adicionado | `admin/inertia/components/reader/reader_utils.ts` |
+| Adicionado | `admin/inertia/components/reader/types.ts` |
 | Modificado | `admin/inertia/components/ServiceLogsModal.tsx` |
 | Modificado | `admin/inertia/components/ServiceStatsModal.tsx` |
+| Adicionado | `admin/inertia/components/setup/CategoryPlanner.tsx` |
+| Adicionado | `admin/inertia/components/setup/SetupStepper.tsx` |
+| Adicionado | `admin/inertia/components/setup/SetupSummary.tsx` |
+| Adicionado | `admin/inertia/components/setup/StepContent.tsx` |
+| Adicionado | `admin/inertia/components/setup/StepMaps.tsx` |
+| Adicionado | `admin/inertia/components/setup/StepResources.tsx` |
+| Adicionado | `admin/inertia/components/setup/StepReview.tsx` |
+| Adicionado | `admin/inertia/components/shell/BrandMark.tsx` |
+| Adicionado | `admin/inertia/components/shell/CommandPalette.tsx` |
+| Adicionado | `admin/inertia/components/shell/Sidebar.tsx` |
 | Modificado | `admin/inertia/components/StorageProjectionBar.tsx` |
 | Modificado | `admin/inertia/components/StyledButton.tsx` |
 | Modificado | `admin/inertia/components/StyledModal.tsx` |
@@ -242,6 +297,7 @@ adicionados, 30 removidos.
 | Modificado | `admin/inertia/components/StyledTable.tsx` |
 | Modificado | `admin/inertia/components/systeminfo/CircularGauge.tsx` |
 | Modificado | `admin/inertia/components/systeminfo/InfoCard.tsx` |
+| Modificado | `admin/inertia/components/systeminfo/StatusCard.tsx` |
 | Modificado | `admin/inertia/components/ThemeToggle.tsx` |
 | Modificado | `admin/inertia/components/TierSelectionModal.tsx` |
 | Adicionado | `admin/inertia/components/UbuntuLogo.tsx` |
@@ -258,6 +314,7 @@ adicionados, 30 removidos.
 | Adicionado | `admin/inertia/context/notification_context.ts` |
 | Removido | `admin/inertia/context/NotificationContext.ts` |
 | Modificado | `admin/inertia/css/app.css` |
+| Adicionado | `admin/inertia/hooks/use_ai_assistant_name.ts` |
 | Adicionado | `admin/inertia/hooks/use_app_auto_update_status.ts` |
 | Removido | `admin/inertia/hooks/useAppAutoUpdateStatus.ts` |
 | Adicionado | `admin/inertia/hooks/use_auto_update_status.ts` |
@@ -300,7 +357,9 @@ adicionados, 30 removidos.
 | Adicionado | `admin/inertia/hooks/use_update_available.ts` |
 | Removido | `admin/inertia/hooks/useUpdateAvailable.ts` |
 | Modificado | `admin/inertia/layouts/AppLayout.tsx` |
+| Adicionado | `admin/inertia/layouts/AppShell.tsx` |
 | Modificado | `admin/inertia/layouts/DocsLayout.tsx` |
+| Modificado | `admin/inertia/layouts/MapsLayout.tsx` |
 | Modificado | `admin/inertia/layouts/SettingsLayout.tsx` |
 | Modificado | `admin/inertia/lib/api.ts` |
 | Adicionado | `admin/inertia/lib/benchmark_score.ts` |
@@ -310,6 +369,7 @@ adicionados, 30 removidos.
 | Adicionado | `admin/inertia/lib/class_names.ts` |
 | Removido | `admin/inertia/lib/classNames.ts` |
 | Adicionado | `admin/inertia/lib/content_language.ts` |
+| Adicionado | `admin/inertia/lib/dot_logo.ts` |
 | Adicionado | `admin/inertia/lib/format_core.ts` |
 | Adicionado | `admin/inertia/lib/format.ts` |
 | Modificado | `admin/inertia/lib/global_map_banner.ts` |
@@ -317,22 +377,28 @@ adicionados, 30 removidos.
 | Modificado | `admin/inertia/lib/icons.ts` |
 | Modificado | `admin/inertia/lib/kb_file_grouping.ts` |
 | Modificado | `admin/inertia/lib/kb_job_health_display.ts` |
+| Adicionado | `admin/inertia/lib/library_filters.ts` |
+| Adicionado | `admin/inertia/lib/nav_config.ts` |
 | Modificado | `admin/inertia/lib/navigation.ts` |
 | Adicionado | `admin/inertia/lib/server_messages_core.ts` |
 | Adicionado | `admin/inertia/lib/server_messages.ts` |
+| Adicionado | `admin/inertia/lib/setup_plan.ts` |
 | Modificado | `admin/inertia/lib/util.ts` |
 | Modificado | `admin/inertia/lib/vision_guidance.ts` |
 | Adicionado | `admin/inertia/locales/pt-BR/base.json` |
 | Adicionado | `admin/inertia/locales/pt-BR/chat.json` |
 | Adicionado | `admin/inertia/locales/pt-BR/content.json` |
 | Adicionado | `admin/inertia/locales/pt-BR/core.json` |
+| Adicionado | `admin/inertia/locales/pt-BR/redesign.json` |
 | Adicionado | `admin/inertia/locales/pt-BR/server.json` |
 | Adicionado | `admin/inertia/locales/pt-BR/setup.json` |
 | Adicionado | `admin/inertia/locales/pt-BR/system.json` |
 | Adicionado | `admin/inertia/locales/README.md` |
 | Modificado | `admin/inertia/pages/about.tsx` |
+| Modificado | `admin/inertia/pages/chat.tsx` |
 | Modificado | `admin/inertia/pages/conditions/show.tsx` |
 | Modificado | `admin/inertia/pages/docs/show.tsx` |
+| Adicionado | `admin/inertia/pages/downloads.tsx` |
 | Modificado | `admin/inertia/pages/drug-reference/index.tsx` |
 | Modificado | `admin/inertia/pages/drug-reference/interactions.tsx` |
 | Modificado | `admin/inertia/pages/drug-reference/show.tsx` |
@@ -368,6 +434,14 @@ adicionados, 30 removidos.
 | Modificado | `admin/providers/map_static_provider.ts` |
 | Modificado | `admin/providers/qdrant_restart_policy_provider.ts` |
 | Modificado | `admin/providers/version_check_provider.ts` |
+| Modificado | `admin/public/docs/ai-chat.webp` |
+| Modificado | `admin/public/docs/benchmark.webp` |
+| Modificado | `admin/public/docs/content-explorer.webp` |
+| Modificado | `admin/public/docs/dashboard.webp` |
+| Modificado | `admin/public/docs/easy-setup-step1.webp` |
+| Modificado | `admin/public/docs/easy-setup-tiers.webp` |
+| Modificado | `admin/public/docs/knowledge-base.webp` |
+| Modificado | `admin/public/docs/maps.webp` |
 | Modificado | `admin/public/favicon-16x16.png` |
 | Modificado | `admin/public/favicon-180x180.png` |
 | Modificado | `admin/public/favicon-192x192.png` |
@@ -388,17 +462,21 @@ adicionados, 30 removidos.
 | Removido | `admin/public/powered_by_crosstalk.svg` |
 | Removido | `admin/public/powered_by_crosstalk.webp` |
 | Removido | `admin/public/rogue-support-banner.webp` |
+| Adicionado | `admin/resources/geodata/ne_50m_admin_1_brazil.geojson` |
 | Modificado | `admin/resources/views/inertia_layout.edge` |
 | Modificado | `admin/scripts/generate_curated_data.ts` |
+| Adicionado | `admin/scripts/generate_logo.mjs` |
 | Adicionado | `admin/scripts/run_tests.mjs` |
 | Modificado | `admin/start/env.ts` |
 | Modificado | `admin/start/kernel.ts` |
 | Modificado | `admin/start/openapi/generator.ts` |
+| Adicionado | `admin/start/regional.ts` |
 | Modificado | `admin/start/routes.ts` |
 | Modificado | `admin/tailwind.config.ts` |
 | Modificado | `admin/tests/eval/README.md` |
 | Adicionado | `admin/tests/functional/library.spec.ts` |
 | Modificado | `admin/tests/functional/openapi.spec.ts` |
+| Adicionado | `admin/tests/functional/setup_wizard.spec.ts` |
 | Modificado | `admin/tests/standalone/conditions.standalone.ts` |
 | Modificado | `admin/tests/standalone/drug_ingest_status.standalone.ts` |
 | Modificado | `admin/tests/standalone/drug_tier_rework.standalone.ts` |
@@ -435,6 +513,7 @@ adicionados, 30 removidos.
 | Modificado | `admin/tests/unit/kb_orphan_decision.spec.ts` |
 | Modificado | `admin/tests/unit/kb_ratio_lookup.spec.ts` |
 | Adicionado | `admin/tests/unit/library_catalog.spec.ts` |
+| Adicionado | `admin/tests/unit/library_filters.spec.ts` |
 | Modificado | `admin/tests/unit/link_tile.spec.ts` |
 | Adicionado | `admin/tests/unit/locale.spec.ts` |
 | Adicionado | `admin/tests/unit/mirror_benchmark.spec.ts` |
@@ -450,6 +529,7 @@ adicionados, 30 removidos.
 | Adicionado | `admin/tests/unit/server_messages.spec.ts` |
 | Modificado | `admin/tests/unit/service_catalog_merge.spec.ts` |
 | Modificado | `admin/tests/unit/service_logs_url.spec.ts` |
+| Adicionado | `admin/tests/unit/setup_plan.spec.ts` |
 | Adicionado | `admin/tests/unit/smart_download.spec.ts` |
 | Adicionado | `admin/tests/unit/theme_tokens.spec.ts` |
 | Modificado | `admin/tests/unit/token_estimate.spec.ts` |
@@ -463,6 +543,7 @@ adicionados, 30 removidos.
 | Modificado | `admin/types/files.ts` |
 | Modificado | `admin/types/kv_store.ts` |
 | Adicionado | `admin/types/library.ts` |
+| Modificado | `admin/types/maps.ts` |
 | Modificado | `admin/types/rag.ts` |
 | Modificado | `admin/types/system.ts` |
 | Modificado | `admin/types/util.ts` |
@@ -479,6 +560,7 @@ adicionados, 30 removidos.
 | Modificado | `CONTRIBUTING.md` |
 | Modificado | `Dockerfile` |
 | Adicionado | `docs/catalogo.md` |
+| Adicionado | `docs/design-system.md` |
 | Adicionado | `docs/distribuicao.md` |
 | Adicionado | `docs/downloads.md` |
 | Modificado | `FAQ.md` |

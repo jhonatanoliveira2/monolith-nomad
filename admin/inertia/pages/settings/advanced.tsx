@@ -1,3 +1,4 @@
+import PageHeader from '~/components/nd/PageHeader'
 import { Head } from '@inertiajs/react'
 import { useState } from 'react'
 import SettingsLayout from '~/layouts/SettingsLayout'
@@ -128,15 +129,18 @@ export default function AdvancedPage(props: {
   return (
     <SettingsLayout>
       <Head title={t('Advanced Settings')} />
-      <div className="xl:pl-72 w-full">
-        <main className="px-12 py-6">
-          <h1 className="text-4xl font-semibold mb-4">{t('Advanced')}</h1>
-          <p className="text-text-muted mb-4">
-            {t('Advanced configuration for operators. These settings are optional — the defaults work for most deployments.')}
-          </p>
+      <div className="w-full">
+        <div className="nd-page">
+          <PageHeader
+            eyebrow={t('System')}
+            title={t('Advanced')}
+            description={t(
+              'Advanced configuration for operators. These settings are optional — the defaults work for most deployments.'
+            )}
+          />
 
           <StyledSectionHeader title={t('Connectivity')} className="mt-8 mb-4" />
-          <div className="bg-surface-primary rounded-lg border-2 border-border-subtle p-6">
+          <div className="nd-card p-6">
             <p className="text-sm text-text-secondary mb-4">
               {t(
                 "monolith-nomad periodically checks whether it can reach the internet. By default it probes Cloudflare's utility endpoint with a few fallbacks. Set a custom endpoint below if your network blocks the defaults. Leave blank to use the built-in defaults."
@@ -148,7 +152,9 @@ export default function AdvancedPage(props: {
                 type="info"
                 variant="bordered"
                 title={t('Managed by environment variable')}
-                message={t('The INTERNET_STATUS_TEST_URL environment variable is set and takes precedence over this setting. Remove it to manage the test URL here.')}
+                message={t(
+                  'The INTERNET_STATUS_TEST_URL environment variable is set and takes precedence over this setting. Remove it to manage the test URL here.'
+                )}
                 className="!mb-4"
               />
             )}
@@ -158,7 +164,9 @@ export default function AdvancedPage(props: {
                 <Input
                   name="internetStatusTestUrl"
                   label={t('Internet Status Test URL')}
-                  helpText={t('A single http(s) URL used to check connectivity. Any HTTP response counts as online.')}
+                  helpText={t(
+                    'A single http(s) URL used to check connectivity. Any HTTP response counts as online.'
+                  )}
                   placeholder="https://1.1.1.1/cdn-cgi/trace"
                   value={internetStatusTestUrl}
                   disabled={internetStatusTestUrlEnvOverride}
@@ -168,7 +176,9 @@ export default function AdvancedPage(props: {
                     setTestUrlError(null)
                   }}
                 />
-                {testUrlError && <p className="text-sm text-desert-red-dark mt-1">{testUrlError}</p>}
+                {testUrlError && (
+                  <p className="text-sm text-desert-red-dark mt-1">{testUrlError}</p>
+                )}
               </div>
               <StyledButton
                 variant="primary"
@@ -183,7 +193,7 @@ export default function AdvancedPage(props: {
           </div>
 
           <StyledSectionHeader title={t('Reverse Proxy')} className="mt-8 mb-4" />
-          <div className="bg-surface-primary rounded-lg border-2 border-border-subtle p-6">
+          <div className="nd-card p-6">
             <p className="text-sm text-text-secondary mb-4">
               {t(
                 'If you reach monolith-nomad through a reverse proxy or a local DNS name, enter the address of the “Service Logs & Metrics” page here. Leave blank to use the default (port 9999 on this server).'
@@ -195,7 +205,9 @@ export default function AdvancedPage(props: {
                 <Input
                   name="serviceLogsUrl"
                   label={t('Service Logs & Metrics URL')}
-                  helpText={t('Where the Dozzle container is reachable, e.g. https://logs.example.com or logs.lan')}
+                  helpText={t(
+                    'Where the Dozzle container is reachable, e.g. https://logs.example.com or logs.lan'
+                  )}
                   placeholder="https://logs.example.com"
                   value={serviceLogsUrl}
                   error={Boolean(serviceLogsUrlError)}
@@ -219,7 +231,7 @@ export default function AdvancedPage(props: {
               </StyledButton>
             </div>
           </div>
-        </main>
+        </div>
       </div>
     </SettingsLayout>
   )

@@ -57,6 +57,9 @@ Os arquivos de fonte variável foram renomeados (`Doto[ROND,wght].ttf` → `Doto
 | go-pmtiles | BSD-3-Clause | baixado no build com SHA-256 fixado (`Dockerfile`) |
 | Node.js 22 | MIT | imagem base `node:22.23.5-slim` (Debian) |
 | Dependências npm do admin | as licenças de cada pacote | em `admin/package-lock.json` e `admin/node_modules/*/LICENSE` |
+| pdf.js (`pdfjs-dist`, Mozilla) | Apache-2.0 | leitor de PDF integrado da Biblioteca (`admin/inertia/components/reader/PdfReader.tsx`), carregado sob demanda e servido localmente; as regras da camada de texto em `admin/inertia/css/app.css` vêm do `web/pdf_viewer.css` do mesmo pacote |
+| epub.js | BSD-2-Clause | leitor de EPUB integrado da Biblioteca (`admin/inertia/components/reader/EpubReader.tsx`) |
+| Natural Earth (admin-1, 1:50m) | domínio público | polígonos dos 27 estados brasileiros em `admin/resources/geodata/ne_50m_admin_1_brazil.geojson`, reduzidos ao código ISO 3166-2 e ao nome, com coordenadas arredondadas (recortes de mapa por estado e região) |
 
 ## 6. Aplicativos e conteúdos instaláveis
 

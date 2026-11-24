@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { IconCpu, IconServer, IconRobot, IconTemperature, IconDatabase, IconChartBar } from '@tabler/icons-react'
+import {
+  IconCpu,
+  IconServer,
+  IconRobot,
+  IconTemperature,
+  IconDatabase,
+  IconChartBar,
+} from '@tabler/icons-react'
 import StageRail from './StageRail'
 import CoreGrid from './CoreGrid'
 import Sparkline from './Sparkline'
@@ -17,20 +24,28 @@ function formatElapsed(ms: number): string {
 function StageHero({ run }: { run: BenchmarkRunHook }) {
   const { t } = useTranslation()
   const status = run.status
-  const heroCard = 'bg-desert-white rounded-lg p-6 border border-desert-stone-light h-full min-h-[240px] flex flex-col'
-  const title = 'text-sm font-semibold text-desert-green uppercase tracking-wide mb-4 flex items-center gap-2'
+  const heroCard =
+    'bg-desert-white rounded-xl p-6 border border-desert-stone-light h-full min-h-[240px] flex flex-col'
+  const title =
+    'text-sm font-semibold text-desert-green uppercase tracking-wide mb-4 flex items-center gap-2'
 
   if (status === 'running_ai') {
     return (
       <div className={heroCard}>
-        <div className={title}><IconRobot className="w-4 h-4" /> {t('AI Inference')}</div>
+        <div className={title}>
+          <IconRobot className="w-4 h-4" /> {t('AI Inference')}
+        </div>
         <div className="flex-1 flex flex-col justify-center gap-4">
           <LiveReadout
             value={run.aiTokensPerSec}
             unit="tok/s"
             label={t('Tokens per Second')}
             size="lg"
-            sub={run.aiTtftMs !== null ? t('First token in {{ms}} ms', { ms: Math.round(run.aiTtftMs) }) : t('Waiting for first token...')}
+            sub={
+              run.aiTtftMs !== null
+                ? t('First token in {{ms}} ms', { ms: Math.round(run.aiTtftMs) })
+                : t('Waiting for first token...')
+            }
           />
           <div className="text-desert-green">
             <Sparkline data={run.aiTokHistory} height={64} />
@@ -47,7 +62,9 @@ function StageHero({ run }: { run: BenchmarkRunHook }) {
                   unit="GB"
                   label={
                     run.gpuVramTotalMb !== null
-                      ? t('VRAM (of {{total}} GB)', { total: (run.gpuVramTotalMb / 1024).toFixed(1) })
+                      ? t('VRAM (of {{total}} GB)', {
+                          total: (run.gpuVramTotalMb / 1024).toFixed(1),
+                        })
                       : 'VRAM'
                   }
                 />
@@ -66,7 +83,9 @@ function StageHero({ run }: { run: BenchmarkRunHook }) {
     const hasInTest = run.diskMibs !== null
     return (
       <div className={heroCard}>
-        <div className={title}><IconServer className="w-4 h-4" /> {isRead ? t('Disk Read') : t('Disk Write')}</div>
+        <div className={title}>
+          <IconServer className="w-4 h-4" /> {isRead ? t('Disk Read') : t('Disk Write')}
+        </div>
         <div className="flex-1 flex flex-col justify-center gap-4">
           <LiveReadout
             value={hasInTest ? run.diskMibs : isRead ? run.diskReadMbs : run.diskWriteMbs}
@@ -76,7 +95,13 @@ function StageHero({ run }: { run: BenchmarkRunHook }) {
           />
           <div className="text-desert-olive">
             <Sparkline
-              data={hasInTest ? run.diskMibsHistory : isRead ? run.diskReadHistory : run.diskWriteHistory}
+              data={
+                hasInTest
+                  ? run.diskMibsHistory
+                  : isRead
+                    ? run.diskReadHistory
+                    : run.diskWriteHistory
+              }
               height={64}
             />
           </div>
@@ -88,7 +113,9 @@ function StageHero({ run }: { run: BenchmarkRunHook }) {
   if (status === 'calculating_score') {
     return (
       <div className={heroCard}>
-        <div className={title}><IconChartBar className="w-4 h-4" /> {t('Compiling Report')}</div>
+        <div className={title}>
+          <IconChartBar className="w-4 h-4" /> {t('Compiling Report')}
+        </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="flex items-center gap-3 text-desert-green">
             <div className="animate-spin h-6 w-6 border-2 border-desert-green border-t-transparent rounded-full" />
@@ -102,7 +129,9 @@ function StageHero({ run }: { run: BenchmarkRunHook }) {
   if (status === 'detecting_hardware' || status === 'starting' || status === null) {
     return (
       <div className={heroCard}>
-        <div className={title}><IconCpu className="w-4 h-4" /> {t('Identifying Hardware')}</div>
+        <div className={title}>
+          <IconCpu className="w-4 h-4" /> {t('Identifying Hardware')}
+        </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="flex items-center gap-3 text-desert-stone-dark">
             <div className="animate-spin h-6 w-6 border-2 border-desert-green border-t-transparent rounded-full" />
@@ -117,7 +146,8 @@ function StageHero({ run }: { run: BenchmarkRunHook }) {
   return (
     <div className={heroCard}>
       <div className={title}>
-        <IconCpu className="w-4 h-4" /> {status === 'running_memory' ? t('Memory Throughput') : t('CPU Load')}
+        <IconCpu className="w-4 h-4" />{' '}
+        {status === 'running_memory' ? t('Memory Throughput') : t('CPU Load')}
       </div>
       <div className="flex-1 flex flex-col justify-center">
         <CoreGrid loads={run.perCore} />
@@ -137,7 +167,7 @@ function StageHero({ run }: { run: BenchmarkRunHook }) {
 /** Always-on host vitals, so something is moving between and during stages. */
 function VitalsStrip({ run }: { run: BenchmarkRunHook }) {
   const { t } = useTranslation()
-  const card = 'bg-desert-white rounded-lg p-4 border border-desert-stone-light'
+  const card = 'bg-desert-white rounded-xl p-4 border border-desert-stone-light'
   return (
     <div className="space-y-4">
       <div className={card}>

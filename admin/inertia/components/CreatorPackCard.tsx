@@ -20,7 +20,12 @@ export interface CreatorPackCardProps {
   onUninstall?: (pack: CreatorPackWithStatus) => void
 }
 
-const CreatorPackCard: React.FC<CreatorPackCardProps> = ({ pack, selected, onClick, onUninstall }) => {
+const CreatorPackCard: React.FC<CreatorPackCardProps> = ({
+  pack,
+  selected,
+  onClick,
+  onUninstall,
+}) => {
   const { t } = useTranslation()
   const isInstalled = pack.status === 'installed'
   const isDownloading = pack.status === 'downloading'
@@ -62,9 +67,9 @@ const CreatorPackCard: React.FC<CreatorPackCardProps> = ({ pack, selected, onCli
   return (
     <div
       className={classNames(
-        'flex flex-col rounded-lg overflow-hidden bg-surface-primary border shadow-sm transition-shadow',
+        'flex flex-col rounded-xl overflow-hidden bg-surface-primary border  ',
         highlighted ? 'border-desert-olive border-2' : 'border-border-subtle',
-        clickable ? 'cursor-pointer hover:shadow-lg' : 'opacity-70 cursor-not-allowed'
+        clickable ? 'cursor-pointer ' : 'opacity-70 cursor-not-allowed'
       )}
       onClick={() => {
         if (!clickable) return
@@ -88,7 +93,8 @@ const CreatorPackCard: React.FC<CreatorPackCardProps> = ({ pack, selected, onCli
       <div className="flex items-center justify-between gap-3 px-5 py-3">
         <div className="min-w-0">
           <p className="text-sm text-text-secondary truncate">
-            {t('{{count}} videos', { count: pack.video_count })} &middot; {formatBytes(sizeBytes, 0)}
+            {t('{{count}} videos', { count: pack.video_count })} &middot;{' '}
+            {formatBytes(sizeBytes, 0)}
           </p>
           {hasUpdate && (
             <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded bg-desert-olive/20 text-desert-olive-dark ">

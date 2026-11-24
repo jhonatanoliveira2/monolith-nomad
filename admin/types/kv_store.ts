@@ -47,6 +47,13 @@ export const KV_STORE_SCHEMA = {
   'contentAutoUpdate.windowResetAt': 'string',
   'ui.hasVisitedEasySetup': 'boolean',
   'ui.theme': 'string',
+  // Setup wizard selections saved while the user goes through the steps (JSON), so a reload or another
+  // device resumes where they stopped. Cleared when the setup is started.
+  'ui.easySetupDraft': 'string',
+  // Regional preferences (Brazil by default): IANA time zone of the server and the user's state (UF,
+  // ISO 3166-2 like BR-SP). The time zone is applied to the server process (logs, update windows).
+  'regional.timezone': 'string',
+  'regional.state': 'string',
   // Reverse-proxy / local-DNS override for the Settings sidebar's "Service Logs &
   // Metrics" entry. Dozzle is a management-compose container, not a `services` row,
   // so the per-app `custom_url` column (#991) has nothing to attach to and the link

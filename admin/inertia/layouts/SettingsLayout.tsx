@@ -1,76 +1,9 @@
-import {
-  IconAdjustments,
-  IconArrowBigUpLines,
-  IconBox,
-  IconChartBar,
-  IconCode,
-  IconDashboard,
-  IconFolder,
-  IconGavel,
-  IconHeart,
-  IconMapRoute,
-  IconMovie,
-  IconSettings,
-  IconWand,
-  IconZoom
-} from '@tabler/icons-react'
-import { usePage } from '@inertiajs/react'
-import StyledSidebar from '~/components/StyledSidebar'
-import { getServiceLink } from '~/lib/navigation'
-import useServiceInstalledStatus from '~/hooks/useServiceInstalledStatus'
-import useCreatorPacks from '~/hooks/use_creator_packs'
-import { useSystemSetting } from '~/hooks/use_system_setting'
-import { SERVICE_NAMES } from '../../constants/service_names'
-import { useTranslation } from 'react-i18next'
+import AppShell from '~/layouts/AppShell'
 
+/**
+ * Settings screens used to have their own sidebar; they are now groups of the global navigation
+ * (Content, Apps, System, Help), so this is the default frame.
+ */
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
-  const { aiAssistantName } = usePage<{ aiAssistantName: string }>().props
-  const { t } = useTranslation()
-  const aiAssistantInstallStatus = useServiceInstalledStatus(SERVICE_NAMES.OLLAMA)
-  // Only show the Creator Packs entry on builds that can actually install packs
-  // (release-injected key present) — a fork built from source has no key.
-  const { configured: creatorPacksConfigured } = useCreatorPacks()
-  // Dozzle is a management-compose container rather than a `services` row, so the
-  // per-app custom_url override has nothing to attach to. Fall back to the override
-  // set in Advanced settings so the link works behind a reverse proxy / local DNS.
-  const { data: serviceLogsUrlSetting } = useSystemSetting({ key: 'ui.serviceLogsUrl' })
-
-  const navigation = [
-    ...(aiAssistantInstallStatus.isInstalled ? [{ name: aiAssistantName, href: '/settings/models', icon: IconWand, current: false }] : []),
-    { name: 'Supply Depot', href: '/supply-depot', icon: IconBox, current: false },
-    { name: 'Benchmark', href: '/settings/benchmark', icon: IconChartBar, current: false },
-    { name: 'Content Explorer', href: '/settings/zim/remote-explorer', icon: IconZoom, current: false },
-    { name: 'Content Manager', href: '/settings/zim', icon: IconFolder, current: false },
-    ...(creatorPacksConfigured ? [{ name: 'Creator Packs', href: '/settings/creator-packs', icon: IconMovie, current: false }] : []),
-    { name: 'Maps Manager', href: '/settings/maps', icon: IconMapRoute, current: false },
-    {
-      name: 'Service Logs & Metrics',
-      href: getServiceLink('9999', serviceLogsUrlSetting?.value),
-      icon: IconDashboard,
-      current: false,
-      target: '_blank',
-    },
-    {
-      name: 'Check for Updates',
-      href: '/settings/update',
-      icon: IconArrowBigUpLines,
-      current: false,
-    },
-    { name: 'System', href: '/settings/system', icon: IconSettings, current: false },
-    { name: 'Advanced', href: '/settings/advanced', icon: IconAdjustments, current: false },
-    { name: 'API Reference', href: '/reference', icon: IconCode, current: false },
-    { name: 'About & Support', href: '/settings/support', icon: IconHeart, current: false },
-    { name: 'Legal Notices', href: '/settings/legal', icon: IconGavel, current: false },
-  ]
-
-  return (
-    <div className="min-h-screen flex flex-row bg-surface-secondary/90">
-      <StyledSidebar
-        title={t('Settings')}
-        // labels are English constants above, translated here (the AI assistant name is user-chosen)
-        items={navigation.map((item) => ({ ...item, name: item.name === aiAssistantName ? item.name : t(item.name) }))}
-      />
-      {children}
-    </div>
-  )
+  return <AppShell>{children}</AppShell>
 }

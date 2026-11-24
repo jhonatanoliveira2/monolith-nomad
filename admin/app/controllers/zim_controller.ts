@@ -59,7 +59,8 @@ export default class ZimController {
     const payload = await request.validateUsing(downloadCategoryTierValidator)
     const resources = await this.zimService.downloadCategoryTier(
       payload.categorySlug,
-      payload.tierSlug
+      payload.tierSlug,
+      payload.resourceIds
     )
 
     return {

@@ -4,7 +4,7 @@ import MarkdocRenderer from '~/components/MarkdocRenderer'
 import DocsLayout from '~/layouts/DocsLayout'
 import { useTranslation } from 'react-i18next'
 
-export default function Show({ content }: { content: any; }) {
+export default function Show({ content }: { content: any }) {
   const { t } = useTranslation()
   // Deep-link support: when arriving at /docs/<slug>#<anchor> (e.g. from a Supply Depot app's
   // "Docs" menu item), scroll to that section. The content renders synchronously from props, so a
@@ -22,11 +22,9 @@ export default function Show({ content }: { content: any; }) {
   return (
     <DocsLayout>
       <Head title={t('Documentation')} />
-      <div className="xl:pl-80 pt-14 xl:pt-8 pb-8 px-6 sm:px-8 lg:px-12">
-        <div className="max-w-4xl">
-          <MarkdocRenderer content={content} />
-        </div>
-      </div>
+      <article className="max-w-3xl animate-nd-fade">
+        <MarkdocRenderer content={content} />
+      </article>
     </DocsLayout>
   )
 }

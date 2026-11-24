@@ -1,8 +1,42 @@
 # Changelog do monolith-nomad
 
-Mudanças desta distribuição em relação ao Project N.O.M.A.D. (base `1.35.2-rc.1`, commit `f633b36`). As notas de versão do projeto original continuam em [`admin/docs/release-notes.md`](admin/docs/release-notes.md), em inglês.
+Mudanças de cada versão. A base é o commit `f633b36` do projeto de origem (1.35.2-rc.1); os arquivos alterados desde então estão em [`MODIFICATIONS.md`](MODIFICATIONS.md). Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
-O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
+## [1.2.0] - 2026-11-24
+
+### Adicionado
+
+- **Interface redesenhada (Nothing):** moldura única `AppShell` com navegação por grupos, paleta de comandos (`Ctrl K`), Início com estado do sistema e downloads, tela `/downloads`, primitivos em `components/nd/` e sistema visual em [`docs/design-system.md`](docs/design-system.md).
+- **Biblioteca:** filtros por área, assunto, nível, formato, idioma e disponibilidade (`lib/library_filters.ts`), painel de detalhes, leitor de PDF com pdf.js 6.5.438 (`pdfjs-dist`, Apache-2.0) e leitor de EPUB com busca.
+- **Configuração Rápida em quatro etapas** (Recursos, Mapas, Conteúdo, Revisão), com resumo lateral, espaço livre depois da instalação e rascunho salvo no servidor (`ui.easySetupDraft`).
+- **Perfis Essencial, Padrão e Completo** por categoria, ou seleção personalizada, calculados dos manifestos (`lib/setup_plan.ts`). Português por padrão; inglês opcional por área ou item. `download-category-tier` aceita `resourceIds` (subconjunto validado contra a categoria).
+- **Mapas do Brasil:** 27 UFs do Natural Earth (`resources/geodata/ne_50m_admin_1_brazil.geojson`), `GET /api/maps/countries/:code/subdivisions` e extração por país, região ou estado (códigos ISO 3166-2).
+- **Preferências regionais:** `regional.timezone` e `regional.state`, com os fusos brasileiros (`constants/brazil.ts`); o fuso é aplicado ao processo no boot (`start/regional.ts`) e a cada alteração.
+- **Logo do Ubuntu em pontos** (`lib/dot_logo.ts`, `scripts/generate_logo.mjs`) e favicons gerados dela; laranja do Ubuntu como cor de destaque.
+- Teste funcional `setup_wizard.spec.ts` e unitário `setup_plan.spec.ts`.
+
+### Alterado
+
+- **Instalador:** America/Sao_Paulo quando o host está em UTC, `NOMAD_TZ` para outro fuso e geração do locale pt_BR.UTF-8 quando falta.
+- **Documentação** do app, README e FAQ reescritos: mais curtos e de acordo com a interface nova. As notas de versão passam a ter só o histórico deste projeto.
+- Capturas da documentação (`admin/public/docs/*.webp`) refeitas com a interface nova.
+
+### Corrigido
+
+- As notas da 1.1.0 em `release-notes.md` listavam correções do projeto de origem: o workflow carimbou a seção `Unreleased` herdada.
+- Rolagem horizontal em todas as páginas (`w-screen`), Alert `solid` ilegível no escuro, blocos de código invertidos na documentação, EPUB escuro ilegível e cartões clicáveis sem teclado.
+
+## [1.1.0] - 2026-11-21
+
+### Adicionado
+
+- **Catálogo em português:** Wikipédia em português como padrão; ZIMs em português ou multilíngues primeiro em cada categoria, com selo de idioma. Ver [`docs/catalogo.md`](docs/catalogo.md).
+- **Biblioteca** (`/library`, `collections/library.json`): 37 obras abertas em PDF, EPUB e ZIM, com SHA-256 fixado, checagem de formato, Base de Conhecimento e leitor EPUB offline.
+
+### Corrigido
+
+- GPUs AMD apareciam como "Device 7590" com 512 MB: a VRAM agora vem do sysfs, e o `pci.ids` é atualizado no build.
+- 31 erros de tipo e 2.909 achados de lint no frontend.
 
 ## [1.0.0] - 2026-11-20
 

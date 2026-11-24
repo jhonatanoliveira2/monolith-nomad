@@ -183,7 +183,20 @@ export class CollectionManifestService {
               category.tiers
             ).some((r) => r.type === 'dataset')
           : false
-      return { ...category, installedTierSlug, downloadingTierSlug, downloadingTierIndexing }
+      // per-resource state, so the setup wizard can mark what is already on disk or on its way
+      const categoryIds = new Set(category.tiers.flatMap((t) => t.resources.map((r) => r.id)))
+      const installedResourceIds = [...categoryIds].filter((id) => installedMap.has(id))
+      const downloadingResourceIds = [...categoryIds].filter(
+        (id) => inFlightIds.has(id) && !installedMap.has(id)
+      )
+      return {
+        ...category,
+        installedTierSlug,
+        downloadingTierSlug,
+        downloadingTierIndexing,
+        installedResourceIds,
+        downloadingResourceIds,
+      }
     })
   }
 

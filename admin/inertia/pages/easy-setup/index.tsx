@@ -1,388 +1,408 @@
-import { Head, router, usePage } from '@inertiajs/react'
+import { Head, router } from '@inertiajs/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useState, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { IconArrowLeft, IconArrowRight, IconPlayerPlay } from '@tabler/icons-react'
 import AppLayout from '~/layouts/AppLayout'
-import StyledButton from '~/components/StyledButton'
-import api from '~/lib/api'
-import { ServiceSlim } from '../../../types/services'
-import CuratedCollectionCard from '~/components/CuratedCollectionCard'
-import CategoryCard from '~/components/CategoryCard'
-import CreatorPackCard from '~/components/CreatorPackCard'
-import TierSelectionModal from '~/components/TierSelectionModal'
-import WikipediaSelector from '~/components/WikipediaSelector'
-import LanguageBadge from '~/components/LanguageBadge'
-import LoadingSpinner from '~/components/LoadingSpinner'
+import PageHeader from '~/components/nd/PageHeader'
 import Alert from '~/components/Alert'
-import { IconCheck, IconCpu, IconBooks } from '@tabler/icons-react'
-import StorageProjectionBar from '~/components/StorageProjectionBar'
+import StyledButton from '~/components/StyledButton'
+import LoadingSpinner from '~/components/LoadingSpinner'
+import SetupStepper from '~/components/setup/SetupStepper'
+import SetupSummary, { type SummaryLine } from '~/components/setup/SetupSummary'
+import StepResources, { type Capability } from '~/components/setup/StepResources'
+import StepMaps, { type MapEstimate } from '~/components/setup/StepMaps'
+import StepContent from '~/components/setup/StepContent'
+import StepReview from '~/components/setup/StepReview'
+import api from '~/lib/api'
+import { formatBytes } from '~/lib/util'
 import { useNotifications } from '~/context/notification_context'
 import useInternetStatus from '~/hooks/use_internet_status'
 import useCreatorPacks from '~/hooks/use_creator_packs'
 import { useSystemInfo } from '~/hooks/use_system_info'
 import { getPrimaryDiskInfo } from '~/hooks/use_disk_display_data'
-import classNames from 'classnames'
-import type { CategoryWithStatus, SpecTier, SpecResource } from '../../../types/collections'
-import { resolveTierResources } from '~/lib/collections'
+import {
+  contentPlan,
+  mapCodes,
+  mapLabel,
+  mapSlug,
+  parseDraft,
+  type SetupDraft,
+} from '~/lib/setup_plan'
+import { ServiceSlim } from '../../../types/services'
 import { SERVICE_NAMES } from '../../../constants/service_names'
-import { Trans, useTranslation } from 'react-i18next'
-import { t as i18nT } from '~/lib/i18n'
-import { formatNumber } from '~/lib/format'
+import { DEFAULT_TIMEZONE } from '../../../constants/brazil'
+import { useAiAssistantName } from '~/hooks/use_ai_assistant_name'
 
-// Capability definitions - maps user-friendly categories to services
-interface Capability {
-  id: string
-  name: string
-  technicalName: string
-  description: string
-  features: string[]
-  services: string[] // service_name values that this capability installs
-  icon: string
+/** Default map detail: neighbourhood level keeps "all of Brazil" a reasonable download. */
+const DEFAULT_MAP_ZOOM = 13
+const DRAFT_KEY = 'ui.easySetupDraft'
+
+function freshDraft(
+  installed: Set<string>,
+  timezone?: string | null,
+  state?: string | null
+): SetupDraft {
+  return {
+    version: 1,
+    step: 1,
+    // the Information Library is what makes the content step useful: suggested unless installed
+    services: installed.has(SERVICE_NAMES.KIWIX) ? [] : [SERVICE_NAMES.KIWIX],
+    maps: { scope: 'country', regions: [], states: [], maxzoom: DEFAULT_MAP_ZOOM, collections: [] },
+    categories: {},
+    wikipedia: null,
+    creatorPacks: [],
+    aiModels: [],
+    ingestPolicy: 'Manual',
+    timezone: timezone || DEFAULT_TIMEZONE,
+    state: state ?? null,
+  }
 }
 
-// Called at render time (labels are translated here so they follow the interface language).
-function buildCoreCapabilities(aiAssistantName: string): Capability[] {
-  const t = i18nT
-  return [
-    {
-      id: 'information',
-      name: t('Information Library'),
-      technicalName: 'Kiwix',
-      description:
-        t('Offline access to Wikipedia, medical references, how-to guides, and encyclopedias'),
-      features: [
-        t('Complete Wikipedia offline'),
-        t('Medical references and first aid guides'),
-        t('DIY repair guides and how-to content'),
-        t('Project Gutenberg books and literature'),
-      ],
-      services: [SERVICE_NAMES.KIWIX],
-      icon: 'IconBooks',
-    },
-    {
-      id: 'education',
-      name: t('Education Platform'),
-      technicalName: 'Kolibri',
-      description: t('Interactive learning platform with video courses and exercises'),
-      features: [
-        t('Khan Academy math and science courses'),
-        t('K-12 curriculum content'),
-        t('Interactive exercises and quizzes'),
-        t('Progress tracking for learners'),
-      ],
-      services: [SERVICE_NAMES.KOLIBRI_GEN2],
-      icon: 'IconSchool',
-    },
-    {
-      id: 'ai',
-      name: aiAssistantName,
-      technicalName: 'Ollama',
-      description: t('Local AI chat that runs entirely on your hardware - no internet required'),
-      features: [
-        t('Private conversations that never leave your device'),
-        t('No internet connection needed after setup'),
-        t('Ask questions, get help with writing, brainstorm ideas'),
-        t('Runs on your own hardware with local AI models'),
-      ],
-      services: [SERVICE_NAMES.OLLAMA],
-      icon: 'IconRobot',
-    },
-  ]
+function parseModelSize(size?: string): number {
+  const m = size?.match(/^([\d.]+)\s*(GB|MB|KB)?$/i)
+  if (!m) return 0
+  const v = Number.parseFloat(m[1])
+  const unit = (m[2] || 'GB').toUpperCase()
+  return unit === 'GB' ? v * 1024 ** 3 : unit === 'MB' ? v * 1024 ** 2 : v * 1024
 }
-
-// Additional tools (Notes, Data Tools, and the rest of the catalog) are no
-// longer surfaced in onboarding — they live in Supply Depot, where the full
-// app catalog is browsable any time. Step 1 keeps the focus on the three core
-// capabilities and points users to Supply Depot for everything else.
-
-// Stable step IDs. Creator Packs (4) and AI (5) are BOTH optional, so the set of
-// active steps is computed at runtime (see `activeSteps`) and navigation walks
-// that ordered list rather than doing hardcoded skip math.
-type WizardStep = 1 | 2 | 3 | 4 | 5 | 6
-
-const STEP_LABELS: Record<WizardStep, string> = {
-  1: 'Apps',
-  2: 'Maps',
-  3: 'Content',
-  4: 'Creator Packs',
-  5: 'AI',
-  6: 'Review',
-}
-
-const CURATED_MAP_COLLECTIONS_KEY = 'curated-map-collections'
-const CURATED_CATEGORIES_KEY = 'curated-categories'
-const WIKIPEDIA_STATE_KEY = 'wikipedia-state'
 
 export default function EasySetupWizard(props: {
   system: { services: ServiceSlim[]; remoteOllamaUrl: string }
 }) {
   const { t } = useTranslation()
-  const { aiAssistantName } = usePage<{ aiAssistantName: string }>().props
-  const CORE_CAPABILITIES = buildCoreCapabilities(aiAssistantName)
-
-  const [currentStep, setCurrentStep] = useState<WizardStep>(1)
-  const [selectedServices, setSelectedServices] = useState<string[]>([])
-  const [selectedMapCollections, setSelectedMapCollections] = useState<string[]>([])
-  const [selectedCreatorPacks, setSelectedCreatorPacks] = useState<string[]>([])
-  const [selectedAiModels, setSelectedAiModels] = useState<string[]>([])
-  // Auto-index policy for the AI Assistant Knowledge Base. Defaults to
-  // 'Manual' ("Ask me first"): auto-indexing has real cost and resource
-  // implications a non-technical user won't anticipate from the toggle alone,
-  // so we default to the safe choice and let them opt in. Persisted to
-  // KVStore['rag.defaultIngestPolicy'] on wizard submit (same key #894's KB
-  // modal toggle reads/writes) so the JIT prompt at first chat sees a decided
-  // policy and doesn't ask again.
-  const [ingestPolicy, setIngestPolicy] = useState<'Always' | 'Manual'>('Manual')
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [remoteOllamaEnabled, setRemoteOllamaEnabled] = useState(
-    () => !!props.system.remoteOllamaUrl
-  )
-  const [remoteOllamaUrl, setRemoteOllamaUrl] = useState(() => props.system.remoteOllamaUrl ?? '')
-  const [remoteOllamaUrlError, setRemoteOllamaUrlError] = useState<string | null>(null)
-
-  // Category/tier selection state
-  const [selectedTiers, setSelectedTiers] = useState<Map<string, SpecTier>>(new Map())
-  const [tierModalOpen, setTierModalOpen] = useState(false)
-  const [activeCategory, setActiveCategory] = useState<CategoryWithStatus | null>(null)
-
-  // Wikipedia selection state
-  const [selectedWikipedia, setSelectedWikipedia] = useState<string | null>(null)
-
+  const aiAssistantName = useAiAssistantName()
   const { addNotification } = useNotifications()
   const { isOnline } = useInternetStatus()
   const queryClient = useQueryClient()
   const { data: systemInfo } = useSystemInfo({ enabled: true })
-  // Creator Packs are hidden entirely on builds without the release-injected key.
   const { configured: creatorPacksConfigured, packs: creatorPacks } = useCreatorPacks()
 
-  const anySelectionMade =
-    selectedServices.length > 0 ||
-    selectedMapCollections.length > 0 ||
-    selectedCreatorPacks.length > 0 ||
-    selectedTiers.size > 0 ||
-    selectedAiModels.length > 0 ||
-    (selectedWikipedia !== null && selectedWikipedia !== 'none')
+  const installedServices = useMemo(
+    () => new Set(props.system.services.filter((s) => s.installed).map((s) => s.service_name)),
+    [props.system.services]
+  )
 
-  const { data: mapCollections, isLoading: isLoadingMaps } = useQuery({
-    queryKey: [CURATED_MAP_COLLECTIONS_KEY],
-    queryFn: () => api.listCuratedMapCollections(),
-    refetchOnWindowFocus: false,
+  // ---- draft: restored from the server, saved while the user goes ----
+  const [draft, setDraft] = useState<SetupDraft | null>(null)
+  const [maxVisited, setMaxVisited] = useState(1)
+  const [processing, setProcessing] = useState(false)
+  const [remoteOllama, setRemoteOllama] = useState({
+    enabled: !!props.system.remoteOllamaUrl,
+    url: props.system.remoteOllamaUrl ?? '',
+    error: null as string | null,
   })
 
-  // Fetch curated categories with tiers
-  const { data: categories, isLoading: isLoadingCategories } = useQuery({
-    queryKey: [CURATED_CATEGORIES_KEY],
-    queryFn: () => api.listCuratedCategories(),
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const [saved, tz, state] = await Promise.all([
+        api.getSetting(DRAFT_KEY).catch(() => undefined),
+        api.getSetting('regional.timezone').catch(() => undefined),
+        api.getSetting('regional.state').catch(() => undefined),
+      ])
+      if (cancelled) return
+      const restored = parseDraft(saved?.value)
+      const next = restored ?? freshDraft(installedServices, tz?.value, state?.value)
+      setDraft(next)
+      setMaxVisited(next.step)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [installedServices])
+
+  const update = useCallback((patch: Partial<SetupDraft>) => {
+    setDraft((d) => (d ? { ...d, ...patch } : d))
+  }, [])
+
+  useEffect(() => {
+    if (!draft || processing) return
+    const id = window.setTimeout(() => {
+      api.updateSetting(DRAFT_KEY, JSON.stringify(draft)).catch(() => {})
+    }, 800)
+    return () => window.clearTimeout(id)
+  }, [draft, processing])
+
+  // ---- data ----
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+    queryKey: ['curated-categories'],
+    queryFn: async () => (await api.listCuratedCategories()) ?? [],
     refetchOnWindowFocus: false,
   })
-
-  const { data: recommendedModels, isLoading: isLoadingRecommendedModels } = useQuery({
-    queryKey: ['recommended-ollama-models'],
-    queryFn: async () => {
-      const res = await api.getAvailableModels({ recommendedOnly: true })
-      if (!res) {
-        return []
-      }
-      return res.models
-    },
+  const { data: mapCollections = [] } = useQuery({
+    queryKey: ['curated-map-collections'],
+    queryFn: async () => (await api.listCuratedMapCollections()) ?? [],
     refetchOnWindowFocus: false,
   })
-
-  // Fetch Wikipedia options and current state
-  const { data: wikipediaState, isLoading: isLoadingWikipedia } = useQuery({
-    queryKey: [WIKIPEDIA_STATE_KEY],
+  const { data: wikipediaState } = useQuery({
+    queryKey: ['wikipedia-state'],
     queryFn: () => api.getWikipediaState(),
     refetchOnWindowFocus: false,
   })
+  const { data: models = [], isLoading: modelsLoading } = useQuery({
+    queryKey: ['recommended-ollama-models'],
+    queryFn: async () => (await api.getAvailableModels({ recommendedOnly: true }))?.models ?? [],
+    refetchOnWindowFocus: false,
+  })
+  const { data: regionFiles = [] } = useQuery({
+    queryKey: ['map-region-files'],
+    queryFn: async () => (await api.listMapRegionFiles()) ?? [],
+    refetchOnWindowFocus: false,
+  })
+  const { data: jobs = [] } = useQuery({
+    queryKey: ['download-jobs'],
+    queryFn: async () => (await api.listDownloadJobs()) ?? [],
+  })
 
-  // All services for display purposes
-  const allServices = props.system.services
+  const refreshManifests = useMutation({
+    mutationFn: () => api.refreshManifests(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['curated-map-collections'] })
+      queryClient.invalidateQueries({ queryKey: ['curated-categories'] })
+    },
+  })
+  useEffect(() => {
+    refreshManifests.mutate()
+    api.updateSetting('ui.hasVisitedEasySetup', 'true').catch(() => {})
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const availableServices = props.system.services.filter(
-    (service) => !service.installed && service.installation_status !== 'installing'
+  // ---- capabilities ----
+  const capabilities: Capability[] = useMemo(() => {
+    const has = (s: string) => props.system.services.some((x) => x.service_name === s)
+    const list: Omit<Capability, 'installed' | 'available'>[] = [
+      {
+        id: 'information',
+        name: t('Information Library'),
+        technicalName: 'Kiwix',
+        description: t(
+          'Offline access to Wikipedia, medical references, how-to guides, and encyclopedias'
+        ),
+        features: [
+          t('Complete Wikipedia offline'),
+          t('Medical references and first aid guides'),
+          t('DIY repair guides and how-to content'),
+        ],
+        services: [SERVICE_NAMES.KIWIX],
+        icon: 'IconBooks',
+      },
+      {
+        id: 'education',
+        name: t('Education Platform'),
+        technicalName: 'Kolibri',
+        description: t('Interactive learning platform with video courses and exercises'),
+        features: [t('Interactive exercises and quizzes'), t('Progress tracking for learners')],
+        services: [SERVICE_NAMES.KOLIBRI_GEN2],
+        icon: 'IconSchool',
+      },
+      {
+        id: 'ai',
+        name: aiAssistantName,
+        technicalName: 'Ollama',
+        description: t('Local AI chat that runs entirely on your hardware - no internet required'),
+        features: [
+          t('Private conversations that never leave your device'),
+          t('Runs on your own hardware with local AI models'),
+        ],
+        services: [SERVICE_NAMES.OLLAMA],
+        icon: 'IconRobot',
+      },
+    ]
+    return list.map((c) => ({
+      ...c,
+      installed: c.services.every((s) => installedServices.has(s)),
+      available: c.services.some(has),
+    }))
+  }, [props.system.services, installedServices, aiAssistantName, t])
+
+  const aiInstalled = installedServices.has(SERVICE_NAMES.OLLAMA)
+  const aiInSetup =
+    !!draft &&
+    (draft.services.includes(SERVICE_NAMES.OLLAMA) || aiInstalled || remoteOllama.enabled)
+  const kiwixReady =
+    !!draft &&
+    (draft.services.includes(SERVICE_NAMES.KIWIX) || installedServices.has(SERVICE_NAMES.KIWIX))
+
+  const toggleCapability = (cap: Capability) => {
+    if (!draft || cap.installed) return
+    const selected = cap.services.every((s) => draft.services.includes(s))
+    if (cap.id === 'ai' && selected) {
+      const hasAi =
+        draft.aiModels.length > 0 || draft.ingestPolicy !== 'Manual' || remoteOllama.enabled
+      if (
+        hasAi &&
+        !window.confirm(
+          t(
+            'Turning off AI will discard your AI model picks, indexing policy, and remote Ollama configuration. Continue?'
+          )
+        )
+      )
+        return
+      setRemoteOllama({ enabled: false, url: '', error: null })
+      update({ aiModels: [], ingestPolicy: 'Manual' })
+    }
+    update({
+      services: selected
+        ? draft.services.filter((s) => !cap.services.includes(s))
+        : [...new Set([...draft.services, ...cap.services])],
+    })
+  }
+
+  // ---- maps: measured size for the exact selection ----
+  const codes = draft ? mapCodes(draft.maps) : []
+  const slug = draft ? mapSlug(draft.maps) : null
+  const label = draft ? mapLabel(draft.maps) : ''
+  const zoom = draft?.maps.maxzoom ?? DEFAULT_MAP_ZOOM
+  const mapInstalled =
+    !!slug &&
+    regionFiles.some((f) => f.name.startsWith(`${slug}_`) && f.name.endsWith(`_z${zoom}.pmtiles`))
+  const mapDownloading = jobs.some(
+    (j) => j.filetype === 'map' && j.status !== 'failed' && j.title === label
   )
+  const [estimate, setEstimate] = useState<{
+    bytes: number | null
+    loading: boolean
+    error: string | null
+  }>({
+    bytes: null,
+    loading: false,
+    error: null,
+  })
+  const cache = useRef(new Map<string, number>())
+  const [retryTick, setRetryTick] = useState(0)
+  const estimateKey = codes.length ? `${codes.join(',')}|${zoom}` : ''
 
-  // Services that are already installed
-  const installedServices = props.system.services.filter((service) => service.installed)
+  useEffect(() => {
+    if (!estimateKey || mapInstalled || mapDownloading || !isOnline) {
+      setEstimate({ bytes: null, loading: false, error: null })
+      return
+    }
+    const cached = cache.current.get(estimateKey)
+    if (cached !== undefined) {
+      setEstimate({ bytes: cached, loading: false, error: null })
+      return
+    }
+    const controller = new AbortController()
+    setEstimate({ bytes: null, loading: true, error: null })
+    const id = window.setTimeout(async () => {
+      try {
+        const [countries, z] = estimateKey.split('|')
+        const res = await api.extractMapPreflight(
+          { countries: countries.split(','), maxzoom: Number(z) },
+          controller.signal
+        )
+        cache.current.set(estimateKey, res.bytes)
+        setEstimate({ bytes: res.bytes, loading: false, error: null })
+      } catch (e) {
+        if (controller.signal.aborted) return
+        setEstimate({
+          bytes: null,
+          loading: false,
+          error: e instanceof Error ? e.message : String(e),
+        })
+      }
+    }, 700)
+    return () => {
+      window.clearTimeout(id)
+      controller.abort()
+    }
+  }, [estimateKey, mapInstalled, mapDownloading, isOnline, retryTick])
 
-  // Canonical "is AI part of this user's setup?" predicate (RFC #883 / issue #905).
-  // Single source consumed by step-indicator render, navigation skip logic, the
-  // review summary, and handleFinish. The AI step renders if and only if this
-  // is true; if false, the wizard collapses to 4 steps and the AI step is
-  // skipped on both forward and back nav.
-  const isAiInSetup = useMemo(
+  const mapEstimate: MapEstimate = { ...estimate, retry: () => setRetryTick((n) => n + 1) }
+
+  // ---- totals ----
+  const installedIds = useMemo(
+    () => new Set(categories.flatMap((c) => c.installedResourceIds ?? [])),
+    [categories]
+  )
+  const downloadingIds = useMemo(
+    () => new Set(categories.flatMap((c) => c.downloadingResourceIds ?? [])),
+    [categories]
+  )
+  const plan = useMemo(
     () =>
-      selectedServices.includes(SERVICE_NAMES.OLLAMA) ||
-      installedServices.some((s) => s.service_name === SERVICE_NAMES.OLLAMA) ||
-      remoteOllamaEnabled,
-    [selectedServices, installedServices, remoteOllamaEnabled]
+      draft
+        ? contentPlan(categories, kiwixReady ? draft.categories : {}, installedIds, downloadingIds)
+        : { byCategory: [], skipped: 0, bytes: 0 },
+    [draft, categories, installedIds, downloadingIds, kiwixReady]
   )
+  const wikiOption =
+    draft?.wikipedia && wikipediaState
+      ? wikipediaState.options.find((o) => o.id === draft.wikipedia)
+      : undefined
+  const wikiChanged =
+    !!wikiOption && draft?.wikipedia !== wikipediaState?.currentSelection?.optionId
+  const wikiBytes = wikiChanged && wikiOption ? wikiOption.size_mb * 1024 * 1024 : 0
+  const modelBytes = draft
+    ? draft.aiModels.reduce(
+        (s, name) => s + parseModelSize(models.find((m) => m.name === name)?.tags?.[0]?.size),
+        0
+      )
+    : 0
+  const packBytes = draft
+    ? draft.creatorPacks.reduce(
+        (s, id) => s + (creatorPacks.find((p) => p.id === id)?.size_mb ?? 0) * 1024 * 1024,
+        0
+      )
+    : 0
+  const collectionsBytes = draft
+    ? draft.maps.collections.reduce((s, slugC) => {
+        const c = mapCollections.find((x) => x.slug === slugC)
+        return c && !c.all_installed
+          ? s + c.resources.reduce((a, r) => a + r.size_mb * 1024 * 1024, 0)
+          : s
+      }, 0)
+    : 0
+  const wantsMap = codes.length > 0 && !mapInstalled && !mapDownloading
+  const mapBytes = wantsMap ? (estimate.bytes ?? 0) : 0
+  const total = plan.bytes + wikiBytes + modelBytes + packBytes + collectionsBytes + mapBytes
 
-  // Ordered list of the steps actually shown to THIS user. Creator Packs (4) and
-  // AI (5) are both optional; everything else is fixed. Navigation walks this
-  // list (see handleNext/handleBack), so a step's absence needs no skip math.
-  const activeSteps = useMemo<WizardStep[]>(() => {
-    const steps: WizardStep[] = [1, 2, 3]
-    if (creatorPacksConfigured) steps.push(4)
-    if (isAiInSetup) steps.push(5)
-    steps.push(6)
-    return steps
-  }, [creatorPacksConfigured, isAiInSetup])
+  const disk = getPrimaryDiskInfo(systemInfo?.disk, systemInfo?.fsSize)
+  const freeBytes = disk ? Math.max(0, disk.totalSize - disk.totalUsed) : null
+  const tooBig = freeBytes !== null && total > freeBytes
 
-  const toggleMapCollection = (slug: string) => {
-    setSelectedMapCollections((prev) =>
-      prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]
-    )
+  const newServices = draft
+    ? draft.services.filter(
+        (s) => !installedServices.has(s) && !(remoteOllama.enabled && s === SERVICE_NAMES.OLLAMA)
+      )
+    : []
+  const serviceNames = newServices.map((s) =>
+    t(props.system.services.find((x) => x.service_name === s)?.friendly_name || s)
+  )
+  const anything =
+    newServices.length > 0 ||
+    plan.byCategory.length > 0 ||
+    wantsMap ||
+    wikiChanged ||
+    (draft?.maps.collections.length ?? 0) > 0 ||
+    (draft?.creatorPacks.length ?? 0) > 0 ||
+    (draft?.aiModels.length ?? 0) > 0 ||
+    remoteOllama.enabled
+
+  const lines: SummaryLine[] = [
+    { label: t('Apps'), bytes: null, detail: serviceNames.join(', ') || t('none') },
+    {
+      label: t('Maps'),
+      bytes: codes.length ? (mapInstalled ? 0 : mapBytes + collectionsBytes) : collectionsBytes,
+      pending: wantsMap && estimate.loading,
+      detail: codes.length ? label : undefined,
+    },
+    { label: t('Content'), bytes: plan.bytes + wikiBytes + packBytes },
+    ...(modelBytes ? [{ label: t('AI models'), bytes: modelBytes }] : []),
+  ]
+
+  // ---- navigation ----
+  const step = draft?.step ?? 1
+  const go = (n: number) => {
+    if (!draft) return
+    update({ step: n })
+    setMaxVisited((m) => Math.max(m, n))
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const toggleCreatorPack = (id: string) => {
-    setSelectedCreatorPacks((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
-    )
-  }
-
-  const toggleAiModel = (modelName: string) => {
-    setSelectedAiModels((prev) =>
-      prev.includes(modelName) ? prev.filter((m) => m !== modelName) : [...prev, modelName]
-    )
-  }
-
-  // Category/tier handlers
-  const handleCategoryClick = (category: CategoryWithStatus) => {
-    if (!isOnline) return
-    setActiveCategory(category)
-    setTierModalOpen(true)
-  }
-
-  const handleTierSelect = (category: CategoryWithStatus, tier: SpecTier) => {
-    setSelectedTiers((prev) => {
-      const newMap = new Map(prev)
-      // If same tier is selected, deselect it
-      if (prev.get(category.slug)?.slug === tier.slug) {
-        newMap.delete(category.slug)
-      } else {
-        newMap.set(category.slug, tier)
-      }
-      return newMap
-    })
-  }
-
-  const closeTierModal = () => {
-    setTierModalOpen(false)
-    setActiveCategory(null)
-  }
-
-  // Get all resources from selected tiers for storage projection
-  const getSelectedTierResources = (): SpecResource[] => {
-    if (!categories) return []
-    const resources: SpecResource[] = []
-    selectedTiers.forEach((tier, categorySlug) => {
-      const category = categories.find((c) => c.slug === categorySlug)
-      if (category) {
-        resources.push(...resolveTierResources(tier, category.tiers))
-      }
-    })
-    return resources
-  }
-
-  // Calculate total projected storage from all selections
-  const projectedStorageBytes = useMemo(() => {
-    let totalBytes = 0
-
-    // Add tier resources
-    const tierResources = getSelectedTierResources()
-    totalBytes += tierResources.reduce((sum, r) => sum + (r.size_mb ?? 0) * 1024 * 1024, 0)
-
-    // Add map collections
-    if (mapCollections) {
-      selectedMapCollections.forEach((slug) => {
-        const collection = mapCollections.find((c) => c.slug === slug)
-        if (collection) {
-          totalBytes += collection.resources.reduce((sum, r) => sum + r.size_mb * 1024 * 1024, 0)
-        }
-      })
-    }
-
-    // Add creator packs
-    selectedCreatorPacks.forEach((id) => {
-      const pack = creatorPacks.find((p) => p.id === id)
-      if (pack) {
-        totalBytes += pack.size_mb * 1024 * 1024
-      }
-    })
-
-    // Add AI models
-    if (recommendedModels) {
-      selectedAiModels.forEach((modelName) => {
-        const model = recommendedModels.find((m) => m.name === modelName)
-        if (model?.tags?.[0]?.size) {
-          // Parse size string like "4.7GB" or "1.5GB"
-          const sizeStr = model.tags[0].size
-          const match = sizeStr.match(/^([\d.]+)\s*(GB|MB|KB)?$/i)
-          if (match) {
-            const value = parseFloat(match[1])
-            const unit = (match[2] || 'GB').toUpperCase()
-            if (unit === 'GB') {
-              totalBytes += value * 1024 * 1024 * 1024
-            } else if (unit === 'MB') {
-              totalBytes += value * 1024 * 1024
-            } else if (unit === 'KB') {
-              totalBytes += value * 1024
-            }
-          }
-        }
-      })
-    }
-
-    // Add Wikipedia selection
-    if (selectedWikipedia && wikipediaState) {
-      const option = wikipediaState.options.find((o) => o.id === selectedWikipedia)
-      if (option && option.size_mb > 0) {
-        totalBytes += option.size_mb * 1024 * 1024
-      }
-    }
-
-    return totalBytes
-  }, [
-    selectedTiers,
-    selectedMapCollections,
-    selectedCreatorPacks,
-    selectedAiModels,
-    selectedWikipedia,
-    categories,
-    mapCollections,
-    creatorPacks,
-    recommendedModels,
-    wikipediaState,
-  ])
-
-  // Get primary disk/filesystem info for storage projection
-  const storageInfo = getPrimaryDiskInfo(systemInfo?.disk, systemInfo?.fsSize)
-
-  // The review step is always the last active step. Read by canProceedToNextStep
-  // and the bottom-bar Next-vs-Finish switch.
-  const finalStep: WizardStep = activeSteps[activeSteps.length - 1]
-
-  const canProceedToNextStep = () => {
-    if (!isOnline) return false // Must be online to proceed
-    // Every step before the review is skippable; the review step shows Finish, not Next.
-    return currentStep < finalStep
-  }
-
-  // Navigate to the next/previous ACTIVE step relative to the current one. Using
-  // a value comparison (not indexOf) keeps nav correct even if currentStep goes
-  // momentarily stale — e.g. the user disables AI while standing on the AI step,
-  // dropping it from activeSteps; the next click still lands on the right step.
-  const handleNext = () => {
-    const next = activeSteps.find((s) => s > currentStep)
-    if (next !== undefined) setCurrentStep(next)
-  }
-
-  const handleBack = () => {
-    const prev = [...activeSteps].reverse().find((s) => s < currentStep)
-    if (prev !== undefined) setCurrentStep(prev)
-  }
-
-  const handleFinish = async () => {
+  // ---- install ----
+  const start = async () => {
+    if (!draft) return
     if (!isOnline) {
       addNotification({
         type: 'error',
@@ -390,71 +410,85 @@ export default function EasySetupWizard(props: {
       })
       return
     }
-
-    setIsProcessing(true)
-
-    try {
-      // Persist the auto-index policy choice before kicking off downloads so
-      // any content that finishes during this same wizard run sees the right
-      // policy. Skipped when AI is not in the user's setup; the KV stays null
-      // and the first-chat JIT prompt (#899) handles the decision later if/when
-      // the user enables AI. Uses the canonical isAiInSetup predicate so step
-      // 3 / step 4 / step 5 / handleFinish never disagree (issue #905).
-      if (isAiInSetup) {
-        try {
-          await api.updateSetting('rag.defaultIngestPolicy', ingestPolicy)
-        } catch (err) {
-          // Non-fatal: the user can still set the policy from the KB modal.
-          console.warn('Could not persist ingest policy from wizard:', err)
-        }
+    setProcessing(true)
+    const failures: string[] = []
+    const attempt = async (what: string, fn: () => Promise<unknown>) => {
+      try {
+        const res = await fn()
+        if (res === undefined || (res as any)?.success === false) failures.push(what)
+      } catch {
+        failures.push(what)
       }
+    }
+    try {
+      await Promise.all([
+        api
+          .updateSetting('regional.timezone', draft.timezone)
+          .catch(() => failures.push(t('Time zone'))),
+        api.updateSetting('regional.state', draft.state ?? '').catch(() => {}),
+        aiInSetup
+          ? api.updateSetting('rag.defaultIngestPolicy', draft.ingestPolicy).catch(() => {})
+          : null,
+      ])
 
-      // If using remote Ollama, configure it first before other installs
-      if (remoteOllamaEnabled && remoteOllamaUrl) {
-        const remoteResult = await api.configureRemoteOllama(remoteOllamaUrl)
-        if (!remoteResult?.success) {
-          const msg = (remoteResult as any)?.message || t('Failed to configure remote Ollama.')
-          setRemoteOllamaUrlError(msg)
-          setIsProcessing(false)
-          setCurrentStep(1)
+      if (remoteOllama.enabled && remoteOllama.url) {
+        const r = await api.configureRemoteOllama(remoteOllama.url)
+        if (!r?.success) {
+          setRemoteOllama({
+            ...remoteOllama,
+            error: (r as any)?.message || t('Failed to configure remote Ollama.'),
+          })
+          setProcessing(false)
+          go(1)
           return
         }
       }
 
-      // All of these ops don't actually wait for completion, they just kick off the process, so we can run them in parallel without awaiting each one sequentially
-      // Exclude Ollama from local install when using remote mode
-      const servicesToInstall = remoteOllamaEnabled
-        ? selectedServices.filter((s) => s !== SERVICE_NAMES.OLLAMA)
-        : selectedServices
-      const installPromises = servicesToInstall.map((serviceName) => api.installService(serviceName))
+      await Promise.all(newServices.map((s) => attempt(s, () => api.installService(s))))
 
-      await Promise.all(installPromises)
+      await Promise.all([
+        ...plan.byCategory.map((c) =>
+          attempt(categories.find((x) => x.slug === c.slug)?.name ?? c.slug, () =>
+            api.downloadCategoryTier(c.slug, c.tierSlug, c.resourceIds)
+          )
+        ),
+        wantsMap
+          ? attempt(label, () =>
+              api.extractMapRegion({
+                countries: codes,
+                maxzoom: zoom,
+                label,
+                estimatedBytes: estimate.bytes ?? undefined,
+              })
+            )
+          : null,
+        ...draft.maps.collections.map((c) => attempt(c, () => api.downloadMapCollection(c))),
+        ...draft.creatorPacks.map((id) => attempt(id, () => api.installCreatorPack(id))),
+        ...draft.aiModels.map((m) => attempt(m, () => api.downloadModel(m))),
+      ])
 
-      // Download collections, category tiers, and AI models
-      const categoryTierPromises: Promise<any>[] = []
-      selectedTiers.forEach((tier, categorySlug) => {
-        categoryTierPromises.push(api.downloadCategoryTier(categorySlug, tier.slug))
-      })
-
-      const downloadPromises = [
-        ...selectedMapCollections.map((slug) => api.downloadMapCollection(slug)),
-        ...categoryTierPromises,
-        ...selectedCreatorPacks.map((id) => api.installCreatorPack(id)),
-        ...selectedAiModels.map((modelName) => api.downloadModel(modelName)),
-      ]
-
-      await Promise.all(downloadPromises)
-
-      // Select Wikipedia option if one was chosen
-      if (selectedWikipedia && selectedWikipedia !== wikipediaState?.currentSelection?.optionId) {
-        await api.selectWikipedia(selectedWikipedia)
+      if (wikiChanged && draft.wikipedia) {
+        await attempt(t('Wikipedia'), () => api.selectWikipedia(draft.wikipedia!))
       }
 
-      addNotification({
-        type: 'success',
-        message: t('Setup wizard completed! Your selections are being processed.'),
-      })
-
+      await api.updateSetting(DRAFT_KEY, '').catch(() => {})
+      addNotification(
+        failures.length
+          ? {
+              type: 'error',
+              message: t(
+                'Setup started, but these items failed: {{list}}. Try them again from the Downloads screen or this wizard.',
+                {
+                  list: failures.join(', '),
+                }
+              ),
+              duration: 15000,
+            }
+          : {
+              type: 'success',
+              message: t('Setup wizard completed! Your selections are being processed.'),
+            }
+      )
       router.visit('/easy-setup/complete')
     } catch (error) {
       console.error('Error during setup:', error)
@@ -463,1060 +497,153 @@ export default function EasySetupWizard(props: {
         message: t('An error occurred during setup. Some items may not have been processed.'),
       })
     } finally {
-      setIsProcessing(false)
+      setProcessing(false)
     }
   }
 
-  const refreshManifests = useMutation({
-    mutationFn: () => api.refreshManifests(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [CURATED_MAP_COLLECTIONS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [CURATED_CATEGORIES_KEY] })
-    },
-  })
-
-  // Scroll to top when step changes
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [currentStep])
-
-  // Refresh manifests on mount to ensure we have latest data
-  useEffect(() => {
-    if (!refreshManifests.isPending) {
-      refreshManifests.mutate()
-    }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Set Easy Setup as visited when user lands on this page
-  useEffect(() => {
-    const markAsVisited = async () => {
-      try {
-        await api.updateSetting('ui.hasVisitedEasySetup', 'true')
-      } catch (error) {
-        // Silent fail - this is non-critical
-        console.warn('Failed to mark Easy Setup as visited:', error)
-      }
-    }
-
-    markAsVisited()
-  }, [])
-
-  const renderStepIndicator = () => {
-    // `step` is the stable WizardStep value (1=Apps, 2=Maps, 3=Content,
-    // 4=Creator Packs, 5=AI, 6=Review). Only the ACTIVE steps are shown, and
-    // `displayNumber` is the sequential position in the dot (always 1..N) so
-    // there's no gap when Creator Packs and/or AI are absent.
-    const steps = activeSteps.map((step, idx) => ({
-      step,
-      label: t(STEP_LABELS[step]),
-      displayNumber: idx + 1,
-    }))
-
-    return (
-      <nav aria-label={t('Progress')} className="px-6 pt-6">
-        <ol
-          role="list"
-          className="divide-y divide-border-default rounded-md md:flex md:divide-y-0 md:justify-between border border-desert-green"
-        >
-          {steps.map((step, stepIdx) => (
-            <li key={step.step} className="relative md:flex-1 md:flex md:justify-center">
-              {currentStep > step.step ? (
-                <div className="group flex w-full items-center md:justify-center">
-                  <span className="flex items-center px-6 py-2 text-sm font-medium">
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-desert-green">
-                      <IconCheck aria-hidden="true" className="size-6 text-white" />
-                    </span>
-                    <span className="ml-4 text-lg font-medium text-text-primary">{step.label}</span>
-                  </span>
-                </div>
-              ) : currentStep === step.step ? (
-                <div
-                  aria-current="step"
-                  className="flex items-center px-6 py-2 text-sm font-medium md:justify-center"
-                >
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-desert-green border-2 border-desert-green">
-                    <span className="text-white">{step.displayNumber}</span>
-                  </span>
-                  <span className="ml-4 text-lg font-medium text-desert-green">{step.label}</span>
-                </div>
-              ) : (
-                <div className="group flex items-center md:justify-center">
-                  <span className="flex items-center px-6 py-2 text-sm font-medium">
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-border-default">
-                      <span className="text-text-muted">{step.displayNumber}</span>
-                    </span>
-                    <span className="ml-4 text-lg font-medium text-text-muted">{step.label}</span>
-                  </span>
-                </div>
-              )}
-
-              {stepIdx !== steps.length - 1 ? (
-                <>
-                  {/* Arrow separator for lg screens and up */}
-                  <div
-                    aria-hidden="true"
-                    className="absolute top-0 right-0 hidden h-full w-5 md:block"
-                  >
-                    <svg
-                      fill="none"
-                      viewBox="0 0 22 80"
-                      preserveAspectRatio="none"
-                      className={`size-full ${currentStep > step.step ? 'text-desert-green' : 'text-text-muted'}`}
-                    >
-                      <path
-                        d="M0 -2L20 40L0 82"
-                        stroke="currentcolor"
-                        vectorEffect="non-scaling-stroke"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                </>
-              ) : null}
-            </li>
-          ))}
-        </ol>
-      </nav>
-    )
-  }
-
-  // Check if a capability is selected (all its services are in selectedServices)
-  const isCapabilitySelected = (capability: Capability) => {
-    return capability.services.every((service) => selectedServices.includes(service))
-  }
-
-  // Check if a capability is already installed (all its services are installed)
-  const isCapabilityInstalled = (capability: Capability) => {
-    return capability.services.every((service) =>
-      installedServices.some((s) => s.service_name === service)
-    )
-  }
-
-  // Check if a capability exists in the system (has at least one matching service)
-  const capabilityExists = (capability: Capability) => {
-    return capability.services.some((service) =>
-      allServices.some((s) => s.service_name === service)
-    )
-  }
-
-  // Toggle all services for a capability (only if not already installed)
-  const toggleCapability = (capability: Capability) => {
-    // Don't allow toggling installed capabilities
-    if (isCapabilityInstalled(capability)) return
-
-    const isSelected = isCapabilitySelected(capability)
-
-    // Toggling AI off needs to clear dependent state that lives in the AI
-    // step (model picks, ingest policy, remote Ollama config). If the user
-    // has any of that filled in, confirm before discarding so a stray click
-    // doesn't quietly wipe their setup.
-    if (capability.id === 'ai' && isSelected) {
-      const hasAiSelections =
-        selectedAiModels.length > 0 ||
-        ingestPolicy !== 'Manual' ||
-        remoteOllamaEnabled
-      if (hasAiSelections) {
-        const confirmed = window.confirm(
-          t('Turning off AI will discard your AI model picks, indexing policy, and remote Ollama configuration. Continue?')
-        )
-        if (!confirmed) return
-      }
-      setSelectedAiModels([])
-      setIngestPolicy('Manual')
-      setRemoteOllamaEnabled(false)
-      setRemoteOllamaUrl('')
-      setRemoteOllamaUrlError(null)
-    }
-
-    if (isSelected) {
-      // Deselect all services in this capability
-      setSelectedServices((prev) => prev.filter((s) => !capability.services.includes(s)))
-    } else {
-      // Select all available services in this capability
-      const servicesToAdd = capability.services.filter((service) =>
-        availableServices.some((s) => s.service_name === service)
-      )
-      setSelectedServices((prev) => [...new Set([...prev, ...servicesToAdd])])
-    }
-  }
-
-  const renderCapabilityCard = (capability: Capability, isCore: boolean = true) => {
-    const selected = isCapabilitySelected(capability)
-    const installed = isCapabilityInstalled(capability)
-    const exists = capabilityExists(capability)
-
-    if (!exists) return null
-
-    // Determine visual state: installed (locked), selected (user chose it), or default
-    const isChecked = installed || selected
-
-    return (
-      <div
-        key={capability.id}
-        onClick={() => toggleCapability(capability)}
-        className={classNames(
-          'p-6 rounded-lg border-2 transition-all',
-          installed
-            ? 'border-desert-green bg-desert-green/20 cursor-default'
-            : selected
-              ? 'border-desert-green bg-desert-green shadow-md cursor-pointer'
-              : 'border-desert-stone-light bg-surface-primary hover:border-desert-green hover:shadow-sm cursor-pointer'
-        )}
-      >
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <h3
-                className={classNames(
-                  'text-xl font-bold',
-                  installed ? 'text-text-primary' : selected ? 'text-white' : 'text-text-primary'
-                )}
-              >
-                {capability.name}
-              </h3>
-              {installed && (
-                <span className="text-xs bg-desert-green text-white px-2 py-0.5 rounded-full">
-                  {t('Installed')}
-                </span>
-              )}
-            </div>
-            <p
-              className={classNames(
-                'text-sm mt-0.5',
-                installed ? 'text-text-muted' : selected ? 'text-neutral-300' : 'text-text-muted'
-              )}
-            >
-              {t('Powered by {{name}}', { name: capability.technicalName })}
-            </p>
-            <p
-              className={classNames(
-                'text-sm mt-3',
-                installed ? 'text-text-secondary' : selected ? 'text-white' : 'text-text-secondary'
-              )}
-            >
-              {capability.description}
-            </p>
-            {isCore && (
-              <ul
-                className={classNames(
-                  'mt-3 space-y-1',
-                  installed ? 'text-text-secondary' : selected ? 'text-white' : 'text-text-secondary'
-                )}
-              >
-                {capability.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-start text-sm">
-                    <span
-                      className={classNames(
-                        'mr-2',
-                        installed
-                          ? 'text-desert-green'
-                          : selected
-                            ? 'text-white'
-                            : 'text-desert-green'
-                      )}
-                    >
-                      •
-                    </span>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-          <div
-            className={classNames(
-              'ml-4 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0',
-              isChecked
-                ? installed
-                  ? 'border-desert-green bg-desert-green'
-                  : 'border-white bg-white'
-                : 'border-desert-stone'
-            )}
-          >
-            {isChecked && (
-              <IconCheck size={20} className={installed ? 'text-white' : 'text-desert-green'} />
-            )}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  const renderStep1 = () => {
-    // Show all capabilities that exist in the system (including installed ones)
-    const existingCoreCapabilities = CORE_CAPABILITIES.filter(capabilityExists)
-
-    // Check if ALL core capabilities are already installed (nothing left to install)
-    const allInstalled =
-      existingCoreCapabilities.length > 0 &&
-      existingCoreCapabilities.every(isCapabilityInstalled)
-
-    return (
-      <div className="space-y-8">
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-text-primary mb-2">{t('What do you want monolith-nomad to do?')}</h2>
-          <p className="text-text-secondary">
-            {t('Select the capabilities you need. You can always add more later.')}
-          </p>
-        </div>
-
-        {allInstalled ? (
-          <div className="text-center py-12">
-            <p className="text-text-secondary text-lg">
-              {t('All available capabilities are already installed!')}
-            </p>
-            <StyledButton
-              variant="primary"
-              className="mt-4"
-              onClick={() => router.visit('/settings/apps')}
-            >
-              {t('Manage Apps')}
-            </StyledButton>
-          </div>
-        ) : (
-          <>
-            {/* Core Capabilities */}
-            {existingCoreCapabilities.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-text-primary mb-4">{t('Core Capabilities')}</h3>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  {existingCoreCapabilities.map((capability) => {
-                    if (capability.id === 'ai') {
-                      const isAiSelected = isCapabilitySelected(capability)
-                      return (
-                        <div key={capability.id}>
-                          {renderCapabilityCard(capability, true)}
-                          {isAiSelected && !isCapabilityInstalled(capability) && (
-                            <div
-                              className="mt-2 p-4 bg-surface-secondary rounded-lg border border-border-default"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <label className="flex items-center gap-2 cursor-pointer select-none">
-                                <input
-                                  type="checkbox"
-                                  checked={remoteOllamaEnabled}
-                                  onChange={(e) => {
-                                    setRemoteOllamaEnabled(e.target.checked)
-                                    setRemoteOllamaUrlError(null)
-                                  }}
-                                  className="w-4 h-4 accent-desert-green"
-                                />
-                                <span className="text-sm font-medium text-text-secondary">{t('Use remote Ollama instance')}</span>
-                              </label>
-                              {remoteOllamaEnabled && (
-                                <div className="mt-3">
-                                  <input
-                                    type="text"
-                                    value={remoteOllamaUrl}
-                                    onChange={(e) => {
-                                      setRemoteOllamaUrl(e.target.value)
-                                      setRemoteOllamaUrlError(null)
-                                    }}
-                                    placeholder="http://192.168.1.100:11434"
-                                    className="w-full px-3 py-2 text-sm border border-border-default rounded-md focus:outline-none focus:ring-1 focus:ring-desert-green"
-                                  />
-                                  {remoteOllamaUrlError && (
-                                    <p className="mt-1 text-xs text-desert-red-dark">{remoteOllamaUrlError}</p>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    }
-                    return renderCapabilityCard(capability, true)
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Everything beyond the core capabilities lives in Supply Depot,
-                the browsable app catalog. Keep onboarding focused and point
-                users there for Notes, Data Tools, and the rest. */}
-            <div className="border-t border-desert-stone-light pt-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-lg bg-surface-secondary p-4">
-                <div>
-                  <h3 className="text-md font-medium text-text-primary mb-1">
-                    {t('Looking for more apps?')}
-                  </h3>
-                  <p className="text-sm text-text-secondary">
-                    {t('Notes, data tools, and the full catalog of add-on apps are available any time in Supply Depot.')}
-                  </p>
-                </div>
-                <StyledButton
-                  variant="secondary"
-                  onClick={() => router.visit('/supply-depot')}
-                  className="flex-shrink-0"
-                >
-                  {t('Open Supply Depot')}
-                </StyledButton>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-    )
-  }
-
-  const renderStep2 = () => (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-3xl font-bold text-text-primary mb-2">{t('Choose Map Regions')}</h2>
-        <p className="text-text-secondary">
-          {t('Select map region collections to download for offline use. You can always download more regions later.')}
-        </p>
-      </div>
-      <div className="mx-auto max-w-2xl rounded-lg border border-border-subtle bg-surface-secondary p-3 text-center">
-        <p className="text-sm text-text-secondary">
-          {t('Only need a specific country, or want the whole world? Individual countries and a full global map can be installed any time from the')}{' '}
-          <button
-            type="button"
-            onClick={() => router.visit('/settings/maps')}
-            className="font-medium text-desert-green underline"
-          >
-            {t('Maps Manager')}
-          </button>
-          .
-        </p>
-      </div>
-      {isLoadingMaps ? (
-        <div className="flex justify-center py-12">
-          <LoadingSpinner />
-        </div>
-      ) : mapCollections && mapCollections.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mapCollections.map((collection) => (
-            <div
-              key={collection.slug}
-              onClick={() =>
-                isOnline && !collection.all_installed && toggleMapCollection(collection.slug)
-              }
-              className={classNames(
-                'relative',
-                selectedMapCollections.includes(collection.slug) &&
-                'ring-4 ring-desert-green rounded-lg',
-                collection.all_installed && 'opacity-75',
-                !isOnline && 'opacity-50 cursor-not-allowed'
-              )}
-            >
-              <CuratedCollectionCard collection={collection} />
-              {selectedMapCollections.includes(collection.slug) && (
-                <div className="absolute top-2 right-2 bg-desert-green rounded-full p-1">
-                  <IconCheck size={32} className="text-white" />
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+  const nav = (
+    <div className="flex flex-col gap-2">
+      {step < 4 ? (
+        <StyledButton onClick={() => go(step + 1)} disabled={!isOnline} fullWidth>
+          <span className="inline-flex items-center gap-1.5">
+            {t('Next')} <IconArrowRight size={16} />
+          </span>
+        </StyledButton>
       ) : (
-        <div className="text-center py-12">
-          <p className="text-text-secondary text-lg">{t('No map collections available at this time.')}</p>
-        </div>
+        <StyledButton
+          onClick={start}
+          loading={processing}
+          disabled={processing || !isOnline || !anything || tooBig}
+          fullWidth
+        >
+          <span className="inline-flex items-center gap-1.5">
+            <IconPlayerPlay size={16} /> {t('Start installation')}
+          </span>
+        </StyledButton>
       )}
+      {step > 1 && (
+        <StyledButton variant="ghost" onClick={() => go(step - 1)} disabled={processing} fullWidth>
+          <span className="inline-flex items-center gap-1.5">
+            <IconArrowLeft size={16} /> {t('Back')}
+          </span>
+        </StyledButton>
+      )}
+      <p className="text-center text-xs text-text-muted">
+        {t('Your choices are saved; you can leave and come back.')}
+      </p>
     </div>
   )
-
-  const renderStep3 = () => {
-    // Issue #905: AI moved to its own conditional Step 4. Step 3 is now
-    // content-only (Wikipedia + curated tiers), gated on the Information
-    // capability (Kiwix).
-    const isInformationSelected =
-      selectedServices.includes(SERVICE_NAMES.KIWIX) ||
-      installedServices.some((s) => s.service_name === SERVICE_NAMES.KIWIX)
-
-    return (
-      <div className="space-y-6">
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-text-primary mb-2">{t('Choose Content')}</h2>
-          <p className="text-text-secondary">
-            {isInformationSelected
-              ? t('Select content categories for offline knowledge.')
-              : t('Configure content for your selected capabilities.')}
-          </p>
-        </div>
-
-        {/* Wikipedia Selection - Only show if Information capability is selected */}
-        {isInformationSelected && (
-          <div className="mb-8">
-            {isLoadingWikipedia ? (
-              <div className="flex justify-center py-12">
-                <LoadingSpinner />
-              </div>
-            ) : wikipediaState && wikipediaState.options.length > 0 ? (
-              <WikipediaSelector
-                options={wikipediaState.options}
-                currentSelection={wikipediaState.currentSelection}
-                selectedOptionId={selectedWikipedia}
-                onSelect={(optionId) => isOnline && setSelectedWikipedia(optionId)}
-                disabled={!isOnline}
-              />
-            ) : null}
-          </div>
-        )}
-
-        {/* Curated Categories with Tiers - Only show if Information capability is selected */}
-        {isInformationSelected && (
-          <>
-            {/* Divider between Wikipedia and Additional Content */}
-            <hr className="my-8 border-border-subtle" />
-
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-surface-primary border border-border-subtle flex items-center justify-center shadow-sm">
-                <IconBooks className="w-6 h-6 text-text-primary" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold text-text-primary">{t('Additional Content')}</h3>
-                <p className="text-sm text-text-muted">{t('Curated collections for offline reference')}</p>
-              </div>
-            </div>
-
-            {isLoadingCategories ? (
-              <div className="flex justify-center py-12">
-                <LoadingSpinner />
-              </div>
-            ) : categories && categories.length > 0 ? (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {categories.map((category) => (
-                    <CategoryCard
-                      key={category.slug}
-                      category={category}
-                      selectedTier={selectedTiers.get(category.slug) || null}
-                      onClick={handleCategoryClick}
-                    />
-                  ))}
-                </div>
-
-                {/* Tier Selection Modal */}
-                <TierSelectionModal
-                  isOpen={tierModalOpen}
-                  onClose={closeTierModal}
-                  category={activeCategory}
-                  selectedTierSlug={
-                    activeCategory
-                      ? selectedTiers.get(activeCategory.slug)?.slug || activeCategory.installedTierSlug
-                      : null
-                  }
-                  onSelectTier={handleTierSelect}
-                />
-              </>
-            ) : null}
-
-          </>
-        )}
-
-        {/* Show message if no content-bearing capabilities are selected */}
-        {!isInformationSelected && (
-          <div className="text-center py-12">
-            <p className="text-text-secondary text-lg">
-              {t('No content-based capabilities selected. You can skip this step or go back to select capabilities that require content.')}
-            </p>
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  const renderCreatorPacks = () => {
-    // Creator Packs step. Only present when this build is configured (see
-    // activeSteps); a fork built without the key never reaches it. Selection is
-    // by pack id, held in selectedCreatorPacks; installs fire in handleFinish.
-    return (
-      <div className="space-y-6">
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-text-primary mb-2">{t('Stock Creator Packs')}</h2>
-          <p className="text-text-secondary">
-            {t('Branded video collections from creators, downloaded for offline viewing in Kiwix.')}
-          </p>
-        </div>
-
-        {creatorPacks.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {creatorPacks.map((pack) => (
-              <CreatorPackCard
-                key={pack.id}
-                pack={pack}
-                selected={selectedCreatorPacks.includes(pack.id)}
-                onClick={
-                  pack.status === 'installed' && !pack.available_update_version
-                    ? undefined
-                    : () => isOnline && toggleCreatorPack(pack.id)
-                }
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-text-secondary text-lg">{t('No creator packs available right now.')}</p>
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  const renderStep4 = () => {
-    // AI step (issue #905). Only rendered when isAiInSetup is true; otherwise
-    // the wizard's step array drops it and forward/back nav jumps Content → Review.
-    return (
-      <div className="space-y-6">
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-text-primary mb-2">{t('Configure {{name}}', { name: aiAssistantName })}</h2>
-          <p className="text-text-secondary">
-            {t('Choose models to download and set how {{name}} handles new content.', { name: aiAssistantName })}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-surface-primary border border-border-subtle flex items-center justify-center shadow-sm">
-            <IconCpu className="w-6 h-6 text-text-primary" />
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold text-text-primary">{t('AI Models')}</h3>
-            <p className="text-sm text-text-muted">{t('Select models to download for offline AI')}</p>
-          </div>
-        </div>
-        {remoteOllamaEnabled && remoteOllamaUrl ? (
-          <Alert
-            title={t('Remote Ollama selected')}
-            message={t('Models are managed on the remote machine. You can add models from Settings > AI Assistant after setup, note this is only supported when using Ollama, not LM Studio and other OpenAI API software.')}
-            type="info"
-            variant="bordered"
-          />
-        ) : isLoadingRecommendedModels ? (
-          <div className="flex justify-center py-12">
-            <LoadingSpinner />
-          </div>
-        ) : recommendedModels && recommendedModels.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {recommendedModels.map((model) => (
-              <div
-                key={model.name}
-                onClick={() => isOnline && toggleAiModel(model.name)}
-                className={classNames(
-                  'p-4 rounded-lg border-2 transition-all cursor-pointer',
-                  selectedAiModels.includes(model.name)
-                    ? 'border-desert-green bg-desert-green shadow-md'
-                    : 'border-desert-stone-light bg-surface-primary hover:border-desert-green hover:shadow-sm',
-                  !isOnline && 'opacity-50 cursor-not-allowed'
-                )}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h4
-                      className={classNames(
-                        'text-lg font-semibold mb-1',
-                        selectedAiModels.includes(model.name) ? 'text-white' : 'text-text-primary'
-                      )}
-                    >
-                      {model.name}
-                    </h4>
-                    <p
-                      className={classNames(
-                        'text-sm mb-2',
-                        selectedAiModels.includes(model.name) ? 'text-white' : 'text-text-secondary'
-                      )}
-                    >
-                      {model.description}
-                    </p>
-                    {model.tags?.[0]?.size && (
-                      <div
-                        className={classNames(
-                          'text-xs',
-                          selectedAiModels.includes(model.name)
-                            ? 'text-neutral-300'
-                            : 'text-text-muted'
-                        )}
-                      >
-                        {t('Size: {{size}}', { size: model.tags[0].size })}
-                      </div>
-                    )}
-                    {model.tags?.[0]?.input.toLowerCase().includes('image') && (
-                      <div
-                        className={classNames(
-                          'mt-1 text-xs font-medium',
-                          selectedAiModels.includes(model.name)
-                            ? 'text-neutral-300'
-                            : 'text-desert-green'
-                        )}
-                      >
-                        {t('Supports images')}
-                      </div>
-                    )}
-                  </div>
-                  <div
-                    className={classNames(
-                      'ml-4 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0',
-                      selectedAiModels.includes(model.name)
-                        ? 'border-white bg-white'
-                        : 'border-desert-stone'
-                    )}
-                  >
-                    {selectedAiModels.includes(model.name) && (
-                      <IconCheck size={16} className="text-desert-green" />
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8 bg-surface-secondary rounded-lg">
-            <p className="text-text-secondary">{t('No recommended AI models available at this time.')}</p>
-          </div>
-        )}
-
-        {/* Auto-index policy — choose now so the JIT prompt at first chat
-            doesn't ask again (RFC #883 Phase 3 task 13). Persisted to
-            rag.defaultIngestPolicy on wizard submit. */}
-        <div className="mt-8 pt-6 border-t border-border-subtle">
-          <h4 className="text-lg font-semibold text-text-primary mb-1">
-            {t('Auto-index new content for {{name}}?', { name: aiAssistantName })}
-          </h4>
-          <p className="text-sm text-text-muted mb-4">
-            {t('When you add new ZIMs, documents, or curated content, should {{name}} index them automatically so it can search them while answering your questions?', { name: aiAssistantName })}
-          </p>
-          <div className="inline-flex rounded-md border border-border-default overflow-hidden" role="group">
-            <button
-              type="button"
-              onClick={() => setIngestPolicy('Always')}
-              className={classNames(
-                'px-5 py-2 text-sm font-medium transition-colors',
-                ingestPolicy === 'Always'
-                  ? 'bg-desert-green text-white'
-                  : 'bg-surface-primary text-text-secondary hover:bg-surface-secondary'
-              )}
-            >
-              {t('Yes, always')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIngestPolicy('Manual')}
-              className={classNames(
-                'px-5 py-2 text-sm font-medium transition-colors border-l border-border-default',
-                ingestPolicy === 'Manual'
-                  ? 'bg-desert-green text-white'
-                  : 'bg-surface-primary text-text-secondary hover:bg-surface-secondary'
-              )}
-            >
-              {t('Ask me first')}
-            </button>
-          </div>
-          <p className="text-xs text-text-muted mt-3">
-            {t('You can change this any time from the Knowledge Base panel inside AI Chat.')}
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  const renderStep5 = () => {
-    const hasSelections =
-      selectedServices.length > 0 ||
-      selectedMapCollections.length > 0 ||
-      selectedCreatorPacks.length > 0 ||
-      selectedTiers.size > 0 ||
-      selectedAiModels.length > 0 ||
-      (selectedWikipedia !== null && selectedWikipedia !== 'none')
-
-    return (
-      <div className="space-y-6">
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-text-primary mb-2">{t('Review Your Selections')}</h2>
-          <p className="text-text-secondary">{t('Review your choices before starting the setup process.')}</p>
-        </div>
-
-        {!hasSelections ? (
-          <Alert
-            title={t('No Selections Made')}
-            message={t("You haven't selected anything to install or download. You can go back to make selections or go back to the home page.")}
-            type="info"
-            variant="bordered"
-          />
-        ) : (
-          <div className="space-y-6">
-            {selectedServices.length > 0 && (
-              <div className="bg-surface-primary rounded-lg border-2 border-desert-stone-light p-6">
-                <h3 className="text-xl font-semibold text-text-primary mb-4">
-                  {t('Capabilities to Install')}
-                </h3>
-                <ul className="space-y-2">
-                  {CORE_CAPABILITIES.filter((cap) =>
-                    cap.services.some((s) => selectedServices.includes(s))
-                  ).map((capability) => (
-                      <li key={capability.id} className="flex items-center">
-                        <IconCheck size={20} className="text-desert-green mr-2" />
-                        <span className="text-text-primary">
-                          {capability.name}
-                          <span className="text-text-muted text-sm ml-2">
-                            ({capability.technicalName})
-                          </span>
-                        </span>
-                      </li>
-                    ))}
-                </ul>
-              </div>
-            )}
-
-            {selectedMapCollections.length > 0 && (
-              <div className="bg-surface-primary rounded-lg border-2 border-desert-stone-light p-6">
-                <h3 className="text-xl font-semibold text-text-primary mb-4">
-                  {t('Map Collections to Download ({{count}})', { count: selectedMapCollections.length })}
-                </h3>
-                <ul className="space-y-2">
-                  {selectedMapCollections.map((slug) => {
-                    const collection = mapCollections?.find((c) => c.slug === slug)
-                    return (
-                      <li key={slug} className="flex items-center">
-                        <IconCheck size={20} className="text-desert-green mr-2" />
-                        <span className="text-text-primary">{collection?.name || slug}</span>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
-            )}
-
-            {selectedCreatorPacks.length > 0 && (
-              <div className="bg-surface-primary rounded-lg border-2 border-desert-stone-light p-6">
-                <h3 className="text-xl font-semibold text-text-primary mb-4">
-                  {t('Creator Packs to Install ({{count}})', { count: selectedCreatorPacks.length })}
-                </h3>
-                <ul className="space-y-2">
-                  {selectedCreatorPacks.map((id) => {
-                    const pack = creatorPacks.find((p) => p.id === id)
-                    return (
-                      <li key={id} className="flex items-center">
-                        <IconCheck size={20} className="text-desert-green mr-2" />
-                        <span className="text-text-primary">{pack?.name || id}</span>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
-            )}
-
-            {selectedTiers.size > 0 && (
-              <div className="bg-surface-primary rounded-lg border-2 border-desert-stone-light p-6">
-                <h3 className="text-xl font-semibold text-text-primary mb-4">
-                  {t('Content Categories ({{count}})', { count: selectedTiers.size })}
-                </h3>
-                {Array.from(selectedTiers.entries()).map(([categorySlug, tier]) => {
-                  const category = categories?.find((c) => c.slug === categorySlug)
-                  if (!category) return null
-                  const resources = resolveTierResources(tier, category.tiers)
-                  return (
-                    <div key={categorySlug} className="mb-4 last:mb-0">
-                      <div className="flex items-center mb-2">
-                        <IconCheck size={20} className="text-desert-green mr-2" />
-                        <span className="text-text-primary font-medium">
-                          {category.name} - {tier.name}
-                        </span>
-                        <span className="text-text-muted text-sm ml-2">
-                          ({resources.length === 1 ? t('1 file') : t('{{count}} files', { count: resources.length })})
-                        </span>
-                      </div>
-                      <ul className="ml-7 space-y-1">
-                        {resources.map((resource, idx) => (
-                          <li key={idx} className="text-sm text-text-secondary">
-                            {resource.title}
-                            <LanguageBadge language={resource.language} />
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-
-            {selectedWikipedia && selectedWikipedia !== 'none' && (
-              <div className="bg-surface-primary rounded-lg border-2 border-desert-stone-light p-6">
-                <h3 className="text-xl font-semibold text-text-primary mb-4">{t('Wikipedia')}</h3>
-                {(() => {
-                  const option = wikipediaState?.options.find((o) => o.id === selectedWikipedia)
-                  return option ? (
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <IconCheck size={20} className="text-desert-green mr-2" />
-                        <span className="text-text-primary">{option.name}</span>
-                      </div>
-                      <span className="text-text-muted text-sm">
-                        {option.size_mb > 0
-                          ? `${formatNumber(option.size_mb / 1024, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} GB`
-                          : t('No download')}
-                      </span>
-                    </div>
-                  ) : null
-                })()}
-              </div>
-            )}
-
-            {selectedAiModels.length > 0 && (
-              <div className="bg-surface-primary rounded-lg border-2 border-desert-stone-light p-6">
-                <h3 className="text-xl font-semibold text-text-primary mb-4">
-                  {t('AI Models to Download ({{count}})', { count: selectedAiModels.length })}
-                </h3>
-                <ul className="space-y-2">
-                  {selectedAiModels.map((modelName) => {
-                    const model = recommendedModels?.find((m) => m.name === modelName)
-                    return (
-                      <li key={modelName} className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <IconCheck size={20} className="text-desert-green mr-2" />
-                          <span className="text-text-primary">{modelName}</span>
-                        </div>
-                        {model?.tags?.[0]?.size && (
-                          <span className="text-text-muted text-sm">{model.tags[0].size}</span>
-                        )}
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
-            )}
-
-            {isAiInSetup && (
-              <div className="bg-surface-primary rounded-lg border-2 border-desert-stone-light p-6">
-                <h3 className="text-xl font-semibold text-text-primary mb-2">
-                  {t('Auto-index Setting')}
-                </h3>
-                <p className="text-text-secondary text-sm">
-                  {ingestPolicy === 'Always' ? (
-                    <Trans
-                      i18nKey="New content will be <strong>indexed automatically</strong> as it arrives so {{name}} can search it."
-                      values={{ name: aiAssistantName }}
-                    />
-                  ) : (
-                    <Trans
-                      i18nKey="New content will <strong>wait for you to opt in</strong> from the Knowledge Base panel before {{name}} indexes it."
-                      values={{ name: aiAssistantName }}
-                    />
-                  )}
-                </p>
-              </div>
-            )}
-
-            <Alert
-              title={t('Ready to Start')}
-              message={t("Click 'Complete Setup' to begin installing apps and downloading content. This may take some time depending on your internet connection and the size of the downloads.")}
-              type="info"
-              variant="solid"
-            />
-          </div>
-        )}
-      </div>
-    )
-  }
 
   return (
     <AppLayout>
       <Head title={t('Easy Setup Wizard')} />
-      {!isOnline && (
-        <Alert
-          title={t('No Internet Connection')}
-          message={t("You'll need an internet connection to proceed. Please connect to the internet and try again.")}
-          type="warning"
-          variant="solid"
-          className="mb-8"
-        />
-      )}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-surface-primary rounded-md shadow-md">
-          {renderStepIndicator()}
-          {storageInfo && (
-            <div className="px-6 pt-4">
-              <StorageProjectionBar
-                totalSize={storageInfo.totalSize}
-                currentUsed={storageInfo.totalUsed}
-                projectedAddition={projectedStorageBytes}
-              />
-            </div>
+      <div className="nd-page">
+        <PageHeader
+          eyebrow={t('Easy Setup')}
+          title={t('Set up your server')}
+          description={t(
+            'Four steps: features, maps, content and review. Nothing is downloaded until you confirm.'
           )}
-          <div className="p-6 min-h-fit">
-            {currentStep === 1 && renderStep1()}
-            {currentStep === 2 && renderStep2()}
-            {currentStep === 3 && renderStep3()}
-            {currentStep === 4 && creatorPacksConfigured && renderCreatorPacks()}
-            {currentStep === 5 && isAiInSetup && renderStep4()}
-            {currentStep === 6 && renderStep5()}
-
-            <div className="flex justify-between mt-8 pt-4 border-t border-desert-stone-light">
-              <div className="flex space-x-4 items-center">
-                {currentStep > 1 && (
-                  <StyledButton
-                    onClick={handleBack}
-                    disabled={isProcessing}
-                    variant="outline"
-                    icon="IconChevronLeft"
-                  >
-                    {t('Back')}
-                  </StyledButton>
+        />
+        {!isOnline && (
+          <Alert
+            className="mb-6"
+            type="warning"
+            title={t('No Internet Connection')}
+            message={t(
+              "You'll need an internet connection to proceed. Please connect to the internet and try again."
+            )}
+          />
+        )}
+        {!draft ? (
+          <LoadingSpinner />
+        ) : (
+          <>
+            <SetupStepper step={step} maxVisited={maxVisited} onGo={go} />
+            <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1fr)_20rem]">
+              <div className="min-w-0 animate-nd-fade" key={step}>
+                {step === 1 && (
+                  <StepResources
+                    draft={draft}
+                    update={update}
+                    capabilities={capabilities}
+                    toggleCapability={toggleCapability}
+                    aiName={aiAssistantName}
+                    aiInSetup={aiInSetup}
+                    aiInstalled={aiInstalled}
+                    remoteOllama={remoteOllama}
+                    setRemoteOllama={setRemoteOllama}
+                    models={models}
+                    modelsLoading={modelsLoading}
+                    online={isOnline}
+                  />
                 )}
-
-                <p className="text-sm text-text-secondary">
-                  {(() => {
-                    const count = CORE_CAPABILITIES.filter((cap) =>
-                      cap.services.some((s) => selectedServices.includes(s))
-                    ).length
-                    return count === 1 ? t('1 capability') : t('{{count}} capabilities', { count })
-                  })()}
-                  ,{' '}
-                  {selectedMapCollections.length === 1
-                    ? t('1 map region')
-                    : t('{{count}} map regions', { count: selectedMapCollections.length })}
-                  ,{' '}
-                  {selectedTiers.size === 1
-                    ? t('1 content category')
-                    : t('{{count}} content categories', { count: selectedTiers.size })}
-                  ,{' '}
-                  {creatorPacksConfigured && (
-                    <>
-                      {selectedCreatorPacks.length === 1
-                        ? t('1 creator pack')
-                        : t('{{count}} creator packs', { count: selectedCreatorPacks.length })}
-                      ,{' '}
-                    </>
-                  )}
-                  {selectedAiModels.length === 1
-                    ? t('1 AI model selected')
-                    : t('{{count}} AI models selected', { count: selectedAiModels.length })}
-                </p>
+                {step === 2 && (
+                  <StepMaps
+                    draft={draft}
+                    update={update}
+                    estimate={mapEstimate}
+                    installed={mapInstalled}
+                    downloading={mapDownloading}
+                    collections={mapCollections}
+                    online={isOnline}
+                  />
+                )}
+                {step === 3 && (
+                  <StepContent
+                    draft={draft}
+                    update={update}
+                    categories={categories}
+                    categoriesLoading={categoriesLoading}
+                    wikipediaState={wikipediaState}
+                    creatorPacks={{ configured: !!creatorPacksConfigured, packs: creatorPacks }}
+                    kiwixReady={kiwixReady}
+                    enableKiwix={() =>
+                      update({ services: [...new Set([...draft.services, SERVICE_NAMES.KIWIX])] })
+                    }
+                    online={isOnline}
+                  />
+                )}
+                {step === 4 && (
+                  <StepReview
+                    draft={draft}
+                    goTo={go}
+                    serviceNames={serviceNames}
+                    mapLabel={codes.length ? label : null}
+                    mapBytes={estimate.bytes}
+                    mapInstalled={mapInstalled || mapDownloading}
+                    plan={plan}
+                    categories={categories}
+                    wikipediaLabel={wikiChanged ? (wikiOption?.name ?? null) : null}
+                    wikipediaBytes={wikiBytes}
+                    modelBytes={modelBytes}
+                    packBytes={packBytes}
+                    collectionsBytes={collectionsBytes}
+                  />
+                )}
               </div>
-
-              <div className="flex space-x-4">
-                <StyledButton
-                  onClick={() => router.visit('/home')}
-                  disabled={isProcessing}
-                  variant="outline"
+              <div className="xl:sticky xl:top-6 xl:self-start">
+                <SetupSummary
+                  lines={lines}
+                  totalBytes={total}
+                  freeBytes={freeBytes}
+                  diskBytes={disk?.totalSize ?? null}
+                  measuring={wantsMap && estimate.loading}
                 >
-                  {t('Cancel & Go to Home')}
-                </StyledButton>
-
-                {currentStep < finalStep ? (
-                  <StyledButton
-                    onClick={handleNext}
-                    disabled={!canProceedToNextStep() || isProcessing}
-                    variant="primary"
-                    icon="IconChevronRight"
-                  >
-                    {t('Next')}
-                  </StyledButton>
-                ) : (
-                  <StyledButton
-                    onClick={handleFinish}
-                    disabled={isProcessing || !isOnline || !anySelectionMade}
-                    loading={isProcessing}
-                    variant="success"
-                    icon="IconCheck"
-                  >
-                    {t('Complete Setup')}
-                  </StyledButton>
-                )}
+                  <div className="hidden xl:block">{nav}</div>
+                </SetupSummary>
               </div>
             </div>
-          </div>
-        </div>
+            {/* small screens: total and the next action stay at hand */}
+            <div className="sticky bottom-0 z-20 -mx-4 mt-6 border-t border-border-subtle px-4 py-3 nd-glass sm:-mx-6 sm:px-6 xl:hidden">
+              <div className="mb-2 flex items-baseline justify-between text-sm">
+                <span className="text-text-secondary">{t('Total download')}</span>
+                <span className="nd-mono text-text-primary">{formatBytes(total, 1)}</span>
+              </div>
+              {nav}
+            </div>
+          </>
+        )}
       </div>
     </AppLayout>
   )

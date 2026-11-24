@@ -40,18 +40,18 @@ const WikipediaSelector: React.FC<WikipediaSelectorProps> = ({
     <div className="w-full">
       {/* Header with Wikipedia branding */}
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
+        <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center ">
           <IconWorld className="w-6 h-6 text-text-primary" />
         </div>
         <div>
-          <h3 className="text-xl font-semibold text-text-primary">Wikipedia</h3>
+          <h3 className="text-xl font-semibold text-text-primary">{t('Wikipedia')}</h3>
           <p className="text-sm text-text-muted">{t('Select your preferred Wikipedia package')}</p>
         </div>
       </div>
 
       {/* Downloading status message */}
       {isDownloading && (
-        <div className="mb-4 p-3 bg-surface-secondary border border-border-default rounded-lg flex items-center gap-2">
+        <div className="mb-4 p-3 bg-surface-secondary border border-border-default rounded-xl flex items-center gap-2">
           <LoadingSpinner fullscreen={false} iconOnly className="size-4" />
           <span className="text-sm text-text-primary">
             {t('Downloading Wikipedia... This may take a while for larger packages.')}
@@ -61,7 +61,7 @@ const WikipediaSelector: React.FC<WikipediaSelectorProps> = ({
 
       {/* Failed status message */}
       {isFailed && (
-        <div className="mb-4 p-3 bg-desert-red-lighter border border-desert-red-light rounded-lg flex items-center justify-between">
+        <div className="mb-4 p-3 bg-desert-red-lighter border border-desert-red-light rounded-xl flex items-center justify-between">
           <div className="flex items-center gap-2">
             <IconAlertTriangle className="w-5 h-5 text-desert-red-dark flex-shrink-0" />
             <span className="text-sm text-desert-red-dark">
@@ -81,17 +81,18 @@ const WikipediaSelector: React.FC<WikipediaSelectorProps> = ({
             currentSelection?.optionId === option.id && currentSelection?.status === 'downloading'
           const isCurrentFailed =
             currentSelection?.optionId === option.id && currentSelection?.status === 'failed'
-          const isPending = selectedOptionId === option.id && selectedOptionId !== currentSelection?.optionId
+          const isPending =
+            selectedOptionId === option.id && selectedOptionId !== currentSelection?.optionId
 
           return (
             <div
               key={option.id}
               onClick={() => !disabled && !isCurrentDownloading && onSelect(option.id)}
               className={classNames(
-                'relative p-4 rounded-lg border-2 transition-all',
+                'relative p-4 rounded-xl border transition-all',
                 disabled || isCurrentDownloading
                   ? 'opacity-60 cursor-not-allowed'
-                  : 'cursor-pointer hover:shadow-md',
+                  : 'cursor-pointer ',
                 isInstalled
                   ? 'border-desert-green bg-desert-green/10'
                   : isSelected
@@ -150,10 +151,14 @@ const WikipediaSelector: React.FC<WikipediaSelectorProps> = ({
                   <span
                     className={classNames(
                       'text-sm font-medium px-2 py-1 rounded',
-                      option.size_mb === 0 ? 'bg-surface-secondary text-text-muted' : 'bg-surface-secondary text-text-secondary'
+                      option.size_mb === 0
+                        ? 'bg-surface-secondary text-text-muted'
+                        : 'bg-surface-secondary text-text-secondary'
                     )}
                   >
-                    {option.size_mb === 0 ? t('No download') : formatBytes(option.size_mb * 1024 * 1024, 1)}
+                    {option.size_mb === 0
+                      ? t('No download')
+                      : formatBytes(option.size_mb * 1024 * 1024, 1)}
                   </span>
                 </div>
               </div>
@@ -163,19 +168,21 @@ const WikipediaSelector: React.FC<WikipediaSelectorProps> = ({
       </div>
 
       {/* Submit button for Content Explorer mode */}
-      {showSubmitButton && selectedOptionId && (selectedOptionId !== currentSelection?.optionId || isFailed) && (
-        <div className="mt-4 flex justify-end">
-          <StyledButton
-            variant="primary"
-            onClick={onSubmit}
-            disabled={isSubmitting || disabled}
-            loading={isSubmitting}
-            icon="IconDownload"
-          >
-            {selectedOptionId === 'none' ? t('Remove Wikipedia') : t('Download Selected')}
-          </StyledButton>
-        </div>
-      )}
+      {showSubmitButton &&
+        selectedOptionId &&
+        (selectedOptionId !== currentSelection?.optionId || isFailed) && (
+          <div className="mt-4 flex justify-end">
+            <StyledButton
+              variant="primary"
+              onClick={onSubmit}
+              disabled={isSubmitting || disabled}
+              loading={isSubmitting}
+              icon="IconDownload"
+            >
+              {selectedOptionId === 'none' ? t('Remove Wikipedia') : t('Download Selected')}
+            </StyledButton>
+          </div>
+        )}
     </div>
   )
 }

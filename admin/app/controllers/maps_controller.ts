@@ -6,6 +6,7 @@ import {
 import MapMarker from '#models/map_marker'
 import {
   assertNotPrivateUrl,
+  countrySubdivisionsValidator,
   downloadCollectionValidator,
   filenameParamValidator,
   mapExtractPreflightValidator,
@@ -121,6 +122,12 @@ export default class MapsController {
 
   async listCountryGroups({}: HttpContext) {
     return { groups: await this.mapService.listCountryGroups() }
+  }
+
+  /** States of a country available as map extract regions (Brazil: 27 federative units). */
+  async listSubdivisions({ request }: HttpContext) {
+    const { params } = await request.validateUsing(countrySubdivisionsValidator)
+    return { subdivisions: await this.mapService.listSubdivisions(params.code) }
   }
 
   async extractPreflight({ request, response }: HttpContext) {

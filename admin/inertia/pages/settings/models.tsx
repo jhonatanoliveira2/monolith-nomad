@@ -1,4 +1,5 @@
-import { Head, router, usePage } from '@inertiajs/react'
+import PageHeader from '~/components/nd/PageHeader'
+import { Head, router } from '@inertiajs/react'
 import { useRef, useState } from 'react'
 import StyledTable from '~/components/StyledTable'
 import SettingsLayout from '~/layouts/SettingsLayout'
@@ -25,18 +26,31 @@ import ActiveModelDownloads from '~/components/ActiveModelDownloads'
 import { useSystemInfo } from '~/hooks/use_system_info'
 import GpuPassthroughAlert from '~/components/GpuPassthroughAlert'
 import { useTranslation } from 'react-i18next'
+import { useAiAssistantName } from '~/hooks/use_ai_assistant_name'
 
 export default function ModelsPage(props: {
   models: {
     availableModels: NomadOllamaModel[]
     installedModels: NomadInstalledModel[]
-    settings: { chatSuggestionsEnabled: boolean; aiAssistantCustomName: string; remoteOllamaUrl: string; ollamaFlashAttention: boolean; autoThinking: boolean; tasksModel: string; ragEnabled: boolean; contextWindow: string; minRelevance: number; relevanceCheck: boolean; responseStyle: string }
+    settings: {
+      chatSuggestionsEnabled: boolean
+      aiAssistantCustomName: string
+      remoteOllamaUrl: string
+      ollamaFlashAttention: boolean
+      autoThinking: boolean
+      tasksModel: string
+      ragEnabled: boolean
+      contextWindow: string
+      minRelevance: number
+      relevanceCheck: boolean
+      responseStyle: string
+    }
     /** Effective window per installed model, as resolved by ContextWindowService. */
     resolvedContextWindows?: Record<string, number>
   }
 }) {
   const { t } = useTranslation()
-  const { aiAssistantName } = usePage<{ aiAssistantName: string }>().props
+  const aiAssistantName = useAiAssistantName()
   const { isInstalled } = useServiceInstalledStatus(SERVICE_NAMES.OLLAMA)
   const { addNotification } = useNotifications()
   const { openModal, closeAllModals } = useModals()
@@ -74,7 +88,8 @@ export default function ModelsPage(props: {
         router.reload()
       }
     } catch (error: any) {
-      const msg = error?.response?.data?.message || error?.message || t('Failed to configure remote Ollama.')
+      const msg =
+        error?.response?.data?.message || error?.message || t('Failed to configure remote Ollama.')
       setRemoteOllamaError(msg)
     } finally {
       setRemoteOllamaSaving(false)
@@ -109,7 +124,11 @@ export default function ModelsPage(props: {
   const forceRefreshRef = useRef(false)
   const [isForceRefreshing, setIsForceRefreshing] = useState(false)
 
-  const { data: availableModelData, isFetching, refetch } = useQuery({
+  const {
+    data: availableModelData,
+    isFetching,
+    refetch,
+  } = useQuery({
     queryKey: ['ollama', 'availableModels', query, limit],
     queryFn: async () => {
       const force = forceRefreshRef.current
@@ -144,14 +163,18 @@ export default function ModelsPage(props: {
       const res = await api.downloadModel(modelName)
       if (res.success) {
         addNotification({
-          message: t('Model download initiated for {{model}}. It may take some time to complete.', { model: modelName }),
+          message: t('Model download initiated for {{model}}. It may take some time to complete.', {
+            model: modelName,
+          }),
           type: 'success',
         })
       }
     } catch (error) {
       console.error('Error installing model:', error)
       addNotification({
-        message: t('There was an error installing the model: {{model}}. Please try again.', { model: modelName }),
+        message: t('There was an error installing the model: {{model}}. Please try again.', {
+          model: modelName,
+        }),
         type: 'error',
       })
     }
@@ -171,7 +194,9 @@ export default function ModelsPage(props: {
     } catch (error) {
       console.error('Error deleting model:', error)
       addNotification({
-        message: t('There was an error deleting the model: {{model}}. Please try again.', { model: modelName }),
+        message: t('There was an error deleting the model: {{model}}. Please try again.', {
+          model: modelName,
+        }),
         type: 'error',
       })
     }
@@ -191,7 +216,9 @@ export default function ModelsPage(props: {
         confirmVariant="primary"
       >
         <p className="text-text-primary">
-          {t('Are you sure you want to delete this model? You will need to download it again if you want to use it in the future.')}
+          {t(
+            'Are you sure you want to delete this model? You will need to download it again if you want to use it in the future.'
+          )}
         </p>
       </StyledModal>,
       'confirm-delete-model-modal'
@@ -229,7 +256,13 @@ export default function ModelsPage(props: {
     // the chosen model has since been deleted.
     ...(RAG_MIN_RELEVANCE_PRESETS.some((p) => String(p.value) === minRelevance)
       ? []
-      : [{ value: minRelevance, label: t('Custom ({{value}})', { value: minRelevance }), disabled: true }]),
+      : [
+          {
+            value: minRelevance,
+            label: t('Custom ({{value}})', { value: minRelevance }),
+            disabled: true,
+          },
+        ]),
   ]
 
   const responseStyleOptions = RESPONSE_STYLE_PRESETS.map((preset) => ({
@@ -245,7 +278,13 @@ export default function ModelsPage(props: {
     { value: '', label: t('Use the chat model') },
     ...props.models.installedModels.map((model) => ({ value: model.name, label: model.name })),
     ...(tasksModel && !props.models.installedModels.some((m) => m.name === tasksModel)
-      ? [{ value: tasksModel, label: t('{{model}} (not installed)', { model: tasksModel }), disabled: true }]
+      ? [
+          {
+            value: tasksModel,
+            label: t('{{model}} (not installed)', { model: tasksModel }),
+            disabled: true,
+          },
+        ]
       : []),
   ]
 
@@ -275,15 +314,22 @@ export default function ModelsPage(props: {
   return (
     <SettingsLayout>
       <Head title={t('{{name}} Settings', { name: aiAssistantName })} />
-      <div className="xl:pl-72 w-full">
-        <main className="px-12 py-6">
-          <h1 className="text-4xl font-semibold mb-4">{aiAssistantName}</h1>
-          <p className="text-text-muted mb-4">
-            {t('Easily manage the settings and installed models of {{name}}. We recommend starting with smaller models first to see how they perform on your system before moving on to larger ones.', { name: aiAssistantName })}
-          </p>
+      <div className="w-full">
+        <div className="nd-page">
+          <PageHeader
+            eyebrow={t('AI Models')}
+            title={aiAssistantName}
+            description={t(
+              'Easily manage the settings and installed models of {{name}}. We recommend starting with smaller models first to see how they perform on your system before moving on to larger ones.',
+              { name: aiAssistantName }
+            )}
+          />
           {!isInstalled && (
             <Alert
-              title={t('The dependencies of {{name}} are not installed. Please install them to manage AI models.', { name: aiAssistantName })}
+              title={t(
+                'The dependencies of {{name}} are not installed. Please install them to manage AI models.',
+                { name: aiAssistantName }
+              )}
               type="warning"
               variant="solid"
               className="!mt-6"
@@ -298,7 +344,7 @@ export default function ModelsPage(props: {
           )}
 
           <StyledSectionHeader title={t('Settings')} className="mt-8 mb-4" />
-          <div className="bg-surface-primary rounded-lg border-2 border-border-subtle p-6">
+          <div className="nd-card p-6">
             <div className="space-y-4">
               <Switch
                 checked={chatSuggestionsEnabled}
@@ -316,7 +362,9 @@ export default function ModelsPage(props: {
                   updateSettingMutation.mutate({ key: 'ai.ollamaFlashAttention', value: newVal })
                 }}
                 label={t('Flash Attention')}
-                description={t('Enables OLLAMA_FLASH_ATTENTION=1 for improved memory efficiency. Disable if you experience instability. Takes effect after reinstalling the AI Assistant.')}
+                description={t(
+                  'Enables OLLAMA_FLASH_ATTENTION=1 for improved memory efficiency. Disable if you experience instability. Takes effect after reinstalling the AI Assistant.'
+                )}
               />
               <Switch
                 checked={autoThinking}
@@ -325,7 +373,9 @@ export default function ModelsPage(props: {
                   updateSettingMutation.mutate({ key: 'ai.autoThinking', value: newVal })
                 }}
                 label={t('Use thinking automatically when a model supports it')}
-                description={t('Sets the default for models that can think. You can still turn thinking on or off for an individual model in the chat window.')}
+                description={t(
+                  'Sets the default for models that can think. You can still turn thinking on or off for an individual model in the chat window.'
+                )}
               />
               <Switch
                 checked={ragEnabled}
@@ -334,12 +384,16 @@ export default function ModelsPage(props: {
                   updateSettingMutation.mutate({ key: 'rag.enabled', value: newVal })
                 }}
                 label={t('Knowledge Base Retrieval')}
-                description={t('Search your knowledge base for relevant documents before answering. Turn this off to save memory and speed up replies when your knowledge base is small or empty. This is the same switch as the one in the chat window.')}
+                description={t(
+                  'Search your knowledge base for relevant documents before answering. Turn this off to save memory and speed up replies when your knowledge base is small or empty. This is the same switch as the one in the chat window.'
+                )}
               />
               <Input
                 name="aiAssistantCustomName"
                 label={t('Assistant Name')}
-                helpText={t('Give your AI assistant a custom name that will be used in the chat interface and other areas of the application.')}
+                helpText={t(
+                  'Give your AI assistant a custom name that will be used in the chat interface and other areas of the application.'
+                )}
                 placeholder={t('AI Assistant')}
                 value={aiAssistantCustomName}
                 onChange={(e) => setAiAssistantCustomName(e.target.value)}
@@ -353,7 +407,9 @@ export default function ModelsPage(props: {
               <Select
                 name="tasksModel"
                 label={t('Tasks Model')}
-                helpText={t('Small, fast model used for background work like chat titles and suggestions. Leave this set to the chat model to use whichever model the chat is using. Avoid reasoning models here — they are slow at short, aesthetic tasks.')}
+                helpText={t(
+                  'Small, fast model used for background work like chat titles and suggestions. Leave this set to the chat model to use whichever model the chat is using. Avoid reasoning models here — they are slow at short, aesthetic tasks.'
+                )}
                 value={tasksModel}
                 options={tasksModelOptions}
                 onChange={(newVal) => {
@@ -364,7 +420,9 @@ export default function ModelsPage(props: {
               <Select
                 name="minRelevance"
                 label={t('Knowledge Base Relevance')}
-                helpText={t('How closely a knowledge-base passage has to match your question before it is used in an answer. Stricter settings keep unrelated passages out; too strict and genuinely useful ones get dropped too. When nothing clears the bar, the assistant answers from its own knowledge instead.')}
+                helpText={t(
+                  'How closely a knowledge-base passage has to match your question before it is used in an answer. Stricter settings keep unrelated passages out; too strict and genuinely useful ones get dropped too. When nothing clears the bar, the assistant answers from its own knowledge instead.'
+                )}
                 value={minRelevance}
                 options={minRelevanceOptions}
                 disabled={!ragEnabled}
@@ -381,12 +439,16 @@ export default function ModelsPage(props: {
                   updateSettingMutation.mutate({ key: 'rag.relevanceCheck', value: newVal })
                 }}
                 label={t('Double-check knowledge base matches')}
-                description={t('Before answering, ask the Tasks Model whether the passages found are actually about your question, and leave them out (and uncited) when they are not. Helps most with large libraries like Wikipedia or Project Gutenberg, where something always looks similar. Needs a capable Tasks Model (about 8B parameters or larger); smaller models reject too many good matches. Adds a short delay to every reply.')}
+                description={t(
+                  'Before answering, ask the Tasks Model whether the passages found are actually about your question, and leave them out (and uncited) when they are not. Helps most with large libraries like Wikipedia or Project Gutenberg, where something always looks similar. Needs a capable Tasks Model (about 8B parameters or larger); smaller models reject too many good matches. Adds a short delay to every reply.'
+                )}
               />
               <Select
                 name="responseStyle"
                 label={t('Response Style')}
-                helpText={t("How adventurous the assistant is when picking its next word. Auto follows whatever the model's author recommended and fills in the rest, and suits most people. Focused gives shorter, steadier, more repeatable answers and is the better choice for looking things up. Creative varies its wording more, at some cost to accuracy.")}
+                helpText={t(
+                  "How adventurous the assistant is when picking its next word. Auto follows whatever the model's author recommended and fills in the rest, and suits most people. Focused gives shorter, steadier, more repeatable answers and is the better choice for looking things up. Creative varies its wording more, at some cost to accuracy."
+                )}
                 value={responseStyle}
                 options={responseStyleOptions}
                 onChange={(newVal) => {
@@ -397,7 +459,9 @@ export default function ModelsPage(props: {
               <Select
                 name="contextWindow"
                 label={t('Context Window')}
-                helpText={t('How much conversation and knowledge-base context each reply can consider. Auto sizes this per model from its trained limit and your available memory. Choosing a value sets an upper limit — it can lower the window to save memory, but never raises it beyond what a model supports.')}
+                helpText={t(
+                  'How much conversation and knowledge-base context each reply can consider. Auto sizes this per model from its trained limit and your available memory. Choosing a value sets an upper limit — it can lower the window to save memory, but never raises it beyond what a model supports.'
+                )}
                 value={contextWindow}
                 options={contextWindowOptions}
                 onChange={(newVal) => {
@@ -418,7 +482,7 @@ export default function ModelsPage(props: {
           </div>
 
           <StyledSectionHeader title={t('Installed Models')} className="mt-12 mb-4" />
-          <div className="bg-surface-primary rounded-lg border-2 border-border-subtle p-6">
+          <div className="nd-card p-6">
             {props.models.installedModels.length === 0 ? (
               <p className="text-text-muted">
                 {t('No models installed. Browse the model catalog below to get started.')}
@@ -475,17 +539,22 @@ export default function ModelsPage(props: {
           </div>
 
           <StyledSectionHeader title={t('Remote Connection')} className="mt-8 mb-4" />
-          <div className="bg-surface-primary rounded-lg border-2 border-border-subtle p-6">
+          <div className="nd-card p-6">
             <p className="text-sm text-text-secondary mb-4">
-              {t('Connect to any OpenAI-compatible API server — Ollama, LM Studio, llama.cpp, and others are all supported.')}{' '}
-              {t('For remote Ollama instances, the host must be started with')} <code className="bg-surface-secondary px-1 rounded">OLLAMA_HOST=0.0.0.0</code>.
+              {t(
+                'Connect to any OpenAI-compatible API server — Ollama, LM Studio, llama.cpp, and others are all supported.'
+              )}{' '}
+              {t('For remote Ollama instances, the host must be started with')}{' '}
+              <code className="bg-surface-secondary px-1 rounded">OLLAMA_HOST=0.0.0.0</code>.
             </p>
             <div className="flex items-end gap-3">
               <div className="flex-1">
                 <Input
                   name="remoteOllamaUrl"
                   label={t('Remote Ollama/OpenAI API URL')}
-                  placeholder={t('http://192.168.1.100:11434  (or :1234 for OpenAI API Compatible Apps)')}
+                  placeholder={t(
+                    'http://192.168.1.100:11434  (or :1234 for OpenAI API Compatible Apps)'
+                  )}
                   value={remoteOllamaUrl}
                   onChange={(e) => {
                     setRemoteOllamaUrl(e.target.value)
@@ -526,7 +595,9 @@ export default function ModelsPage(props: {
             type="info"
             variant="bordered"
             title={t('Model downloading is only supported when using a Ollama backend.')}
-            message={t('If you are connected to an OpenAI API host (e.g. LM Studio), please download models directly in that application.')}
+            message={t(
+              'If you are connected to an OpenAI API host (e.g. LM Studio), please download models directly in that application.'
+            )}
             className="mb-4"
           />
           <div className="flex justify-start items-center gap-3 mt-4">
@@ -547,7 +618,7 @@ export default function ModelsPage(props: {
               onClick={handleForceRefresh}
               icon="IconRefresh"
               loading={isForceRefreshing}
-              className='mt-1'
+              className="mt-1"
             >
               {t('Refresh Models')}
             </StyledButton>
@@ -616,7 +687,9 @@ export default function ModelsPage(props: {
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="text-sm text-text-secondary">{tag.input || t('N/A')}</span>
+                                <span className="text-sm text-text-secondary">
+                                  {tag.input || t('N/A')}
+                                </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className="text-sm text-text-secondary">
@@ -624,7 +697,9 @@ export default function ModelsPage(props: {
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="text-sm text-text-secondary">{tag.size || t('N/A')}</span>
+                                <span className="text-sm text-text-secondary">
+                                  {tag.size || t('N/A')}
+                                </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <StyledButton
@@ -663,7 +738,7 @@ export default function ModelsPage(props: {
               </StyledButton>
             )}
           </div>
-        </main>
+        </div>
       </div>
     </SettingsLayout>
   )

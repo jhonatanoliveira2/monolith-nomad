@@ -1,4 +1,5 @@
 import Service from '#models/service'
+import { applyServerTimezone } from '../utils/server_timezone.js'
 import InstalledResource from '#models/installed_resource'
 import { inject } from '@adonisjs/core'
 import { DockerService } from '#services/docker_service'
@@ -970,6 +971,9 @@ export class SystemService {
     }
     if (key === 'ai.assistantCustomName') {
       invalidateAssistantNameCache()
+    }
+    if (key === 'regional.timezone') {
+      applyServerTimezone(value)
     }
     if (key === 'rag.minRelevance') {
       invalidateMinRelevanceCache()

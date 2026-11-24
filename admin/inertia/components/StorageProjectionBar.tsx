@@ -38,7 +38,7 @@ export default function StorageProjectionBar({
   }
 
   return (
-    <div className="bg-desert-stone-lighter/30 rounded-lg p-4 border border-desert-stone-light">
+    <div className="bg-desert-stone-lighter/30 rounded-xl p-4 border border-desert-stone-light">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <IconServer size={20} className="text-desert-green" />
@@ -56,7 +56,7 @@ export default function StorageProjectionBar({
 
       {/* Progress bar */}
       <div className="relative">
-        <div className="h-8 bg-desert-green-lighter/20 rounded-lg border border-desert-stone-light overflow-hidden">
+        <div className="h-8 bg-desert-green-lighter/20 rounded-xl border border-desert-stone-light overflow-hidden">
           {/* Current usage - darker/subdued */}
           <div
             className="absolute h-full bg-desert-stone transition-all duration-300"
@@ -96,7 +96,9 @@ export default function StorageProjectionBar({
         <div className="flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded bg-desert-stone" />
-            <span className="text-desert-stone-dark">{t('Current ({{size}})', { size: formatBytes(currentUsed, 1) })}</span>
+            <span className="text-desert-stone-dark">
+              {t('Current ({{size}})', { size: formatBytes(currentUsed, 1) })}
+            </span>
           </div>
           {projectedAddition > 0 && (
             <div className="flex items-center gap-1.5">
@@ -111,7 +113,11 @@ export default function StorageProjectionBar({
         {willExceed ? (
           <div className="flex items-center gap-1.5 text-desert-red text-xs font-medium">
             <IconAlertTriangle size={14} />
-            <span>{t('Exceeds available space by {{size}}', { size: formatBytes(projectedTotal - totalSize, 1) })}</span>
+            <span>
+              {t('Exceeds available space by {{size}}', {
+                size: formatBytes(projectedTotal - totalSize, 1),
+              })}
+            </span>
           </div>
         ) : (
           <div className="text-xs text-desert-stone">

@@ -17,7 +17,7 @@ export default function LocaleToggle({ className }: { className?: string }) {
       }}
       className={
         className ??
-        'flex items-center gap-1 text-sm text-desert-stone hover:text-desert-green transition-colors cursor-pointer'
+        'inline-flex items-center gap-1 rounded-full px-2 py-1 text-sm text-text-secondary hover:bg-surface-elevated hover:text-text-primary transition-colors duration-[140ms] cursor-pointer'
       }
       title={t('Language: {{name}} (switch to {{next}})', { name: active.label, next: next.label })}
       aria-label={t('Switch language to {{next}}', { next: next.label })}

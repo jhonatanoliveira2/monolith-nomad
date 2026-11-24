@@ -1,252 +1,102 @@
-import { Head, Link } from '@inertiajs/react'
-import { useMemo, useState } from 'react'
+import { Head, Link, usePage } from '@inertiajs/react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  IconAdjustmentsHorizontal,
   IconBook2,
   IconBooks,
-  IconDownload,
-  IconExternalLink,
-  IconLoader2,
-  IconRefresh,
+  IconCloudOff,
   IconSearch,
-  IconTrash,
+  IconX,
 } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 import { AxiosError } from 'axios'
 import AppLayout from '~/layouts/AppLayout'
 import DynamicIcon, { DynamicIconName } from '~/components/DynamicIcon'
-import LanguageBadge from '~/components/LanguageBadge'
-import LoadingSpinner from '~/components/LoadingSpinner'
+import PageHeader from '~/components/nd/PageHeader'
+import Section from '~/components/nd/Section'
+import SegmentedControl from '~/components/nd/SegmentedControl'
+import EmptyState from '~/components/nd/EmptyState'
+import Drawer from '~/components/nd/Drawer'
 import StyledButton from '~/components/StyledButton'
+import WorkCard from '~/components/library/WorkCard'
+import WorkDetails from '~/components/library/WorkDetails'
+import LibraryFilterPanel from '~/components/library/LibraryFilterPanel'
+import { LEVEL_LABEL } from '~/components/library/LevelDots'
 import { useNotifications } from '~/context/notification_context'
 import { getServiceLink } from '~/lib/navigation'
 import { formatBytes } from '~/lib/util'
 import api from '~/lib/api'
+import {
+  EMPTY_FILTERS,
+  RECENT_KEY,
+  activeFilterCount,
+  facetCounts,
+  fileSize,
+  filterItems,
+  filtersFromSearch,
+  filtersToSearch,
+  isInstalled,
+  languageLabel,
+  type LibraryFilters,
+  type LibrarySort,
+  type LibraryStatusFilter,
+  type RecentDocument,
+} from '~/lib/library_filters'
 import { SERVICE_NAMES } from '../../../constants/service_names'
-import type {
-  LibraryArea,
-  LibraryFileWithStatus,
-  LibraryItemWithStatus,
-  LibraryLevel,
-} from '../../../types/library'
+import type { LibraryFileWithStatus, LibraryItemWithStatus } from '../../../types/library'
 
-const LEVELS: { id: LibraryLevel; label: string }[] = [
-  { id: 'iniciante', label: 'Beginner' },
-  { id: 'intermediario', label: 'Intermediate' },
-  { id: 'avancado', label: 'Advanced' },
-]
-const FORMATS = ['pdf', 'epub', 'zim'] as const
-
-function fileSize(file: LibraryFileWithStatus): number | undefined {
-  return 'size_bytes' in file ? file.size_bytes : file.zim_size_bytes
-}
-
-function Chip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
-        active
-          ? 'bg-desert-green text-white border-desert-green'
-          : 'bg-desert-white text-text-secondary border-desert-stone-light hover:border-desert-green'
-      }`}
-    >
-      {children}
-    </button>
-  )
-}
-
-function FileRow({
-  item,
-  file,
-  kiwixUrl,
-  busy,
-  onDownload,
-  onRemove,
-}: {
-  item: LibraryItemWithStatus
-  file: LibraryFileWithStatus
-  kiwixUrl: string | null
-  busy: boolean
-  onDownload: () => void
-  onRemove: () => void
-}) {
-  const { t } = useTranslation()
-  const size = fileSize(file)
-  const isDoc = file.format !== 'zim'
-  const installed = file.status === 'installed' || file.status === 'update_available'
-  return (
-    <div className="flex flex-wrap items-center gap-2 py-1.5">
-      <span className="text-[10px] uppercase tracking-wide font-semibold px-1.5 py-0.5 rounded border border-desert-stone-light text-text-secondary">
-        {file.format}
-      </span>
-      {size ? <span className="text-xs text-text-muted">{formatBytes(size, 1)}</span> : null}
-      {isDoc && 'sha256' in file && !file.sha256 ? (
-        <span
-          className="text-xs text-text-muted"
-          title={t('Continuously rebuilt by the publisher: the format is checked instead of a fixed hash')}
-        >
-          {t('continuous edition')}
-        </span>
-      ) : null}
-      <div className="flex flex-wrap gap-2 ml-auto">
-        {file.status === 'downloading' && (
-          <span className="inline-flex items-center gap-1 text-xs text-text-secondary">
-            <IconLoader2 size={14} className="animate-spin" /> {t('Downloading...')}
-          </span>
-        )}
-        {(file.status === 'available' || file.status === 'update_available') && (
-          <StyledButton size="sm" variant="primary" onClick={onDownload} disabled={busy} loading={busy}>
-            {file.status === 'update_available' ? (
-              <span className="inline-flex items-center gap-1">
-                <IconRefresh size={14} /> {t('Update')}
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1">
-                <IconDownload size={14} /> {t('Download')}
-              </span>
-            )}
-          </StyledButton>
-        )}
-        {installed && isDoc && file.filename && (
-          <Link href={`/library/read/${file.filename}`}>
-            <StyledButton size="sm" variant="secondary">
-              <span className="inline-flex items-center gap-1">
-                <IconBook2 size={14} /> {t('Read')}
-              </span>
-            </StyledButton>
-          </Link>
-        )}
-        {installed && !isDoc && kiwixUrl && (
-          <a href={kiwixUrl} target="_blank" rel="noreferrer">
-            <StyledButton size="sm" variant="secondary">
-              <span className="inline-flex items-center gap-1">
-                <IconExternalLink size={14} /> {t('Open in Kiwix')}
-              </span>
-            </StyledButton>
-          </a>
-        )}
-        {installed && isDoc && (
-          <StyledButton
-            size="sm"
-            variant="ghost"
-            onClick={onRemove}
-            disabled={busy}
-            aria-label={t('Remove {{format}} of {{title}}', {
-              format: file.format.toUpperCase(),
-              title: item.title,
-            })}
-          >
-            <IconTrash size={14} />
-          </StyledButton>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function ItemCard({
-  item,
-  areas,
-  kiwixUrl,
-  busyKey,
-  onDownload,
-  onRemove,
-}: {
-  item: LibraryItemWithStatus
-  areas: Map<string, LibraryArea>
-  kiwixUrl: string | null
-  busyKey: string | null
-  onDownload: (item: LibraryItemWithStatus, file: LibraryFileWithStatus) => void
-  onRemove: (item: LibraryItemWithStatus, file: LibraryFileWithStatus) => void
-}) {
-  const { t } = useTranslation()
-  return (
-    <article className="rounded-lg border border-desert-stone-light bg-desert-white p-4 flex flex-col gap-2 shadow-sm">
-      <h3 className="text-base font-semibold text-text-primary leading-snug">
-        {item.title}
-        <LanguageBadge language={item.language} />
-      </h3>
-      <p className="text-sm text-text-secondary">
-        {item.authors.join(', ')} · {item.publisher}
-      </p>
-      <p className="text-xs text-text-muted">
-        {item.edition} · {item.year}
-      </p>
-      <div className="flex flex-wrap gap-1.5">
-        {item.levels.map((l) => (
-          <span
-            key={l}
-            className="text-[11px] px-2 py-0.5 rounded-full bg-desert-green/10 text-desert-green border border-desert-green/30"
-          >
-            {t(LEVELS.find((x) => x.id === l)?.label ?? l)}
-          </span>
-        ))}
-        {item.areas.map((a) => (
-          <span
-            key={a}
-            className="text-[11px] px-2 py-0.5 rounded-full border border-desert-stone-light text-text-secondary"
-          >
-            {areas.get(a)?.name ?? a}
-          </span>
-        ))}
-      </div>
-      <p className="text-sm text-text-primary">{item.description}</p>
-      <p className="text-xs text-text-muted">
-        <span className="font-medium">{t('Subjects')}:</span> {item.subjects.join(' · ')}
-      </p>
-      {item.notes && <p className="text-xs text-desert-orange-dark">{item.notes}</p>}
-      <p className="text-xs text-text-muted">
-        <a href={item.license.url} target="_blank" rel="noreferrer" className="underline">
-          {item.license.name}
-        </a>
-        {' · '}
-        <a href={item.source_url} target="_blank" rel="noreferrer" className="underline">
-          {t('Official source')}
-        </a>
-      </p>
-      <div className="mt-1 divide-y divide-desert-stone-light/60 border-t border-desert-stone-light/60">
-        {item.files.map((file) => (
-          <FileRow
-            key={file.format}
-            item={item}
-            file={file}
-            kiwixUrl={kiwixUrl}
-            busy={busyKey === `${item.id}:${file.format}`}
-            onDownload={() => onDownload(item, file)}
-            onRemove={() => onRemove(item, file)}
-          />
-        ))}
-      </div>
-    </article>
-  )
+function readRecent(): RecentDocument[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]')
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
 }
 
 export default function LibraryPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { addNotification } = useNotifications()
-  const [search, setSearch] = useState('')
-  const [area, setArea] = useState<string | null>(null)
-  const [level, setLevel] = useState<LibraryLevel | null>(null)
-  const [format, setFormat] = useState<(typeof FORMATS)[number] | null>(null)
+  const [filters, setFilters] = useState<LibraryFilters>(() =>
+    typeof window === 'undefined' ? EMPTY_FILTERS : filtersFromSearch(window.location.search)
+  )
   const [busyKey, setBusyKey] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [recent] = useState<RecentDocument[]>(readRecent)
 
-  const { data, isLoading } = useQuery({
+  const patch = (p: Partial<LibraryFilters>) => setFilters((f) => ({ ...f, ...p }))
+
+  // An Inertia visit to /library?q=… while already here (e.g. from the command palette) keeps this
+  // component mounted: take the filters from the new URL.
+  const { url: pageUrl } = usePage()
+  useEffect(() => {
+    const search = pageUrl.includes('?') ? pageUrl.slice(pageUrl.indexOf('?')) : ''
+    setFilters(filtersFromSearch(search))
+  }, [pageUrl])
+
+  // Keep the URL in sync (bookmarkable, survives the round trip to the reader); debounced, since
+  // browsers throttle history.replaceState and typing fires it on every key.
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      const next = `${window.location.pathname}${filtersToSearch(filters)}`
+      if (next === `${window.location.pathname}${window.location.search}`) return
+      try {
+        window.history.replaceState(window.history.state, '', next)
+      } catch {}
+    }, 300)
+    return () => window.clearTimeout(id)
+  }, [filters])
+
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['library'],
     queryFn: () => api.getLibrary(),
     refetchInterval: (query) =>
-      query.state.data?.items.some((i) => i.files.some((f) => f.status === 'downloading')) ? 3000 : false,
+      query.state.data?.items.some((i) => i.files.some((f) => f.status === 'downloading'))
+        ? 3000
+        : false,
   })
   const { data: services } = useQuery({
     queryKey: ['system-services'],
@@ -255,37 +105,48 @@ export default function LibraryPage() {
   const kiwix = services?.find((s) => s.service_name === SERVICE_NAMES.KIWIX && s.installed)
   const kiwixUrl = kiwix ? getServiceLink(kiwix.ui_location ?? '', kiwix.custom_url) : null
 
-  const areas = useMemo(() => new Map((data?.areas ?? []).map((a) => [a.slug, a])), [data])
+  const items = useMemo(() => data?.items ?? [], [data])
+  const areaList = useMemo(() => data?.areas ?? [], [data])
+  const areas = useMemo(() => new Map(areaList.map((a) => [a.slug, a])), [areaList])
+  const filtered = useMemo(() => filterItems(items, filters), [items, filters])
+  const counts = useMemo(() => facetCounts(items, filters), [items, filters])
+  const selected = items.find((i) => i.id === selectedId) ?? null
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    return (data?.items ?? []).filter((item) => {
-      if (area && !item.areas.includes(area)) return false
-      if (level && !item.levels.includes(level)) return false
-      if (format && !item.files.some((f) => f.format === format)) return false
-      if (!q) return true
-      return [item.title, item.description, item.publisher, ...item.authors, ...item.subjects]
-        .join(' ')
-        .toLowerCase()
-        .includes(q)
-    })
-  }, [data, search, area, level, format])
+  const shelf = items.filter((i) => i.files.some(isInstalled))
+  const shelfBytes = items
+    .flatMap((i) => i.files)
+    .filter(isInstalled)
+    .reduce((sum, f) => sum + (fileSize(f) ?? 0), 0)
 
-  // Each work is listed once, under its first area (or under the selected one).
+  // Recently opened documents that are still installed
+  const installedFiles = new Set(
+    items.flatMap((i) => i.files.filter(isInstalled).map((f) => f.filename))
+  )
+  const continueReading = recent.filter((r) => installedFiles.has(r.filename)).slice(0, 4)
+
+  const nFilters = activeFilterCount(filters)
+  const grouped =
+    !filters.area && !filters.subject && !filters.q.trim() && filters.sort === 'catalog'
+
   const sections = useMemo(() => {
-    const order = (data?.areas ?? []).map((a) => a.slug)
+    if (!grouped) return []
+    const known = new Set(areaList.map((a) => a.slug))
     const groups = new Map<string, LibraryItemWithStatus[]>()
     for (const item of filtered) {
-      const key = area ?? item.areas[0]
+      // a work whose first area is missing from the manifest still gets listed (under "other")
+      const key = item.areas.find((a) => known.has(a)) ?? 'other'
       groups.set(key, [...(groups.get(key) ?? []), item])
     }
-    return order.filter((slug) => groups.has(slug)).map((slug) => ({ slug, items: groups.get(slug)! }))
-  }, [filtered, data, area])
+    return [...areaList.map((a) => a.slug), 'other']
+      .filter((slug) => groups.has(slug))
+      .map((slug) => ({ slug, items: groups.get(slug)! }))
+  }, [grouped, filtered, areaList])
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['library'] })
 
   const serverError = (error: unknown) =>
-    (error instanceof AxiosError && (error.response?.data?.error || error.response?.data?.message)) ||
+    (error instanceof AxiosError &&
+      (error.response?.data?.error || error.response?.data?.message)) ||
     (error instanceof Error ? error.message : String(error))
 
   const handleDownload = async (item: LibraryItemWithStatus, file: LibraryFileWithStatus) => {
@@ -303,14 +164,16 @@ export default function LibraryPage() {
 
   const handleRemove = async (item: LibraryItemWithStatus, file: LibraryFileWithStatus) => {
     if (file.format === 'zim') return
-    const question = t('Remove the downloaded {{format}} of "{{title}}"?', {
-      format: file.format.toUpperCase(),
-      title: item.title,
-    })
-    if (!window.confirm(question)) return
     setBusyKey(`${item.id}:${file.format}`)
     try {
       await api.removeLibraryFile(item.id, file.format)
+      addNotification({
+        type: 'success',
+        message: t('Removed the {{format}} of "{{title}}".', {
+          format: file.format.toUpperCase(),
+          title: item.title,
+        }),
+      })
     } catch (error) {
       addNotification({ type: 'error', message: serverError(error) })
     } finally {
@@ -319,113 +182,331 @@ export default function LibraryPage() {
     }
   }
 
-  const installedCount = (data?.items ?? []).filter((i) =>
-    i.files.some((f) => f.status === 'installed' || f.status === 'update_available')
-  ).length
+  const statusOptions: { value: LibraryStatusFilter; label: string; count?: number }[] = [
+    { value: 'all', label: t('All'), count: counts.status.get('all') },
+    { value: 'offline', label: t('On your shelf'), count: counts.status.get('offline') ?? 0 },
+    { value: 'available', label: t('To download'), count: counts.status.get('available') ?? 0 },
+    ...((counts.status.get('downloading') ?? 0) > 0 || filters.status === 'downloading'
+      ? [
+          {
+            value: 'downloading' as const,
+            label: t('Downloading'),
+            count: counts.status.get('downloading') ?? 0,
+          },
+        ]
+      : []),
+  ]
+
+  const activeChips: { key: string; label: string; clear: Partial<LibraryFilters> }[] = [
+    ...(filters.area
+      ? [
+          {
+            key: 'area',
+            label: areas.get(filters.area)?.name ?? filters.area,
+            clear: { area: null, subject: null },
+          },
+        ]
+      : []),
+    ...(filters.subject
+      ? [{ key: 'subject', label: filters.subject, clear: { subject: null } }]
+      : []),
+    ...(filters.level
+      ? [{ key: 'level', label: t(LEVEL_LABEL[filters.level]), clear: { level: null } }]
+      : []),
+    ...(filters.format
+      ? [{ key: 'format', label: filters.format.toUpperCase(), clear: { format: null } }]
+      : []),
+    ...(filters.lang
+      ? [{ key: 'lang', label: t(languageLabel(filters.lang)), clear: { lang: null } }]
+      : []),
+  ]
+
+  const renderGrid = (list: LibraryItemWithStatus[]) => (
+    <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
+      {list.map((item) => (
+        <WorkCard
+          key={item.id}
+          item={item}
+          areas={areas}
+          kiwixUrl={kiwixUrl}
+          busy={busyKey?.startsWith(`${item.id}:`) ?? false}
+          onOpen={() => setSelectedId(item.id)}
+          onDownload={(file) => handleDownload(item, file)}
+        />
+      ))}
+    </div>
+  )
+
+  const filterPanel = (
+    <LibraryFilterPanel areas={areaList} counts={counts} filters={filters} onChange={patch} />
+  )
 
   return (
     <AppLayout>
       <Head title={t('Library')} />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
-            <IconBooks size={28} /> {t('Library')}
-          </h1>
-          <p className="text-text-secondary mt-1 max-w-3xl">
-            {t(
-              'Books, manuals and offline reference works in Portuguese, from official sources and with open licenses. Download what you need and read it here, without internet.'
-            )}
-          </p>
-          {data && (
-            <p className="text-xs text-text-muted mt-2">
-              {t('{{count}} works · {{installed}} downloaded', {
-                count: data.items.length,
-                installed: installedCount,
-              })}
-            </p>
+      <div className="nd-page">
+        <PageHeader
+          eyebrow={t('Knowledge')}
+          title={t('Library')}
+          description={t(
+            'Books, manuals and offline reference works in Portuguese, from official sources and with open licenses. Download what you need and read it here, without internet.'
           )}
-        </header>
+        />
 
-        <div className="flex flex-col gap-3 mb-6">
-          <label className="relative max-w-md">
-            <span className="sr-only">{t('Search the library')}</span>
-            <IconSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('Search by title, author or subject')}
-              className="w-full pl-9 pr-3 py-2 rounded-md border border-desert-stone-light bg-desert-white text-text-primary text-sm"
-            />
-          </label>
-          <div className="flex flex-wrap gap-2" role="group" aria-label={t('Area')}>
-            <Chip active={area === null} onClick={() => setArea(null)}>
-              {t('All areas')}
-            </Chip>
-            {(data?.areas ?? []).map((a) => (
-              <Chip key={a.slug} active={area === a.slug} onClick={() => setArea(area === a.slug ? null : a.slug)}>
-                {a.name}
-              </Chip>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2 items-center">
-            <div className="flex flex-wrap gap-2" role="group" aria-label={t('Level')}>
-              {LEVELS.map((l) => (
-                <Chip key={l.id} active={level === l.id} onClick={() => setLevel(level === l.id ? null : l.id)}>
-                  {t(l.label)}
-                </Chip>
+        {/* Shelf summary */}
+        <dl className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { label: t('Works'), value: data ? items.length : '—' },
+            { label: t('On your shelf'), value: data ? shelf.length : '—' },
+            { label: t('Space used'), value: data ? formatBytes(shelfBytes, 1) : '—' },
+            { label: t('Areas'), value: data ? areaList.length : '—' },
+          ].map((s) => (
+            <div key={s.label} className="nd-card px-5 py-4">
+              <dt className="nd-eyebrow !text-[10px]">{s.label}</dt>
+              <dd className="mt-2 nd-display text-3xl text-text-primary">{s.value}</dd>
+            </div>
+          ))}
+        </dl>
+
+        {continueReading.length > 0 && nFilters === 0 && !filters.q && (
+          <Section id="continue" title={t('Continue reading')} className="mb-10">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {continueReading.map((r) => (
+                <Link
+                  key={r.filename}
+                  href={`/library/read/${r.filename}`}
+                  className="nd-card nd-card-interactive flex items-center gap-3 p-4"
+                >
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface-elevated">
+                    <IconBook2 size={18} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium text-text-primary">
+                      {r.title}
+                    </span>
+                    <span className="nd-eyebrow !text-[10px]">{r.format}</span>
+                  </span>
+                </Link>
               ))}
             </div>
-            <span className="w-px h-5 bg-desert-stone-light mx-1" aria-hidden="true" />
-            <div className="flex flex-wrap gap-2" role="group" aria-label={t('Format')}>
-              {FORMATS.map((f) => (
-                <Chip key={f} active={format === f} onClick={() => setFormat(format === f ? null : f)}>
-                  {f.toUpperCase()}
-                </Chip>
-              ))}
+          </Section>
+        )}
+
+        {/* Toolbar: search, availability, sort */}
+        <div className="sticky top-14 lg:top-0 z-20 -mx-4 mb-6 border-b border-border-subtle px-4 py-3 nd-glass sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+            <label className="relative flex-1">
+              <span className="sr-only">{t('Search the library')}</span>
+              <IconSearch
+                size={16}
+                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted"
+              />
+              <input
+                type="search"
+                value={filters.q}
+                onChange={(e) => patch({ q: e.target.value })}
+                placeholder={t('Search by title, author or subject')}
+                className="nd-field !pl-10"
+              />
+            </label>
+            <div className="flex flex-wrap items-center gap-2">
+              <SegmentedControl
+                label={t('Offline availability')}
+                options={statusOptions}
+                value={filters.status}
+                onChange={(status) => patch({ status })}
+                size="sm"
+                className="overflow-x-auto max-w-full"
+              />
+              <label className="flex items-center gap-2">
+                <span className="sr-only">{t('Sort by')}</span>
+                <select
+                  value={filters.sort}
+                  onChange={(e) => patch({ sort: e.target.value as LibrarySort })}
+                  className="nd-field !w-auto !py-1.5 !text-xs"
+                >
+                  <option value="catalog">{t('Sort: by area')}</option>
+                  <option value="title">{t('Sort: title')}</option>
+                  <option value="year">{t('Sort: newest')}</option>
+                  <option value="size">{t('Sort: smallest download')}</option>
+                </select>
+              </label>
+              <StyledButton
+                size="sm"
+                variant="secondary"
+                className="xl:hidden"
+                onClick={() => setFiltersOpen(true)}
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <IconAdjustmentsHorizontal size={14} />
+                  {t('Filters')}
+                  {nFilters > 0 && <span className="nd-mono">· {nFilters}</span>}
+                </span>
+              </StyledButton>
             </div>
           </div>
+          {(activeChips.length > 0 || filters.q) && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="nd-mono text-xs text-text-muted" aria-live="polite">
+                {filtered.length === 1
+                  ? t('1 work')
+                  : t('{{count}} works', { count: filtered.length })}
+              </span>
+              {activeChips.map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  onClick={() => patch(c.clear)}
+                  className="inline-flex items-center gap-1 rounded-full bg-surface-elevated px-2.5 py-1 text-xs text-text-primary hover:bg-surface-secondary cursor-pointer"
+                  aria-label={t('Remove filter {{name}}', { name: c.label })}
+                >
+                  {c.label} <IconX size={12} />
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setFilters({ ...EMPTY_FILTERS, sort: filters.sort })}
+                className="text-xs text-text-secondary underline-offset-4 hover:text-text-primary hover:underline cursor-pointer"
+              >
+                {t('Clear all')}
+              </button>
+            </div>
+          )}
         </div>
 
-        {isLoading ? (
-          <LoadingSpinner />
-        ) : !data || data.items.length === 0 ? (
-          <p className="text-text-secondary">
-            {t('The library catalog could not be loaded. Check the internet connection and try again.')}
-          </p>
-        ) : sections.length === 0 ? (
-          <p className="text-text-secondary">{t('No work matches these filters.')}</p>
-        ) : (
-          sections.map(({ slug, items }) => {
-            const a = areas.get(slug)
-            return (
-              <section key={slug} className="mb-8" aria-labelledby={`area-${slug}`}>
-                <h2
-                  id={`area-${slug}`}
-                  className="text-lg font-semibold text-text-primary flex items-center gap-2 mb-1"
-                >
-                  {a && <DynamicIcon icon={a.icon as DynamicIconName} className="h-5 w-5" />}
-                  {a?.name ?? slug}
-                </h2>
-                {a && <p className="text-sm text-text-muted mb-3">{a.description}</p>}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {items.map((item) => (
-                    <ItemCard
-                      key={item.id}
-                      item={item}
-                      areas={areas}
-                      kiwixUrl={kiwixUrl}
-                      busyKey={busyKey}
-                      onDownload={handleDownload}
-                      onRemove={handleRemove}
-                    />
-                  ))}
-                </div>
-              </section>
-            )
-          })
-        )}
+        <div className="grid gap-8 xl:grid-cols-[15rem_minmax(0,1fr)] xl:gap-10">
+          <aside className="hidden xl:block">
+            <div className="sticky top-28 max-h-[calc(100vh-8rem)] overflow-y-auto pr-1 themed-scrollbar">
+              {filterPanel}
+            </div>
+          </aside>
+
+          <div className="min-w-0">
+            {isLoading ? (
+              <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3" aria-busy="true">
+                {Array.from({ length: 6 }, (_, i) => (
+                  <div key={i} className="nd-skeleton h-56" />
+                ))}
+              </div>
+            ) : isError || !data || items.length === 0 ? (
+              <EmptyState
+                tone="error"
+                icon={<IconCloudOff size={22} />}
+                title={t('The library catalog could not be loaded.')}
+                description={t('Check the internet connection and try again.')}
+                action={
+                  <StyledButton variant="secondary" icon="IconRefresh" onClick={() => refetch()}>
+                    {t('Try again')}
+                  </StyledButton>
+                }
+              />
+            ) : filtered.length === 0 ? (
+              <EmptyState
+                icon={<IconBooks size={22} />}
+                title={t('No work matches these filters.')}
+                description={t('Remove a filter or search for something broader.')}
+                action={
+                  <StyledButton variant="secondary" onClick={() => setFilters(EMPTY_FILTERS)}>
+                    {t('Clear all filters')}
+                  </StyledButton>
+                }
+              />
+            ) : grouped ? (
+              <div className="space-y-10">
+                {sections.map(({ slug, items: list }) => {
+                  const a = areas.get(slug)
+                  return (
+                    <Section
+                      key={slug}
+                      id={`area-${slug}`}
+                      title={
+                        <span className="inline-flex items-center gap-2">
+                          {a && (
+                            <DynamicIcon
+                              icon={a.icon as DynamicIconName}
+                              className="!size-4"
+                              stroke={1.75}
+                            />
+                          )}
+                          {a?.name ?? t('Other')}
+                        </span>
+                      }
+                      count={list.length}
+                      description={a?.description}
+                      action={
+                        slug === 'other' ? undefined : (
+                          <button
+                            type="button"
+                            onClick={() => patch({ area: slug })}
+                            className="whitespace-nowrap text-sm text-text-secondary hover:text-text-primary cursor-pointer"
+                          >
+                            {t('Only this area')}
+                          </button>
+                        )
+                      }
+                    >
+                      {renderGrid(list)}
+                    </Section>
+                  )
+                })}
+              </div>
+            ) : (
+              renderGrid(filtered)
+            )}
+          </div>
+        </div>
       </div>
+
+      <Drawer
+        open={!!selected}
+        onClose={() => setSelectedId(null)}
+        eyebrow={
+          selected ? selected.areas.map((a) => areas.get(a)?.name ?? a).join(' · ') : undefined
+        }
+        title={selected?.title ?? ''}
+      >
+        {selected && (
+          <WorkDetails
+            item={selected}
+            areas={areas}
+            kiwixUrl={kiwixUrl}
+            busyKey={busyKey}
+            onDownload={(file) => handleDownload(selected, file)}
+            onRemove={(file) => handleRemove(selected, file)}
+            onSubject={(subject) => {
+              setSelectedId(null)
+              patch({ subject, area: null, q: '' })
+            }}
+          />
+        )}
+      </Drawer>
+
+      <Drawer
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        eyebrow={t('Library')}
+        title={t('Filters')}
+        side="left"
+        width="max-w-sm"
+        footer={
+          <div className="flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={() => setFilters({ ...EMPTY_FILTERS, q: filters.q, sort: filters.sort })}
+              className="text-sm text-text-secondary hover:text-text-primary cursor-pointer"
+            >
+              {t('Clear all')}
+            </button>
+            <StyledButton onClick={() => setFiltersOpen(false)}>
+              {filtered.length === 1
+                ? t('Show 1 work')
+                : t('Show {{count}} works', { count: filtered.length })}
+            </StyledButton>
+          </div>
+        }
+      >
+        {filterPanel}
+      </Drawer>
     </AppLayout>
   )
 }

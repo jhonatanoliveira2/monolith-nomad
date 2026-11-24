@@ -4,7 +4,7 @@
 
 Só a versão mais recente publicada do monolith-nomad recebe correções de segurança. Se você usa uma versão antiga, atualize antes de reportar um problema.
 
-O monolith-nomad é uma distribuição independente, derivada do Project N.O.M.A.D. Reporte aqui os problemas desta distribuição. Se a falha também existir no projeto original, avisaremos o projeto original depois de confirmá-la, a menos que você prefira fazer isso diretamente.
+Reporte aqui os problemas de segurança do monolith-nomad.
 
 ## Como reportar uma vulnerabilidade
 

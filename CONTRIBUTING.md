@@ -2,7 +2,7 @@
 
 Obrigado pelo interesse em contribuir! Leia este guia inteiro antes de começar: ele economiza o seu tempo e o do mantenedor.
 
-O monolith-nomad é uma distribuição independente e não oficial, derivada do Project N.O.M.A.D. (Crosstalk Solutions, LLC, Apache-2.0). Contribuições feitas aqui valem para esta distribuição. Mudanças que fazem sentido para o projeto original também podem ser propostas lá, seguindo as regras dele.
+Contribuições são bem-vindas. O projeto é distribuído sob a Apache License 2.0 (ver [`LICENSE`](LICENSE)).
 
 > **Observação:** a aceitação de contribuições não é garantida. Cada pull request é avaliado pela qualidade, pela relevância e pelo alinhamento com os objetivos do projeto. O mantenedor pode aceitar, recusar ou modificar qualquer pull request, a critério dele.
 

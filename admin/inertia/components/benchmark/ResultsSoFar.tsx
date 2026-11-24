@@ -12,7 +12,7 @@ export default function ResultsSoFar({ partials }: { partials: BenchmarkPartialR
   if (partials.length === 0) return null
 
   return (
-    <div className="bg-desert-white rounded-lg p-4 border border-desert-stone-light">
+    <div className="bg-desert-white rounded-xl p-4 border border-desert-stone-light">
       <div className="text-xs font-semibold text-desert-stone-dark uppercase tracking-wide mb-3">
         {t('Results so far')}
       </div>

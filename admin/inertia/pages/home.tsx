@@ -1,14 +1,24 @@
 import {
+  IconArrowUpRight,
   IconBolt,
   IconBooks,
-  IconBox,
-  IconHelp,
-  IconMapRoute,
+  IconExternalLink,
+  IconFileText,
+  IconFolder,
+  IconMap,
+  IconMessageCircle,
+  IconPencil,
   IconPill,
+  IconPlus,
   IconSettings,
+  IconTrash,
   IconWifiOff,
+  IconWorldDownload,
 } from '@tabler/icons-react'
-import { Head, Link, router, usePage } from '@inertiajs/react'
+import { Head, Link, router } from '@inertiajs/react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import AppLayout from '~/layouts/AppLayout'
 import { getServiceLink } from '~/lib/navigation'
 import { ServiceSlim } from '../../types/services'
@@ -19,109 +29,49 @@ import {
   useBenchmarkRerunBanner,
   BENCHMARK_RERUN_BANNER_QUERY_KEY,
 } from '~/hooks/use_benchmark_rerun_banner'
-import { useQueryClient } from '@tanstack/react-query'
 import api from '~/lib/api'
+import classNames from '~/lib/class_names'
 import Alert from '~/components/Alert'
 import WhatsNewBanner from '~/components/WhatsNewBanner'
 import { SERVICE_NAMES } from '../../constants/service_names'
 import LinkTileModal from '~/components/LinkTileModal'
-import { IconPlus, IconPencil, IconTrash, IconExternalLink } from '@tabler/icons-react'
-import { useState } from 'react'
 import { linkTileColor } from '../../constants/link_tile_colors'
-import { useTranslation } from 'react-i18next'
+import Section from '~/components/nd/Section'
+import StatusDot, { StatusTone } from '~/components/nd/StatusDot'
+import Badge from '~/components/nd/Badge'
+import SystemStatusRow from '~/components/dashboard/SystemStatusRow'
+import DownloadsActivity from '~/components/dashboard/DownloadsActivity'
+import ModuleCard from '~/components/dashboard/ModuleCard'
+import DashboardClock from '~/components/dashboard/DashboardClock'
+import useServiceInstalledStatus from '~/hooks/useServiceInstalledStatus'
+import { useAiAssistantName } from '~/hooks/use_ai_assistant_name'
 
-// Maps is a Core Capability (display_order: 4)
-const MAPS_ITEM = {
-  label: 'Maps',
-  to: '/maps',
-  target: '',
-  description: 'View offline maps',
-  icon: <IconMapRoute size={48} />,
-  installed: true,
-  displayOrder: 4,
-  poweredBy: null,
+/** Container state of a managed app, as reported by Docker (SystemService.getServices). */
+function serviceState(status: string | undefined): { tone: StatusTone; label: string } {
+  switch (status) {
+    case 'running':
+      return { tone: 'ok', label: 'Running' }
+    case 'restarting':
+      return { tone: 'warn', label: 'Restarting' }
+    case 'exited':
+    case 'created':
+    case 'paused':
+    case 'dead':
+      return { tone: 'idle', label: 'Stopped' }
+    default:
+      return { tone: 'neutral', label: 'Unknown' }
+  }
 }
 
-// Library: PDF/EPUB/ZIM works by area and level, with an offline reader (collections/library.json).
-const LIBRARY_ITEM = {
-  label: 'Library',
-  to: '/library',
-  target: '',
-  description: 'Books and manuals in Portuguese to download and read offline',
-  icon: <IconBooks size={48} />,
-  installed: true,
-  displayOrder: 4.5,
-  poweredBy: null,
-}
-
-// Drug Reference + "When to use what" — offline medical reference tiles.
-// icon and displayOrder here are a reasonable default; both are open for the
-// maintainer to re-pick to fit the dashboard's ordering conventions.
-const DRUG_REFERENCE_ITEM = {
-  label: 'Drug Reference',
-  to: '/drug-reference',
-  target: '',
-  description: 'Offline FDA drug labels. Search by drug name or by symptom',
-  icon: <IconPill size={48} />,
-  installed: true,
-  displayOrder: 5,
-  poweredBy: null,
-}
-
-// System items shown after all apps
-const SYSTEM_ITEMS = [
-  {
-    label: 'Easy Setup',
-    to: '/easy-setup',
-    target: '',
-    description:
-      'Not sure where to start? Use the setup wizard to quickly configure monolith-nomad!',
-    icon: <IconBolt size={48} />,
-    installed: true,
-    displayOrder: 50,
-    poweredBy: null,
-  },
-  {
-    label: 'Supply Depot',
-    to: '/supply-depot',
-    target: '',
-    description: 'Browse and install curated apps, or add your own Docker container',
-    icon: <IconBox size={48} />,
-    installed: true,
-    displayOrder: 51,
-    poweredBy: null,
-  },
-  {
-    label: 'Docs',
-    to: '/docs/home',
-    target: '',
-    description: 'Read monolith-nomad manuals and guides',
-    icon: <IconHelp size={48} />,
-    installed: true,
-    displayOrder: 52,
-    poweredBy: null,
-  },
-  {
-    label: 'Settings',
-    to: '/settings/system',
-    target: '',
-    description: 'Configure monolith-nomad settings',
-    icon: <IconSettings size={48} />,
-    installed: true,
-    displayOrder: 53,
-    poweredBy: null,
-  },
-]
-
-interface DashboardItem {
+type AppEntry = {
+  key: string
   label: string
-  to: string
-  target: string
+  href: string
   description: string
   icon: React.ReactNode
-  installed: boolean
   displayOrder: number
   poweredBy: string | null
+  status?: string
   /** Set only for user-added link tiles, which render differently and can be edited. */
   linkTile?: ServiceSlim
 }
@@ -131,16 +81,15 @@ export default function Home(props: {
     services: ServiceSlim[]
   }
   // Server-computed: true when the offline FDA drug dataset is installed or
-  // installing (curated Medicine tier). Gates the two medical-reference tiles
-  // below so they only appear once the data exists.
+  // installing (curated Medicine tier). Gates the medical-reference module.
   drugReferenceInstalled: boolean
 }) {
-  const items: DashboardItem[] = []
   const { t } = useTranslation()
-  const updateInfo = useUpdateAvailable();
+  const updateInfo = useUpdateAvailable()
   const rerunBanner = useBenchmarkRerunBanner()
   const queryClient = useQueryClient()
-  const { aiAssistantName } = usePage<{ aiAssistantName: string }>().props
+  const aiAssistantName = useAiAssistantName()
+  const ai = useServiceInstalledStatus(SERVICE_NAMES.OLLAMA)
 
   // Link tile management. `editingTile` null with the modal open means "create".
   const [linkModalOpen, setLinkModalOpen] = useState(false)
@@ -150,10 +99,21 @@ export default function Home(props: {
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
   const [linkError, setLinkError] = useState<string | null>(null)
 
+  const { data: library } = useQuery({ queryKey: ['library'], queryFn: () => api.getLibrary() })
+  const libraryCount = library?.items.length ?? 0
+  const libraryInstalled = (library?.items ?? []).filter((i) =>
+    i.files.some((f) => f.status === 'installed' || f.status === 'update_available')
+  ).length
+
   const refreshServices = () => router.reload({ only: ['system'] })
 
   const handleDeleteTile = async (serviceName: string) => {
-    const result = await api.deleteLinkTile(serviceName)
+    let result: Awaited<ReturnType<typeof api.deleteLinkTile>> | undefined
+    try {
+      result = await api.deleteLinkTile(serviceName)
+    } catch {
+      result = undefined
+    }
     setPendingDelete(null)
     if (!result?.success) {
       setLinkError(t('Failed to remove this link.'))
@@ -162,261 +122,404 @@ export default function Home(props: {
     refreshServices()
   }
 
-
   const handleDismissRerunBanner = async () => {
     await api.updateSetting('benchmark.rerunBannerDismissed', true)
     queryClient.invalidateQueries({ queryKey: BENCHMARK_RERUN_BANNER_QUERY_KEY })
   }
 
-  // Check if user has visited Easy Setup
-  const { data: easySetupVisited } = useSystemSetting({
-    key: 'ui.hasVisitedEasySetup'
-  })
-  const shouldHighlightEasySetup = easySetupVisited?.value ? String(easySetupVisited.value) !== 'true' : false
+  // Easy Setup gets a "start here" marker until the wizard has been visited once
+  const { data: easySetupVisited } = useSystemSetting({ key: 'ui.hasVisitedEasySetup' })
+  const shouldHighlightEasySetup = easySetupVisited?.value
+    ? String(easySetupVisited.value) !== 'true'
+    : false
 
-  // Add installed services (non-dependency services only). Link tiles are user-added
-  // shortcuts with no container behind them, so they are collected separately below
-  // and rendered with their own treatment.
-  props.system.services
-    .filter(
-      (service) =>
-        service.installed && (service.ui_location || service.custom_url) && !service.is_link_tile
-    )
-    .forEach((service) => {
-      items.push({
-        // Inject custom AI Assistant name if this is the chat service
-        label: service.service_name === SERVICE_NAMES.OLLAMA && aiAssistantName ? aiAssistantName : (service.friendly_name || service.service_name),
-        to:
-          service.ui_location || service.custom_url
-            ? getServiceLink(service.ui_location || '', service.custom_url)
-            : '#',
-        target: '_blank',
-        description:
-          service.description ||
-          t('Access the {{name}} application', { name: service.friendly_name || service.service_name }),
-        icon: service.icon ? (
-          <DynamicIcon icon={service.icon as DynamicIconName} className="!size-12" />
-        ) : (
-          <IconWifiOff size={48} />
-        ),
-        installed: service.installed,
-        displayOrder: service.display_order ?? 100,
-        poweredBy: service.powered_by ?? null,
+  // Managed apps (non-dependency services with a UI) and user link tiles, in display order.
+  const apps = useMemo<AppEntry[]>(() => {
+    const list: AppEntry[] = []
+    props.system.services
+      .filter(
+        (service) =>
+          service.installed && (service.ui_location || service.custom_url) && !service.is_link_tile
+      )
+      .forEach((service) => {
+        list.push({
+          key: service.service_name,
+          label:
+            service.service_name === SERVICE_NAMES.OLLAMA && aiAssistantName
+              ? aiAssistantName
+              : t(service.friendly_name || service.service_name),
+          href: getServiceLink(service.ui_location || '', service.custom_url),
+          description:
+            service.description ||
+            t('Access the {{name}} application', {
+              name: service.friendly_name || service.service_name,
+            }),
+          icon: service.icon ? (
+            <DynamicIcon icon={service.icon as DynamicIconName} className="!size-5" />
+          ) : (
+            <IconWifiOff size={20} />
+          ),
+          displayOrder: service.display_order ?? 100,
+          poweredBy: service.powered_by ?? null,
+          status: service.status,
+        })
       })
-    })
-
-  // User-added link tiles: shortcuts to things NOMAD does not manage.
-  props.system.services
-    .filter((service) => service.is_link_tile && service.custom_url)
-    .forEach((service) => {
-      items.push({
-        label: service.friendly_name || service.service_name,
-        to: getServiceLink('', service.custom_url),
-        target: '_blank',
-        description: service.description || t('Opens in a new tab'),
-        icon: <DynamicIcon icon={service.icon as DynamicIconName} className="!size-12" />,
-        installed: true,
-        displayOrder: service.display_order ?? 90,
-        poweredBy: null,
-        linkTile: service,
+    props.system.services
+      .filter((service) => service.is_link_tile && service.custom_url)
+      .forEach((service) => {
+        list.push({
+          key: service.service_name,
+          label: t(service.friendly_name || service.service_name),
+          href: getServiceLink('', service.custom_url),
+          description: service.description || t('Opens in a new tab'),
+          icon: <DynamicIcon icon={service.icon as DynamicIconName} className="!size-5" />,
+          displayOrder: service.display_order ?? 90,
+          poweredBy: null,
+          linkTile: service,
+        })
       })
-    })
+    return list.sort((a, b) => a.displayOrder - b.displayOrder)
+  }, [props.system.services, aiAssistantName, t])
 
-  // Add Maps as a Core Capability
-  items.push(MAPS_ITEM)
-  items.push(LIBRARY_ITEM)
+  const managedApps = apps.filter((a) => !a.linkTile)
+  const runningApps = managedApps.filter((a) => a.status === 'running').length
 
-  // Add the offline medical-reference tiles only once the FDA drug dataset is
-  // installed (or installing) via the curated Medicine tier. Both tiles read the
-  // same drug_labels table, so they gate together off one server-computed flag.
-  if (props.drugReferenceInstalled) {
-    items.push(DRUG_REFERENCE_ITEM)
-  }
-
-  // Add system items
-  items.push(...SYSTEM_ITEMS)
-
-  // Sort all items by display order
-  items.sort((a, b) => a.displayOrder - b.displayOrder)
+  const statusLine =
+    managedApps.length === 0
+      ? t('No apps installed yet. Start with Easy Setup or the Supply Depot.')
+      : runningApps === managedApps.length
+        ? t('All {{count}} apps are running.', { count: managedApps.length })
+        : t('{{running}} of {{count}} apps are running.', {
+            running: runningApps,
+            count: managedApps.length,
+          })
 
   return (
     <AppLayout>
       <Head title={t('Command Center')} />
-      {
-        updateInfo?.updateAvailable && (
-          <div className='flex justify-center items-center p-4 w-full'>
-            <Alert
-              title={t('An update is available for monolith-nomad!')}
-              type="info-inverted"
-              variant="solid"
-              className="w-full"
-              buttonProps={{
-                variant: 'primary',
-                children: t('Go to Settings'),
-                icon: 'IconSettings',
-                onClick: () => router.visit('/settings/update'),
-              }}
-            />
+      <div className="nd-page space-y-10">
+        {/* 1 · Where am I, what time is it, is everything fine */}
+        <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between animate-nd-rise">
+          <div className="min-w-0">
+            <p className="nd-eyebrow mb-3 flex items-center gap-2">
+              <span className="nd-led text-led" aria-hidden="true" />
+              {t('Command Center')}
+            </p>
+            <h1 className="text-3xl sm:text-4xl font-medium text-text-primary leading-tight">
+              {t('Your offline server')}
+            </h1>
+            <p className="mt-2 text-base text-text-secondary">{statusLine}</p>
           </div>
-        )
-      }
-      <WhatsNewBanner />
-      {
-        rerunBanner?.show && (
-          <div className='flex justify-center items-center px-4 pt-4 w-full'>
-            <Alert
-              title={t('Your benchmark can be re-scored with Score v2')}
-              message={t("We've upgraded the benchmark scoring system. Re-run your benchmark to get an updated Score v2 result on the community leaderboard.")}
-              type="info-inverted"
-              variant="solid"
-              className="w-full"
-              dismissible
-              onDismiss={handleDismissRerunBanner}
-              buttonProps={{
-                variant: 'primary',
-                children: t('Re-run benchmark'),
-                icon: 'IconRefresh',
-                onClick: () => router.visit('/settings/benchmark'),
-              }}
-            />
+          <DashboardClock />
+        </header>
+
+        {/* Notices: only what needs attention, most important first */}
+        {(updateInfo?.updateAvailable || rerunBanner?.show || linkError) && (
+          <div className="space-y-3">
+            {updateInfo?.updateAvailable && (
+              <Alert
+                title={t('An update is available for monolith-nomad!')}
+                type="info-inverted"
+                variant="solid"
+                buttonProps={{
+                  variant: 'primary',
+                  children: t('Go to Settings'),
+                  icon: 'IconSettings',
+                  onClick: () => router.visit('/settings/update'),
+                }}
+              />
+            )}
+            {rerunBanner?.show && (
+              <Alert
+                title={t('Your benchmark can be re-scored with Score v2')}
+                message={t(
+                  "We've upgraded the benchmark scoring system. Re-run your benchmark to get an updated Score v2 result on the community leaderboard."
+                )}
+                type="info-inverted"
+                variant="solid"
+                dismissible
+                onDismiss={handleDismissRerunBanner}
+                buttonProps={{
+                  variant: 'primary',
+                  children: t('Re-run benchmark'),
+                  icon: 'IconRefresh',
+                  onClick: () => router.visit('/settings/benchmark'),
+                }}
+              />
+            )}
+            {linkError && (
+              <Alert
+                title={linkError}
+                type="error"
+                dismissible
+                onDismiss={() => setLinkError(null)}
+              />
+            )}
           </div>
-        )
-      }
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-        {items.map((item) => {
-          const isEasySetup = item.label === 'Easy Setup'
-          const shouldHighlight = isEasySetup && shouldHighlightEasySetup
+        )}
+        <WhatsNewBanner />
 
-          const isLinkTile = Boolean(item.linkTile)
-          // A flat surface color read as a stark white card next to the filled
-          // app tiles. Tint from the brand palette instead, user-chosen.
-          const tileColor = linkTileColor(item.linkTile?.link_color)
+        {/* 2 · System status */}
+        <Section
+          id="status"
+          title={t('System status')}
+          action={{ label: t('Details'), href: '/settings/system' }}
+        >
+          <SystemStatusRow />
+          <div className="mt-3">
+            <DownloadsActivity />
+          </div>
+        </Section>
 
-          // Link tiles are deliberately not styled like managed apps: outlined
-          // rather than filled, with an external-link marker. If they looked the
-          // same, users would expect Start/Stop/Update and file bugs when those
-          // controls are not there.
-          const tileContent = (
-            <div
-              className={
-                isLinkTile
-                  ? `relative rounded border-2 border-dashed ${tileColor.border} ${tileColor.bg} text-text-primary hover:bg-surface-secondary transition-colors shadow-sm h-48 flex flex-col items-center justify-center cursor-pointer text-center px-4`
-                  : 'relative rounded border-desert-green border-2 bg-desert-green hover:bg-transparent hover:text-text-primary text-white transition-colors shadow-sm h-48 flex flex-col items-center justify-center cursor-pointer text-center px-4'
+        {/* 3 · Knowledge: what the server offers to read and consult */}
+        <Section id="knowledge" title={t('Knowledge')}>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <ModuleCard
+              href="/library"
+              icon={<IconBooks />}
+              title={t('Library')}
+              description={t('Books and manuals in Portuguese to download and read offline')}
+              meta={
+                library
+                  ? t('{{count}} works · {{installed}} downloaded', {
+                      count: libraryCount,
+                      installed: libraryInstalled,
+                    })
+                  : undefined
               }
-            >
-              {isLinkTile && (
-                <span
-                  className={`absolute top-2 left-2 ${tileColor.marker}`}
-                  title={t('A shortcut you added. monolith-nomad does not manage this.')}
+            />
+            <ModuleCard
+              href="/maps"
+              icon={<IconMap />}
+              title={t('Maps')}
+              description={t('View offline maps')}
+            />
+            {props.drugReferenceInstalled && (
+              <ModuleCard
+                href="/drug-reference"
+                icon={<IconPill />}
+                title={t('Drug Reference')}
+                description={t('Offline FDA drug labels. Search by drug name or by symptom')}
+              />
+            )}
+            {ai.isInstalled && (
+              <ModuleCard
+                href="/chat"
+                icon={<IconMessageCircle />}
+                title={aiAssistantName}
+                description={t('Ask questions about your offline content')}
+              />
+            )}
+            <ModuleCard
+              href="/docs/home"
+              icon={<IconFileText />}
+              title={t('Docs')}
+              description={t('Read monolith-nomad manuals and guides')}
+            />
+          </div>
+        </Section>
+
+        {/* 4 · Apps and shortcuts */}
+        <Section
+          id="apps"
+          title={t('Apps')}
+          count={managedApps.length}
+          action={{ label: t('Supply Depot'), href: '/supply-depot' }}
+        >
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+            {apps.map((app) => {
+              if (app.linkTile) {
+                const tile = app.linkTile
+                const color = linkTileColor(tile.link_color)
+                const confirming = pendingDelete === tile.service_name
+                return (
+                  <div key={app.key} className="group relative">
+                    <a
+                      href={app.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={classNames(
+                        'flex h-full items-center gap-4 rounded-[var(--radius-card)] border border-dashed p-4 pr-20 transition-colors duration-[140ms] hover:bg-surface-secondary',
+                        color.border,
+                        color.bg
+                      )}
+                      title={t('A shortcut you added. monolith-nomad does not manage this.')}
+                    >
+                      <span
+                        className={classNames(
+                          'flex size-10 shrink-0 items-center justify-center rounded-full border border-border-default',
+                          color.marker
+                        )}
+                      >
+                        {app.icon}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="flex items-center gap-1.5 font-medium text-text-primary truncate">
+                          {app.label}
+                          <IconExternalLink size={13} className="text-text-muted shrink-0" />
+                        </span>
+                        <span className="block text-xs text-text-muted truncate">
+                          {app.description}
+                        </span>
+                      </span>
+                    </a>
+                    {confirming ? (
+                      <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteTile(tile.service_name)}
+                          className="rounded-full bg-desert-red px-3 py-1 text-xs font-medium text-white hover:bg-desert-red-hover cursor-pointer"
+                        >
+                          {t('Remove')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPendingDelete(null)}
+                          className="rounded-full border border-border-default bg-surface-primary px-3 py-1 text-xs text-text-secondary hover:text-text-primary cursor-pointer"
+                        >
+                          {t('Cancel')}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-0.5 opacity-100 sm:opacity-0 transition-opacity duration-[140ms] group-hover:opacity-100 group-focus-within:opacity-100">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingTile(tile)
+                            setLinkModalOpen(true)
+                          }}
+                          title={t('Edit this link')}
+                          aria-label={t('Edit this link')}
+                          className="rounded-full p-1.5 text-text-muted hover:bg-surface-elevated hover:text-text-primary cursor-pointer"
+                        >
+                          <IconPencil size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPendingDelete(tile.service_name)}
+                          title={t('Remove this link')}
+                          aria-label={t('Remove this link')}
+                          className="rounded-full p-1.5 text-text-muted hover:bg-surface-elevated hover:text-desert-red cursor-pointer"
+                        >
+                          <IconTrash size={15} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )
+              }
+              const state = serviceState(app.status)
+              return (
+                <a
+                  key={app.key}
+                  href={app.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="nd-card nd-card-interactive group flex items-center gap-4 p-4"
                 >
-                  <IconExternalLink size={16} />
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface-elevated text-text-primary">
+                    {app.icon}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-medium text-text-primary truncate">
+                      {app.label}
+                    </span>
+                    <span className="block text-xs text-text-muted truncate">
+                      {app.poweredBy
+                        ? t('Powered by {{name}}', { name: app.poweredBy })
+                        : app.description}
+                    </span>
+                  </span>
+                  <span className="flex shrink-0 items-center gap-1.5 nd-mono text-[10px] uppercase tracking-wider text-text-muted">
+                    <StatusDot tone={state.tone} />
+                    <span className="hidden sm:inline">{t(state.label)}</span>
+                  </span>
+                  <IconArrowUpRight
+                    size={16}
+                    className="shrink-0 text-text-muted group-hover:text-text-primary"
+                    aria-hidden="true"
+                  />
+                </a>
+              )
+            })}
+
+            {/* Add-a-link affordance, last in the grid so it never displaces an app. */}
+            <button
+              type="button"
+              onClick={() => {
+                setEditingTile(null)
+                setLinkModalOpen(true)
+              }}
+              className="flex items-center gap-4 rounded-[var(--radius-card)] border border-dashed border-border-default p-4 text-left text-text-muted transition-colors duration-[140ms] hover:border-text-muted hover:text-text-primary cursor-pointer"
+            >
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-dashed border-current">
+                <IconPlus size={18} />
+              </span>
+              <span className="min-w-0">
+                <span className="block font-medium">{t('Add a Link')}</span>
+                <span className="block text-xs">
+                  {t('A shortcut to something else on your network')}
                 </span>
-              )}
-              {shouldHighlight && (
-                <span className="absolute top-2 right-2 flex items-center justify-center">
-                  <span
-                    className="animate-ping absolute inline-flex w-16 h-6 rounded-full bg-desert-orange-light opacity-75"
-                    style={{ animationDuration: '1.5s' }}
-                  ></span>
-                  <span className="relative inline-flex items-center rounded-full px-2.5 py-1 bg-desert-orange-light text-xs font-semibold text-white shadow-sm">
-                    {t('Start here!')}
+              </span>
+            </button>
+          </div>
+        </Section>
+
+        {/* 5 · Get more content and configure */}
+        <Section id="tools" title={t('Tools')}>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                href: '/easy-setup',
+                icon: <IconBolt size={18} />,
+                title: t('Easy Setup'),
+                text: t(
+                  'Not sure where to start? Use the setup wizard to quickly configure monolith-nomad!'
+                ),
+                highlight: shouldHighlightEasySetup,
+              },
+              {
+                href: '/settings/zim/remote-explorer',
+                icon: <IconWorldDownload size={18} />,
+                title: t('Content Explorer'),
+                text: t('Browse and download content for offline reading!'),
+              },
+              {
+                href: '/settings/zim',
+                icon: <IconFolder size={18} />,
+                title: t('Content Manager'),
+                text: t('Manage your stored content files.'),
+              },
+              {
+                href: '/settings/system',
+                icon: <IconSettings size={18} />,
+                title: t('Settings'),
+                text: t('Configure monolith-nomad settings'),
+              },
+            ].map((tool) => (
+              <Link
+                key={tool.href}
+                href={tool.href}
+                className={classNames(
+                  'nd-card nd-card-interactive flex gap-3 p-4',
+                  tool.highlight && '!border-highlight'
+                )}
+              >
+                <span className="mt-0.5 text-text-secondary">{tool.icon}</span>
+                <span className="min-w-0">
+                  <span className="flex items-center gap-2 font-medium text-text-primary">
+                    {tool.title}
+                    {tool.highlight && <Badge tone="highlight">{t('Start here!')}</Badge>}
+                  </span>
+                  <span className="mt-0.5 block text-xs text-text-muted line-clamp-2">
+                    {tool.text}
                   </span>
                 </span>
-              )}
-              <div className="flex items-center justify-center mb-2">{item.icon}</div>
-              <h3 className="font-bold text-2xl">{item.linkTile ? item.label : t(item.label)}</h3>
-              {item.poweredBy && <p className="text-sm opacity-80">{t('Powered by {{name}}', { name: item.poweredBy })}</p>}
-              <p className="xl:text-lg mt-2">{item.linkTile ? item.description : t(item.description)}</p>
-            </div>
-          )
-
-          if (isLinkTile) {
-            const tile = item.linkTile!
-            const confirming = pendingDelete === tile.service_name
-
-            return (
-              <div key={item.label} className="group relative">
-                <a href={item.to} target="_blank" rel="noopener noreferrer">
-                  {tileContent}
-                </a>
-
-                {confirming ? (
-                  <div className="absolute top-2 right-2 flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteTile(tile.service_name)}
-                      className="rounded bg-desert-red px-2 py-1 text-xs font-medium text-white hover:brightness-110"
-                    >
-                      {t('Remove')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPendingDelete(null)}
-                      className="rounded border border-border-default bg-surface-primary px-2 py-1 text-xs text-text-secondary hover:bg-surface-secondary"
-                    >
-                      {t('Cancel')}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingTile(tile)
-                        setLinkModalOpen(true)
-                      }}
-                      title={t('Edit this link')}
-                      aria-label={t('Edit this link')}
-                      className="rounded p-1 text-text-muted hover:bg-surface-secondary hover:text-text-primary"
-                    >
-                      <IconPencil size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPendingDelete(tile.service_name)}
-                      title={t('Remove this link')}
-                      aria-label={t('Remove this link')}
-                      className="rounded p-1 text-text-muted hover:bg-surface-secondary hover:text-desert-red"
-                    >
-                      <IconTrash size={16} />
-                    </button>
-                  </div>
-                )}
-              </div>
-            )
-          }
-
-          return item.target === '_blank' ? (
-            <a key={item.label} href={item.to} target="_blank" rel="noopener noreferrer">
-              {tileContent}
-            </a>
-          ) : (
-            <Link key={item.label} href={item.to}>
-              {tileContent}
-            </Link>
-          )
-        })}
-
-        {/* Add-a-link affordance, last in the grid so it never displaces an app. */}
-        <button
-          type="button"
-          onClick={() => {
-            setEditingTile(null)
-            setLinkModalOpen(true)
-          }}
-          className="rounded border-2 border-dashed border-border-default bg-transparent text-text-muted hover:border-desert-green hover:text-text-primary transition-colors h-48 flex flex-col items-center justify-center cursor-pointer text-center px-4"
-        >
-          <IconPlus size={40} />
-          <h3 className="font-bold text-xl mt-2">{t('Add a Link')}</h3>
-          <p className="text-sm mt-1">{t('A shortcut to something else on your network')}</p>
-        </button>
+              </Link>
+            ))}
+          </div>
+        </Section>
       </div>
-
-      {linkError && (
-        <div className="px-4 pb-4">
-          <Alert title={linkError} type="error" variant="solid" className="w-full" />
-        </div>
-      )}
 
       <LinkTileModal
         open={linkModalOpen}

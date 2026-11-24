@@ -65,7 +65,7 @@ const StyledSidebar: React.FC<StyledSidebarProps> = ({ title, items }) => {
 
   const Sidebar = () => {
     return (
-      <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-desert-sand px-6 ring-1 ring-white/5 pt-4 shadow-md">
+      <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-desert-sand px-6 ring-1 ring-white/5 pt-4 ">
         <div className="flex h-16 shrink-0 items-center">
           <UbuntuLogo title="monolith-nomad" className="h-12 w-12 shrink-0 text-text-primary" />
           <h1 className="ml-3 text-xl font-semibold text-text-primary">{title}</h1>

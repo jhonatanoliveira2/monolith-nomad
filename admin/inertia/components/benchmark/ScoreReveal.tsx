@@ -48,11 +48,7 @@ function useCountUp(target: number, durationMs = 1200): number {
  * sub-score gauges cascading in. Dismisses via the Continue button or an
  * auto-dismiss timer.
  */
-export default function ScoreReveal({
-  result,
-  scoreScale,
-  onDone,
-}: ScoreRevealProps) {
+export default function ScoreReveal({ result, scoreScale, onDone }: ScoreRevealProps) {
   const { t } = useTranslation()
   const scale = scoreScale ?? { max: 100, caption: t('out of 100') }
   const displayScore = useCountUp(result.nomad_score)
@@ -66,10 +62,30 @@ export default function ScoreReveal({
     variant: 'cpu' | 'memory' | 'disk'
     icon: React.ReactNode
   }[] = [
-    { label: t('CPU'), value: result.cpu_score * 100, variant: 'cpu', icon: <IconCpu className="w-6 h-6" /> },
-    { label: t('Memory'), value: result.memory_score * 100, variant: 'memory', icon: <IconDatabase className="w-6 h-6" /> },
-    { label: t('Disk Read'), value: result.disk_read_score * 100, variant: 'disk', icon: <IconServer className="w-6 h-6" /> },
-    { label: t('Disk Write'), value: result.disk_write_score * 100, variant: 'disk', icon: <IconServer className="w-6 h-6" /> },
+    {
+      label: t('CPU'),
+      value: result.cpu_score * 100,
+      variant: 'cpu',
+      icon: <IconCpu className="w-6 h-6" />,
+    },
+    {
+      label: t('Memory'),
+      value: result.memory_score * 100,
+      variant: 'memory',
+      icon: <IconDatabase className="w-6 h-6" />,
+    },
+    {
+      label: t('Disk Read'),
+      value: result.disk_read_score * 100,
+      variant: 'disk',
+      icon: <IconServer className="w-6 h-6" />,
+    },
+    {
+      label: t('Disk Write'),
+      value: result.disk_write_score * 100,
+      variant: 'disk',
+      icon: <IconServer className="w-6 h-6" />,
+    },
   ]
   if (result.ai_tokens_per_second) {
     gauges.push({
@@ -106,10 +122,12 @@ export default function ScoreReveal({
 
   return (
     <div className="space-y-6">
-      <div className="bg-desert-white rounded-lg border border-desert-stone-light overflow-hidden">
+      <div className="nd-card overflow-hidden">
         <div className="bg-desert-olive px-6 py-2 flex items-center gap-2">
           <div className="w-1 h-4 bg-desert-green" />
-          <span className="text-xs font-semibold text-white uppercase tracking-wide">{t('Report')}</span>
+          <span className="text-xs font-semibold text-white uppercase tracking-wide">
+            {t('Report')}
+          </span>
           {scoreInfo.isPartial && (
             <span className="ml-auto px-2 py-0.5 rounded-full bg-desert-white/20 text-white text-xs font-semibold uppercase tracking-wide">
               {t('Partial')}
@@ -150,9 +168,15 @@ export default function ScoreReveal({
             {gauges.slice(0, visibleCount).map((g) => (
               <div
                 key={g.label}
-                className="bg-desert-white rounded-lg p-4 border border-desert-stone-light"
+                className="bg-desert-white rounded-xl p-4 border border-desert-stone-light"
               >
-                <CircularGauge value={g.value} label={g.label} size="md" variant={g.variant} icon={g.icon} />
+                <CircularGauge
+                  value={g.value}
+                  label={g.label}
+                  size="md"
+                  variant={g.variant}
+                  icon={g.icon}
+                />
               </div>
             ))}
           </div>

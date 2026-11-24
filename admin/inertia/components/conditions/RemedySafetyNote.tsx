@@ -17,7 +17,7 @@ export default function RemedySafetyNote() {
   return (
     <div
       role="alert"
-      className="flex items-start gap-2.5 rounded-lg border-2 border-desert-orange bg-desert-orange-lighter px-3 py-2.5 text-xs text-desert-orange-dark"
+      className="flex items-start gap-2.5 rounded-xl border border-desert-orange bg-desert-orange-lighter px-3 py-2.5 text-xs text-desert-orange-dark"
     >
       <IconAlertTriangle
         size={18}

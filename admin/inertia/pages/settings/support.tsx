@@ -1,3 +1,4 @@
+import PageHeader from '~/components/nd/PageHeader'
 import { Head, Link } from '@inertiajs/react'
 import { IconExternalLink } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
@@ -33,14 +34,15 @@ export default function SupportPage() {
   return (
     <SettingsLayout>
       <Head title={t('About & Support')} />
-      <div className="xl:pl-72 w-full">
-        <main className="px-12 py-6 max-w-4xl">
-          <h1 className="text-4xl font-semibold mb-4">{t('About & Support')}</h1>
-          <p className="text-text-muted mb-10 text-lg">
-            {t(
+      <div className="w-full">
+        <div className="nd-page nd-page-narrow">
+          <PageHeader
+            eyebrow={t('Help')}
+            title={t('About & Support')}
+            description={t(
               'monolith-nomad is an independent distribution derived from Project N.O.M.A.D. It is not an official version and is not affiliated with or endorsed by the original project or Crosstalk Solutions, LLC.'
             )}
-          </p>
+          />
 
           <section className="mb-10">
             <StyledSectionHeader title={t('Report a problem')} />
@@ -69,7 +71,9 @@ export default function SupportPage() {
                 'monolith-nomad is built on Project N.O.M.A.D., created by Crosstalk Solutions, LLC and released under the Apache License 2.0. Credit for the original work belongs to its authors. Problems with this distribution should be reported here, not to the original project.'
               )}
             </p>
-            <ExternalLink href={UPSTREAM_REPO_URL}>{t('Project N.O.M.A.D. on GitHub')}</ExternalLink>
+            <ExternalLink href={UPSTREAM_REPO_URL}>
+              {t('Project N.O.M.A.D. on GitHub')}
+            </ExternalLink>
           </section>
 
           <section className="mb-10">
@@ -80,13 +84,16 @@ export default function SupportPage() {
               )}
             </p>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-              <Link href="/settings/legal" className="font-medium text-desert-green hover:underline">
+              <Link
+                href="/settings/legal"
+                className="font-medium text-desert-green hover:underline"
+              >
                 {t('Legal Notices')}
               </Link>
               <ExternalLink href={noticesUrl}>THIRD_PARTY_NOTICES.md</ExternalLink>
             </div>
           </section>
-        </main>
+        </div>
       </div>
     </SettingsLayout>
   )

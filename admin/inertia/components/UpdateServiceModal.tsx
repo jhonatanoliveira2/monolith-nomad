@@ -1,149 +1,164 @@
-import { useState } from "react"
-import { ServiceSlim } from "../../types/services"
-import StyledModal from "./StyledModal"
-import { IconArrowUp } from "@tabler/icons-react"
-import api from "~/lib/api"
-import { Trans, useTranslation } from "react-i18next"
-
+import { useState } from 'react'
+import { ServiceSlim } from '../../types/services'
+import StyledModal from './StyledModal'
+import { IconArrowUp } from '@tabler/icons-react'
+import api from '~/lib/api'
+import { Trans, useTranslation } from 'react-i18next'
 
 interface UpdateServiceModalProps {
-    record: ServiceSlim
-    currentTag: string
-    latestVersion: string
-    onCancel: () => void
-    onUpdate: (version: string) => void
-    showError: (msg: string) => void
+  record: ServiceSlim
+  currentTag: string
+  latestVersion: string
+  onCancel: () => void
+  onUpdate: (version: string) => void
+  showError: (msg: string) => void
 }
 
 export default function UpdateServiceModal({
-    record,
-    currentTag,
-    latestVersion,
-    onCancel,
-    onUpdate,
-    showError,
+  record,
+  currentTag,
+  latestVersion,
+  onCancel,
+  onUpdate,
+  showError,
 }: UpdateServiceModalProps) {
-    const { t } = useTranslation()
-    const [selectedVersion, setSelectedVersion] = useState(latestVersion)
-    const [showAdvanced, setShowAdvanced] = useState(false)
-    const [versions, setVersions] = useState<Array<{ tag: string; isLatest: boolean; releaseUrl?: string }>>([])
-    const [loadingVersions, setLoadingVersions] = useState(false)
+  const { t } = useTranslation()
+  const [selectedVersion, setSelectedVersion] = useState(latestVersion)
+  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [versions, setVersions] = useState<
+    Array<{ tag: string; isLatest: boolean; releaseUrl?: string }>
+  >([])
+  const [loadingVersions, setLoadingVersions] = useState(false)
 
-    async function loadVersions() {
-        if (versions.length > 0) return
-        setLoadingVersions(true)
-        try {
-            const result = await api.getAvailableVersions(record.service_name)
-            if (result?.versions) {
-                setVersions(result.versions)
-            }
-        } catch (error) {
-            showError(t('Failed to load available versions'))
-        } finally {
-            setLoadingVersions(false)
-        }
+  async function loadVersions() {
+    if (versions.length > 0) return
+    setLoadingVersions(true)
+    try {
+      const result = await api.getAvailableVersions(record.service_name)
+      if (result?.versions) {
+        setVersions(result.versions)
+      }
+    } catch (error) {
+      showError(t('Failed to load available versions'))
+    } finally {
+      setLoadingVersions(false)
     }
+  }
 
-    function handleToggleAdvanced() {
-        const next = !showAdvanced
-        setShowAdvanced(next)
-        if (next) loadVersions()
-    }
+  function handleToggleAdvanced() {
+    const next = !showAdvanced
+    setShowAdvanced(next)
+    if (next) loadVersions()
+  }
 
-    return (
-        <StyledModal
-            title={t('Update Service')}
-            onConfirm={() => onUpdate(selectedVersion)}
-            onCancel={onCancel}
-            open={true}
-            confirmText={t('Update')}
-            cancelText={t('Cancel')}
-            confirmVariant="primary"
-            icon={<IconArrowUp className="h-12 w-12 text-desert-green" />}
-        >
-            <div className="space-y-4">
-                <p className="text-text-primary">
-                    <Trans
-                        i18nKey="Update <0>{{name}}</0> from <1>{{from}}</1> to <2>{{to}}</2>?"
-                        values={{ name: record.friendly_name || record.service_name, from: currentTag, to: selectedVersion }}
-                        components={[<strong />, <code className="bg-surface-secondary px-1.5 py-0.5 rounded text-sm" />, <code className="bg-surface-secondary px-1.5 py-0.5 rounded text-sm" />]}
-                    />
-                </p>
-                <p className="text-sm text-text-muted">
-                    {t('Your data and configuration will be preserved during the update.')}
-                    {versions.find((v) => v.tag === selectedVersion)?.releaseUrl && (
-                        <>
-                            {' '}
-                            <a
-                                href={versions.find((v) => v.tag === selectedVersion)!.releaseUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-desert-green hover:underline"
-                            >
-                                {t('View release notes')}
-                            </a>
-                        </>
-                    )}
-                </p>
+  return (
+    <StyledModal
+      title={t('Update Service')}
+      onConfirm={() => onUpdate(selectedVersion)}
+      onCancel={onCancel}
+      open={true}
+      confirmText={t('Update')}
+      cancelText={t('Cancel')}
+      confirmVariant="primary"
+      icon={<IconArrowUp className="h-12 w-12 text-desert-green" />}
+    >
+      <div className="space-y-4">
+        <p className="text-text-primary">
+          <Trans
+            i18nKey="Update <0>{{name}}</0> from <1>{{from}}</1> to <2>{{to}}</2>?"
+            values={{
+              name: record.friendly_name || record.service_name,
+              from: currentTag,
+              to: selectedVersion,
+            }}
+            components={[
+              <strong />,
+              <code className="bg-surface-secondary px-1.5 py-0.5 rounded text-sm" />,
+              <code className="bg-surface-secondary px-1.5 py-0.5 rounded text-sm" />,
+            ]}
+          />
+        </p>
+        <p className="text-sm text-text-muted">
+          {t('Your data and configuration will be preserved during the update.')}
+          {versions.find((v) => v.tag === selectedVersion)?.releaseUrl && (
+            <>
+              {' '}
+              <a
+                href={versions.find((v) => v.tag === selectedVersion)!.releaseUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-desert-green hover:underline"
+              >
+                {t('View release notes')}
+              </a>
+            </>
+          )}
+        </p>
 
-                <div>
-                    <button
-                        type="button"
-                        onClick={handleToggleAdvanced}
-                        className="text-sm text-desert-green hover:underline font-medium"
+        <div>
+          <button
+            type="button"
+            onClick={handleToggleAdvanced}
+            className="text-sm text-desert-green hover:underline font-medium"
+          >
+            {showAdvanced ? t('Hide available versions') : t('Show available versions')}
+          </button>
+
+          {showAdvanced && (
+            <>
+              <div className="mt-3 max-h-48 overflow-y-auto border rounded-xl divide-y">
+                {loadingVersions ? (
+                  <div className="p-4 text-center text-text-muted text-sm">
+                    {t('Loading versions...')}
+                  </div>
+                ) : versions.length === 0 ? (
+                  <div className="p-4 text-center text-text-muted text-sm">
+                    {t('No other versions available')}
+                  </div>
+                ) : (
+                  versions.map((v) => (
+                    <label
+                      key={v.tag}
+                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-secondary cursor-pointer"
                     >
-                        {showAdvanced ? t('Hide available versions') : t('Show available versions')}
-                    </button>
-
-                    {showAdvanced && (
-                        <>
-                            <div className="mt-3 max-h-48 overflow-y-auto border rounded-lg divide-y">
-                                {loadingVersions ? (
-                                    <div className="p-4 text-center text-text-muted text-sm">{t('Loading versions...')}</div>
-                                ) : versions.length === 0 ? (
-                                    <div className="p-4 text-center text-text-muted text-sm">{t('No other versions available')}</div>
-                                ) : (
-                                    versions.map((v) => (
-                                        <label
-                                            key={v.tag}
-                                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-secondary cursor-pointer"
-                                        >
-                                            <input
-                                                type="radio"
-                                                name="version"
-                                                value={v.tag}
-                                                checked={selectedVersion === v.tag}
-                                                onChange={() => setSelectedVersion(v.tag)}
-                                                className="text-desert-green focus:ring-desert-green"
-                                            />
-                                            <span className="text-sm font-medium text-text-primary">{v.tag}</span>
-                                            {v.isLatest && (
-                                                <span className="text-xs bg-desert-green/10 text-desert-green px-2 py-0.5 rounded-full">
-                                                    {t('Latest')}
-                                                </span>
-                                            )}
-                                            {v.releaseUrl && (
-                                                <a
-                                                    href={v.releaseUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="ml-auto text-xs text-desert-green hover:underline"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    {t('Release notes')}
-                                                </a>
-                                            )}
-                                        </label>
-                                    ))
-                                )}
-                            </div>
-                            <p className="mt-2 text-sm text-text-muted">
-                                {t("It's not recommended to upgrade to a new major version (e.g. 1.8.2 → 2.0.0) unless you have verified compatibility with your current configuration. Always review the release notes and test in a staging environment if possible.")}
-                            </p>
-                        </>
-                    )}
-                </div>
-            </div>
-        </StyledModal>
-    )
+                      <input
+                        type="radio"
+                        name="version"
+                        value={v.tag}
+                        checked={selectedVersion === v.tag}
+                        onChange={() => setSelectedVersion(v.tag)}
+                        className="text-desert-green focus:ring-desert-green"
+                      />
+                      <span className="text-sm font-medium text-text-primary">{v.tag}</span>
+                      {v.isLatest && (
+                        <span className="text-xs bg-desert-green/10 text-desert-green px-2 py-0.5 rounded-full">
+                          {t('Latest')}
+                        </span>
+                      )}
+                      {v.releaseUrl && (
+                        <a
+                          href={v.releaseUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-auto text-xs text-desert-green hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {t('Release notes')}
+                        </a>
+                      )}
+                    </label>
+                  ))
+                )}
+              </div>
+              <p className="mt-2 text-sm text-text-muted">
+                {t(
+                  "It's not recommended to upgrade to a new major version (e.g. 1.8.2 → 2.0.0) unless you have verified compatibility with your current configuration. Always review the release notes and test in a staging environment if possible."
+                )}
+              </p>
+            </>
+          )}
+        </div>
+      </div>
+    </StyledModal>
+  )
 }

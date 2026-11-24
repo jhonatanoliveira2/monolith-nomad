@@ -15,8 +15,11 @@ export default function ThemeToggle({ compact = false }: ThemeToggleProps) {
   return (
     <button
       onClick={toggleTheme}
-      className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors
-                 text-desert-stone hover:text-desert-green-darker cursor-pointer"
+      className={
+        compact
+          ? 'inline-flex size-9 items-center justify-center rounded-full text-text-secondary transition-colors duration-[140ms] hover:bg-surface-elevated hover:text-text-primary cursor-pointer'
+          : 'flex items-center gap-1.5 rounded-full px-2 py-1 text-sm transition-colors duration-[140ms] text-text-secondary hover:text-text-primary cursor-pointer'
+      }
       aria-label={label}
       title={label}
     >

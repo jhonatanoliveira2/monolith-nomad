@@ -2,11 +2,7 @@ import { useEffect, useState } from 'react'
 import useEmbedJobs from '~/hooks/use_embed_jobs'
 import HorizontalBarChart from './HorizontalBarChart'
 import StyledSectionHeader from './StyledSectionHeader'
-import {
-  JOB_HEALTH_DISPLAY,
-  computeJobHealth,
-  formatTimeAgo,
-} from '~/lib/kb_job_health_display'
+import { JOB_HEALTH_DISPLAY, computeJobHealth, formatTimeAgo } from '~/lib/kb_job_health_display'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '~/lib/format'
 
@@ -27,11 +23,9 @@ const ActiveEmbedJobs = ({ withHeader = false }: ActiveEmbedJobsProps) => {
 
   return (
     <>
-      {withHeader && (
-        <StyledSectionHeader title={t('Processing Queue')} className="mt-12 mb-4" />
-      )}
+      {withHeader && <StyledSectionHeader title={t('Processing Queue')} className="mt-12 mb-4" />}
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {jobs && jobs.length > 0 ? (
           jobs.map((job) => {
             const health = computeJobHealth({
@@ -44,19 +38,14 @@ const ActiveEmbedJobs = ({ withHeader = false }: ActiveEmbedJobsProps) => {
             const display = JOB_HEALTH_DISPLAY[health]
             const lastActivityMs = job.lastBatchAt ?? job.startedAt
             return (
-              <div
-                key={job.jobId}
-                className="bg-desert-white rounded-lg p-4 border border-desert-stone-light shadow-sm hover:shadow-lg transition-shadow"
-              >
+              <div key={job.jobId} className="nd-card p-5 animate-nd-fade">
                 <div className="flex items-center gap-3 mb-2">
                   <span
                     className={`inline-block w-2.5 h-2.5 rounded-full ${display.dot}`}
                     aria-label={t(display.ariaLabel)}
                     title={t(display.ariaLabel)}
                   />
-                  <span className="text-sm font-medium text-text-primary">
-                    {t(display.label)}
-                  </span>
+                  <span className="text-sm font-medium text-text-primary">{t(display.label)}</span>
                   {lastActivityMs !== undefined && (
                     <span className="text-xs text-text-muted">
                       · {t('last activity {{time}}', { time: formatTimeAgo(lastActivityMs, tick) })}
@@ -83,7 +72,9 @@ const ActiveEmbedJobs = ({ withHeader = false }: ActiveEmbedJobsProps) => {
             )
           })
         ) : (
-          <p className="text-text-muted">{t('No files are currently being processed')}</p>
+          <p className="nd-card nd-dot-field px-5 py-6 text-sm text-text-muted">
+            {t('No files are currently being processed')}
+          </p>
         )}
       </div>
     </>

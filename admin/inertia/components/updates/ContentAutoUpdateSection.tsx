@@ -63,14 +63,20 @@ export default function ContentAutoUpdateSection() {
       })
     },
     onError: () => {
-      addNotification({ type: 'error', message: t('Failed to update content auto-update setting.') })
+      addNotification({
+        type: 'error',
+        message: t('Failed to update content auto-update setting.'),
+      })
     },
   })
 
   const handleSaveSchedule = async () => {
     const parsedGb = Number(capGb)
     if (!Number.isFinite(parsedGb) || parsedGb < 0) {
-      addNotification({ type: 'error', message: t('Data cap must be 0 or a positive number of GB.') })
+      addNotification({
+        type: 'error',
+        message: t('Data cap must be 0 or a positive number of GB.'),
+      })
       return
     }
     const capBytes = Math.round(parsedGb * BYTES_PER_GB)
@@ -89,7 +95,7 @@ export default function ContentAutoUpdateSection() {
   return (
     <>
       <StyledSectionHeader title={t('Automatic Content Updates')} className="mt-8" />
-      <div className="bg-surface-primary rounded-lg border shadow-md overflow-hidden mt-6 p-6">
+      <div className="bg-surface-primary rounded-xl border overflow-hidden mt-6 p-6">
         {autoDisabled && (
           <Alert
             type="warning"
@@ -108,7 +114,9 @@ export default function ContentAutoUpdateSection() {
           onChange={(value) => toggleMutation.mutate(value)}
           disabled={toggleMutation.isPending || isLoading}
           label={t('Enable Automatic Content Updates')}
-          description={t("Automatically download newer versions of your installed Information Library content (ZIM files) and maps during your chosen window. Content downloads can be very large, so set a per-window data cap to limit how much is pulled at once. We recommend allowing at least 0.5 GB per update window to ensure most updates can be pulled in a timely manner, but you can set a lower cap if you have very limited bandwidth and don't mind some updates being skipped (they will still appear in the UI and can be updated manually). If an update repeatedly fails to download within the window, it will be automatically disabled and require manual intervention to re-enable.")}
+          description={t(
+            "Automatically download newer versions of your installed Information Library content (ZIM files) and maps during your chosen window. Content downloads can be very large, so set a per-window data cap to limit how much is pulled at once. We recommend allowing at least 0.5 GB per update window to ensure most updates can be pulled in a timely manner, but you can set a lower cap if you have very limited bandwidth and don't mind some updates being skipped (they will still appear in the UI and can be updated manually). If an update repeatedly fails to download within the window, it will be automatically disabled and require manual intervention to re-enable."
+          )}
         />
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -166,7 +174,12 @@ export default function ContentAutoUpdateSection() {
         </div>
 
         <div className="mt-4 flex justify-end">
-          <StyledButton variant="primary" size="sm" onClick={handleSaveSchedule} disabled={!enabled}>
+          <StyledButton
+            variant="primary"
+            size="sm"
+            onClick={handleSaveSchedule}
+            disabled={!enabled}
+          >
             {t('Save Schedule')}
           </StyledButton>
         </div>
@@ -176,12 +189,28 @@ export default function ContentAutoUpdateSection() {
             <p className="text-desert-stone mb-3">
               <span className="font-medium">{t('Update window:')} </span>
               {status.withinWindow
-                ? t('{{start}}–{{end}} (currently inside); cool-off {{hours}}h', { start: status.windowStart, end: status.windowEnd, hours: status.cooloffHours })
-                : t('{{start}}–{{end}} (currently outside); cool-off {{hours}}h', { start: status.windowStart, end: status.windowEnd, hours: status.cooloffHours })}
+                ? t('{{start}}–{{end}} (currently inside); cool-off {{hours}}h', {
+                    start: status.windowStart,
+                    end: status.windowEnd,
+                    hours: status.cooloffHours,
+                  })
+                : t('{{start}}–{{end}} (currently outside); cool-off {{hours}}h', {
+                    start: status.windowStart,
+                    end: status.windowEnd,
+                    hours: status.cooloffHours,
+                  })}
               ;{' '}
-              {t('data cap {{cap}}', { cap: status.maxBytesPerWindow > 0 ? formatBytes(status.maxBytesPerWindow) : t('unlimited') })}
+              {t('data cap {{cap}}', {
+                cap:
+                  status.maxBytesPerWindow > 0
+                    ? formatBytes(status.maxBytesPerWindow)
+                    : t('unlimited'),
+              })}
               {status.maxBytesPerWindow > 0 && (
-                <> {t('({{used}} used this window)', { used: formatBytes(status.windowBytesUsed) })}</>
+                <>
+                  {' '}
+                  {t('({{used}} used this window)', { used: formatBytes(status.windowBytesUsed) })}
+                </>
               )}
               .
               {status.lastResult && (
@@ -189,9 +218,7 @@ export default function ContentAutoUpdateSection() {
                   {' '}
                   <span className="font-medium">{t('Last run:')} </span>
                   {status.lastResult}
-                  {status.lastAttemptAt
-                    ? ` (${formatDateTime(status.lastAttemptAt)})`
-                    : ''}
+                  {status.lastAttemptAt ? ` (${formatDateTime(status.lastAttemptAt)})` : ''}
                 </>
               )}
             </p>
@@ -205,7 +232,9 @@ export default function ContentAutoUpdateSection() {
 
             {status.resources.length === 0 ? (
               <p className="text-desert-stone-dark">
-                {t('All installed content is up to date. New versions will appear here when detected.')}
+                {t(
+                  'All installed content is up to date. New versions will appear here when detected.'
+                )}
               </p>
             ) : (
               <ul className="space-y-2">
@@ -233,14 +262,17 @@ export default function ContentAutoUpdateSection() {
                       )}
                     </div>
                     <span
-                      className={`shrink-0 text-xs font-medium ${resource.exceeds_cap
+                      className={`shrink-0 text-xs font-medium ${
+                        resource.exceeds_cap
                           ? 'text-desert-red'
                           : resource.eligible
                             ? 'text-desert-green'
                             : 'text-desert-stone'
-                        }`}
+                      }`}
                     >
-                      {resource.exceeds_cap ? t('Skipped — exceeds data cap, update manually') : resource.reason}
+                      {resource.exceeds_cap
+                        ? t('Skipped — exceeds data cap, update manually')
+                        : resource.reason}
                     </span>
                   </li>
                 ))}

@@ -147,6 +147,9 @@ export type CategoryWithStatus = SpecCategory & {
   // ingest is running — so the card can flip "(downloading)" → "(indexing)" at
   // the handoff instead of looking stuck. Only meaningful with downloadingTierSlug.
   downloadingTierIndexing?: boolean
+  /** Resources of this category already installed / downloading now (any tier). */
+  installedResourceIds?: string[]
+  downloadingResourceIds?: string[]
 }
 
 export type CollectionWithStatus = SpecCollection & {

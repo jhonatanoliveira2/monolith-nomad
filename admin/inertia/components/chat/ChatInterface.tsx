@@ -6,11 +6,11 @@ import type { ModelVisionCapability } from '../../../types/ollama'
 import ChatMessageBubble from './ChatMessageBubble'
 import ChatAssistantAvatar from './ChatAssistantAvatar'
 import BouncingDots from '../BouncingDots'
-import { usePage } from '@inertiajs/react'
 import InfoTooltip from '../InfoTooltip'
 import { visionAttachmentGuidance } from '../../lib/vision_guidance'
 import { useTranslation } from 'react-i18next'
 import { useNotifications } from '~/context/notification_context'
+import { useAiAssistantName } from '~/hooks/use_ai_assistant_name'
 
 interface ChatInterfaceProps {
   messages: ChatMessage[]
@@ -43,7 +43,7 @@ export default function ChatInterface({
   const { t } = useTranslation()
   // was used without being declared (upstream bug): image-attachment errors crashed the chat
   const { addNotification } = useNotifications()
-  const { aiAssistantName } = usePage<{ aiAssistantName: string }>().props
+  const aiAssistantName = useAiAssistantName()
   const [input, setInput] = useState('')
   const [images, setImages] = useState<ChatImageAttachment[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -98,7 +98,10 @@ export default function ChatInterface({
 
     const availableSlots = MAX_VISION_IMAGES - images.length
     if (availableSlots <= 0) {
-      addNotification({ type: 'error', message: t('You can attach up to {{count}} images.', { count: MAX_VISION_IMAGES }) })
+      addNotification({
+        type: 'error',
+        message: t('You can attach up to {{count}} images.', { count: MAX_VISION_IMAGES }),
+      })
       return
     }
 
@@ -132,7 +135,9 @@ export default function ChatInterface({
     if (selected.length > availableSlots) {
       addNotification({
         type: 'error',
-        message: t('Only the first {{count}} selected image(s) were attached.', { count: availableSlots }),
+        message: t('Only the first {{count}} selected image(s) were attached.', {
+          count: availableSlots,
+        }),
       })
     }
     setImages((current) => [...current, ...attachments])
@@ -159,13 +164,15 @@ export default function ChatInterface({
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-surface-primary shadow-sm">
+    <div className="flex-1 flex flex-col min-h-0 bg-surface-primary ">
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
         {messages.length === 0 ? (
           <div className="h-full flex items-center justify-center">
             <div className="text-center max-w-md">
               <IconWand className="h-16 w-16 text-desert-green mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium text-text-primary mb-2">{t('Start a conversation')}</h3>
+              <h3 className="text-lg font-medium text-text-primary mb-2">
+                {t('Start a conversation')}
+              </h3>
               <p className="text-text-muted text-sm">
                 {t('Interact with your installed language models directly in the Command Center.')}
               </p>
@@ -174,7 +181,9 @@ export default function ChatInterface({
                 chatSuggestions.length > 0 &&
                 !chatSuggestionsLoading && (
                   <div className="mt-8">
-                    <h4 className="text-sm font-medium text-text-secondary mb-2">{t('Suggestions:')}</h4>
+                    <h4 className="text-sm font-medium text-text-secondary mb-2">
+                      {t('Suggestions:')}
+                    </h4>
                     <div className="flex flex-col gap-2">
                       {chatSuggestions.map((suggestion, index) => (
                         <button
@@ -186,7 +195,7 @@ export default function ChatInterface({
                               textareaRef.current?.focus()
                             }, 0)
                           }}
-                          className="px-4 py-2 bg-surface-secondary hover:bg-surface-secondary rounded-lg text-sm text-text-primary transition-colors"
+                          className="px-4 py-2 bg-surface-secondary hover:bg-surface-secondary rounded-xl text-sm text-text-primary transition-colors"
                         >
                           {suggestion}
                         </button>
@@ -200,7 +209,9 @@ export default function ChatInterface({
               )}
               {!chatSuggestionsEnabled && (
                 <div className="mt-8 text-sm text-text-muted">
-                  {t('Need some inspiration? Enable chat suggestions in settings to get started with example prompts.')}
+                  {t(
+                    'Need some inspiration? Enable chat suggestions in settings to get started with example prompts.'
+                  )}
                 </div>
               )}
             </div>
@@ -230,7 +241,7 @@ export default function ChatInterface({
             {isLoading && (
               <div className="flex gap-4 justify-start">
                 <ChatAssistantAvatar />
-                <div className="max-w-[85%] sm:max-w-[70%] rounded-lg px-4 py-3 bg-surface-secondary text-text-primary">
+                <div className="max-w-[85%] sm:max-w-[70%] rounded-xl px-4 py-3 bg-surface-secondary text-text-primary">
                   <BouncingDots text={t('Thinking')} />
                 </div>
               </div>
@@ -246,9 +257,13 @@ export default function ChatInterface({
             {images.map((image) => (
               <div
                 key={image.id}
-                className="relative h-20 w-20 overflow-hidden rounded-lg border border-border-default bg-surface-secondary"
+                className="relative h-20 w-20 overflow-hidden rounded-xl border border-border-default bg-surface-secondary"
               >
-                <img src={image.previewUrl} alt={image.name} className="h-full w-full object-cover" />
+                <img
+                  src={image.previewUrl}
+                  alt={image.name}
+                  className="h-full w-full object-cover"
+                />
                 <button
                   type="button"
                   onClick={() => removeImage(image)}
@@ -281,7 +296,7 @@ export default function ChatInterface({
                 visionCapability === 'unsupported'
               }
               className={classNames(
-                'p-3 rounded-lg transition-colors flex-shrink-0',
+                'p-3 rounded-xl transition-colors flex-shrink-0',
                 isLoading ||
                   images.length >= MAX_VISION_IMAGES ||
                   visionCapability === 'unsupported'
@@ -296,9 +311,7 @@ export default function ChatInterface({
               <InfoTooltip
                 position="top"
                 align="left"
-                text={
-                  t(visionAttachmentGuidance(visionCapability))
-                }
+                text={t(visionAttachmentGuidance(visionCapability))}
               />
             )}
           </div>
@@ -308,8 +321,10 @@ export default function ChatInterface({
               value={input}
               onChange={handleInput}
               onKeyDown={handleKeyDown}
-              placeholder={t('Type your message to {{name}}... (Shift+Enter for new line)', { name: aiAssistantName })}
-              className="w-full resize-none rounded-lg border border-border-default px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-desert-green focus:border-transparent disabled:bg-surface-secondary disabled:text-text-muted"
+              placeholder={t('Type your message to {{name}}... (Shift+Enter for new line)', {
+                name: aiAssistantName,
+              })}
+              className="w-full resize-none rounded-xl border border-border-default px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-desert-green focus:border-transparent disabled:bg-surface-secondary disabled:text-text-muted"
               rows={1}
               disabled={isLoading}
               style={{ maxHeight: '200px' }}
@@ -320,7 +335,7 @@ export default function ChatInterface({
             aria-label={t('Send message')}
             disabled={(!input.trim() && images.length === 0) || isLoading}
             className={classNames(
-              'p-3 rounded-lg transition-all duration-200 flex-shrink-0 mb-2',
+              'p-3 rounded-xl transition-all duration-200 flex-shrink-0 mb-2',
               (!input.trim() && images.length === 0) || isLoading
                 ? 'bg-border-default text-text-muted cursor-not-allowed'
                 : 'bg-desert-green text-white hover:bg-desert-green/90 hover:scale-105'

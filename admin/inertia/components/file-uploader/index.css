@@ -1,3 +1,54 @@
 .uppy-size--md .uppy-Dashboard-AddFiles-title {
   font-size: 1.15rem !important;
 }
+/*
+ * Uppy Dashboard on the app's theme tokens. Uppy's own theme is light (or follows the OS with "auto"),
+ * which left a light-grey drop zone inside dark screens. Shared by the knowledge base and ZIM uploaders.
+ */
+.uppy-Dashboard-inner {
+  background-color: var(--color-surface-secondary) !important;
+  border: 1px dashed var(--color-border-default) !important;
+  border-radius: var(--radius-card, 20px) !important;
+}
+.uppy-Dashboard-innerWrap,
+.uppy-Dashboard-AddFiles {
+  border-radius: var(--radius-card, 20px) !important;
+}
+.uppy-Dashboard-AddFiles {
+  border: 0 !important;
+}
+.uppy-Dashboard-AddFiles-title,
+.uppy-Dashboard-Item-name,
+.uppy-DashboardContent-title {
+  color: var(--color-text-primary) !important;
+}
+.uppy-Dashboard-AddFiles-info,
+.uppy-Dashboard-note,
+.uppy-Dashboard-Item-status,
+.uppy-DashboardContent-bar {
+  color: var(--color-text-muted) !important;
+}
+.uppy-DashboardContent-bar,
+.uppy-Dashboard-files,
+.uppy-Dashboard-progressindicators,
+.uppy-StatusBar {
+  background-color: var(--color-surface-secondary) !important;
+  border-color: var(--color-border-subtle) !important;
+}
+.uppy-Dashboard-browse,
+.uppy-DashboardContent-back,
+.uppy-DashboardContent-addMore {
+  color: var(--color-text-primary) !important;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.uppy-Dashboard-browse:hover,
+.uppy-Dashboard-browse:focus {
+  color: var(--color-highlight) !important;
+}
+.uppy-Dashboard.uppy-Dashboard--isDraggingOver .uppy-Dashboard-inner,
+[data-uppy-drag-drop-supported='true'] .uppy-Dashboard-dropFilesHereHint {
+  border-color: var(--color-highlight) !important;
+  background-color: var(--color-surface-elevated) !important;
+  color: var(--color-text-primary) !important;
+}

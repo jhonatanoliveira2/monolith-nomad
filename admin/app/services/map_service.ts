@@ -1,4 +1,5 @@
 import { BaseStylesFile, MapLayer } from '../../types/maps.js'
+import { BRAZIL_REGIONS, BRAZIL_STATES } from '../../constants/brazil.js'
 import { DownloadRemoteSuccessCallback, FileEntry } from '../../types/files.js'
 import { doResumableDownloadWithRetry } from '../utils/downloads.js'
 import { extract } from 'tar'
@@ -21,7 +22,13 @@ import { CollectionManifestService } from './collection_manifest_service.js'
 import { decideSupersededDeletion } from '../utils/superseded_resource.js'
 import { isExecTimeout } from '../utils/exec_timeout.js'
 import type { CollectionWithStatus, MapsSpec } from '../../types/collections.js'
-import type { Country, CountryCode, CountryGroup, MapExtractPreflight } from '../../types/maps.js'
+import type {
+  Country,
+  CountryCode,
+  CountryGroup,
+  MapExtractPreflight,
+  Subdivision,
+} from '../../types/maps.js'
 import {
   EXTRACT_DEFAULT_MAX_ZOOM,
   EXTRACT_MAX_ZOOM,
@@ -725,6 +732,10 @@ export class MapService implements MapServiceContract {
     return CountriesService.getInstance().listGroups()
   }
 
+  async listSubdivisions(country: CountryCode): Promise<Subdivision[]> {
+    return CountriesService.getInstance().listSubdivisions(country)
+  }
+
   /**
    * @param signal Aborting it kills the pmtiles child. Pass one tied to the HTTP
    *   request so an estimate the browser abandoned stops reading the remote archive
@@ -879,6 +890,12 @@ export class MapService implements MapServiceContract {
   private buildRegionSlug(countries: CountryCode[], groupMatch: CountryGroup | null): string {
     if (groupMatch) return groupMatch.id
     if (countries.length === 1) return countries[0].toLowerCase()
+    // a whole IBGE macro-region of Brazil gets a readable name (br-sul, br-nordeste...)
+    const region = BRAZIL_REGIONS.find((r) => {
+      const codes = BRAZIL_STATES.filter((s) => s.region === r.id).map((s) => s.code)
+      return codes.length === countries.length && codes.every((c) => countries.includes(c))
+    })
+    if (region) return `br-${region.id}`
     const hash = createHash('sha1').update(countries.join(',')).digest('hex').slice(0, 8)
     return `custom-${hash}`
   }

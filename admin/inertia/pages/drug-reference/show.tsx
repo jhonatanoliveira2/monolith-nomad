@@ -30,19 +30,19 @@ export default function DrugReferenceShow({ label, situations = [] }: PageProps)
     <AppLayout compact>
       <Head title={label.brand_name ?? label.generic_name ?? t('Drug Detail')} />
 
-      <div className="p-4 max-w-3xl mx-auto">
+      <div className="nd-page nd-page-narrow">
         {/* Back nav + comparison entry */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <Link
             href="/drug-reference"
-            className="inline-flex items-center gap-1 text-sm text-desert-green hover:underline"
+            className="nd-eyebrow inline-flex items-center gap-1.5 hover:!text-text-primary"
           >
             <IconArrowLeft size={16} />
             {t('Drug Reference')}
           </Link>
           <Link
             href={`/drug-reference/interactions?ids=${label.id}`}
-            className="text-xs px-2.5 py-1 rounded border border-desert-green text-desert-green hover:bg-desert-green hover:text-white transition-colors"
+            className="text-xs px-3 py-1.5 rounded-full border border-border-default text-text-primary hover:border-text-muted transition-colors"
           >
             {t('Add to interaction comparison')}
           </Link>
@@ -51,7 +51,7 @@ export default function DrugReferenceShow({ label, situations = [] }: PageProps)
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <div className="mb-6">
           <div className="flex flex-wrap items-start gap-2 mb-1">
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-3xl sm:text-4xl font-medium text-text-primary leading-tight">
               {label.brand_name ?? label.generic_name ?? t('Unknown Drug')}
             </h1>
             {/* OTC / Rx badge */}
@@ -103,7 +103,7 @@ export default function DrugReferenceShow({ label, situations = [] }: PageProps)
 
         {/* 1. Boxed Warning — red callout, most serious */}
         {label.boxed_warning && (
-          <section className="mb-6 border-2 border-desert-red rounded-lg p-4 bg-desert-red-lighter">
+          <section className="mb-6 border-2 border-desert-red rounded-xl p-4 bg-desert-red-lighter">
             <div className="flex items-center gap-2 mb-2">
               <IconAlertTriangle size={20} className="text-desert-red-dark flex-shrink-0" />
               <h2 className="text-base font-bold text-desert-red-dark uppercase tracking-wide">
@@ -145,14 +145,10 @@ export default function DrugReferenceShow({ label, situations = [] }: PageProps)
         )}
 
         {/* 3. Dosage & Administration */}
-        {label.dosage && (
-          <LabelSection title={t('Dosage & Administration')} body={label.dosage} />
-        )}
+        {label.dosage && <LabelSection title={t('Dosage & Administration')} body={label.dosage} />}
 
         {/* 4. Warnings */}
-        {label.warnings && (
-          <LabelSection title={t('Warnings')} body={label.warnings} />
-        )}
+        {label.warnings && <LabelSection title={t('Warnings')} body={label.warnings} />}
 
         {/* 5. Drug Interactions — single-drug label text, not a pairwise checker */}
         {label.drug_interactions && (
@@ -169,14 +165,10 @@ export default function DrugReferenceShow({ label, situations = [] }: PageProps)
         )}
 
         {/* 7. When Using (OTC) */}
-        {label.when_using && (
-          <LabelSection title={t('When Using')} body={label.when_using} />
-        )}
+        {label.when_using && <LabelSection title={t('When Using')} body={label.when_using} />}
 
         {/* 8. Stop Use (OTC) */}
-        {label.stop_use && (
-          <LabelSection title={t('Stop Use')} body={label.stop_use} />
-        )}
+        {label.stop_use && <LabelSection title={t('Stop Use')} body={label.stop_use} />}
 
         {/* ── Footer citation ───────────────────────────────────────────────── */}
         <footer className="mt-8 pt-4 border-t border-border-subtle text-xs text-text-secondary space-y-1">
@@ -191,11 +183,11 @@ export default function DrugReferenceShow({ label, situations = [] }: PageProps)
               'Do not rely on this data to make decisions regarding medical care. While every effort is made to ensure accuracy, you should assume all results are unvalidated.'
             )}
           </p>
-          {label.set_id && (
-            <p className="font-mono opacity-60">set_id: {label.set_id}</p>
-          )}
+          {label.set_id && <p className="font-mono opacity-60">set_id: {label.set_id}</p>}
           <p className="opacity-60">
-            {t('Last refreshed: {{date}}', { date: formatDate(label.ingested_at) || label.ingested_at.slice(0, 10) })}
+            {t('Last refreshed: {{date}}', {
+              date: formatDate(label.ingested_at) || label.ingested_at.slice(0, 10),
+            })}
           </p>
         </footer>
       </div>
@@ -218,9 +210,7 @@ function LabelSection({
     <section className="mb-6">
       <h2 className="text-base font-bold mb-2 border-b border-border-subtle pb-1">{title}</h2>
       <LabelBlocks text={body} />
-      {footnote && (
-        <p className="mt-2 text-xs text-text-secondary italic">{footnote}</p>
-      )}
+      {footnote && <p className="mt-2 text-xs text-text-secondary italic">{footnote}</p>}
     </section>
   )
 }

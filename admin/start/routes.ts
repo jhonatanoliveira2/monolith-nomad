@@ -97,6 +97,8 @@ router.get('/maps', [MapsController, 'index'])
 router.get('/supply-depot', [SupplyDepotController, 'index'])
 router.get('/library', [LibraryController, 'index'])
 router.get('/library/read/:filename', [LibraryController, 'read'])
+// Every download and processing queue in one place (content, maps, documents, AI models, indexing)
+router.on('/downloads').renderInertia('downloads')
 
 router
   .group(() => {
@@ -246,6 +248,10 @@ router
     })
     documented(router.get('/country-groups', [MapsController, 'listCountryGroups']), {
       summary: 'List country groups',
+      tags: ['maps'],
+    })
+    documented(router.get('/countries/:code/subdivisions', [MapsController, 'listSubdivisions']), {
+      summary: 'List the states of a country available as map extract regions',
       tags: ['maps'],
     })
     documented(router.post('/extract-preflight', [MapsController, 'extractPreflight']), {

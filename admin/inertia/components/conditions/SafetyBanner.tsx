@@ -14,7 +14,7 @@ export default function SafetyBanner() {
   return (
     <div
       role="alert"
-      className="mb-6 rounded-lg border-2 border-desert-orange bg-desert-orange-lighter p-4"
+      className="mb-6 rounded-xl border border-desert-orange bg-desert-orange-lighter p-4"
     >
       <div className="flex items-start gap-3">
         <IconAlertTriangle

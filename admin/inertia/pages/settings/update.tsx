@@ -1,10 +1,17 @@
+import PageHeader from '~/components/nd/PageHeader'
 import { Head } from '@inertiajs/react'
 import SettingsLayout from '~/layouts/SettingsLayout'
 import StyledButton from '~/components/StyledButton'
 import StyledSectionHeader from '~/components/StyledSectionHeader'
 import Alert from '~/components/Alert'
 import { useEffect, useRef, useState } from 'react'
-import { IconAlertCircle, IconArrowBigUpLines, IconCheck, IconCircleCheck, IconReload } from '@tabler/icons-react'
+import {
+  IconAlertCircle,
+  IconArrowBigUpLines,
+  IconCheck,
+  IconCircleCheck,
+  IconReload,
+} from '@tabler/icons-react'
 import { SystemUpdateStatus } from '../../../types/system'
 import api from '~/lib/api'
 import Input from '~/components/inputs/Input'
@@ -65,10 +72,11 @@ export default function SystemUpdatePage(props: { system: Props }) {
   const seenAdvancedStageRef = useRef(false)
 
   const earlyAccessSetting = useSystemSetting({
-    key: 'system.earlyAccess', initialData: {
+    key: 'system.earlyAccess',
+    initialData: {
       key: 'system.earlyAccess',
       value: props.system.earlyAccess,
-    }
+    },
   })
 
   useEffect(() => {
@@ -210,7 +218,10 @@ export default function SystemUpdatePage(props: { system: Props }) {
     },
     onError: (error) => {
       console.error('Error updating setting:', error)
-      addNotification({ message: t('There was an error updating the setting. Please try again.'), type: 'error' })
+      addNotification({
+        message: t('There was an error updating the setting. Please try again.'),
+        type: 'error',
+      })
     },
   })
 
@@ -219,19 +230,26 @@ export default function SystemUpdatePage(props: { system: Props }) {
     mutationFn: (email: string) => api.subscribeToReleaseNotes(email),
     onSuccess: (data) => {
       if (data && data.success) {
-        addNotification({ type: 'success', message: t('Successfully subscribed to release notes!') })
+        addNotification({
+          type: 'success',
+          message: t('Successfully subscribed to release notes!'),
+        })
         setEmail('')
       } else {
         addNotification({
           type: 'error',
-          message: t('Failed to subscribe: {{error}}', { error: data?.message || t('Unknown error') }),
+          message: t('Failed to subscribe: {{error}}', {
+            error: data?.message || t('Unknown error'),
+          }),
         })
       }
     },
     onError: (error: any) => {
       addNotification({
         type: 'error',
-        message: t('Error subscribing to release notes: {{error}}', { error: error.message || t('Unknown error') }),
+        message: t('Error subscribing to release notes: {{error}}', {
+          error: error.message || t('Unknown error'),
+        }),
       })
     },
   })
@@ -239,14 +257,15 @@ export default function SystemUpdatePage(props: { system: Props }) {
   return (
     <SettingsLayout>
       <Head title={t('System Update')} />
-      <div className="xl:pl-72 w-full">
-        <main className="px-6 lg:px-12 py-6 lg:py-8">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-desert-green mb-2">{t('System Update')}</h1>
-            <p className="text-desert-stone-dark">
-              {t('Keep your monolith-nomad instance up to date with the latest features and improvements.')}
-            </p>
-          </div>
+      <div className="w-full">
+        <div className="nd-page">
+          <PageHeader
+            eyebrow={t('System')}
+            title={t('System Update')}
+            description={t(
+              'Keep your monolith-nomad instance up to date with the latest features and improvements.'
+            )}
+          />
 
           {error && (
             <div className="mb-6">
@@ -265,7 +284,9 @@ export default function SystemUpdatePage(props: { system: Props }) {
               <Alert
                 type="info"
                 title={t('Container Restarting')}
-                message={t('The admin container is restarting. This page will reload automatically when the update is complete.')}
+                message={t(
+                  'The admin container is restarting. This page will reload automatically when the update is complete.'
+                )}
                 variant="solid"
               />
             </div>
@@ -275,23 +296,28 @@ export default function SystemUpdatePage(props: { system: Props }) {
               <Alert
                 type="info"
                 title={t('Connection Temporarily Lost (Expected)')}
-                message={t('You may see error notifications while the backend restarts during the update. This is completely normal and expected. Connection should be restored momentarily.')}
+                message={t(
+                  'You may see error notifications while the backend restarts during the update. This is completely normal and expected. Connection should be restored momentarily.'
+                )}
                 variant="solid"
               />
             </div>
           )}
-          <div className="bg-surface-primary rounded-lg border shadow-md overflow-hidden">
+          <div className="bg-surface-primary rounded-xl border overflow-hidden">
             <div className="p-8 text-center">
               <div className="flex justify-center mb-4">{getStatusIcon()}</div>
 
               {!isUpdating && (
                 <>
-                  <h2 className="text-2xl font-bold text-desert-green mb-2">
+                  <h2 className="text-xl font-medium text-text-primary mb-2">
                     {versionInfo.updateAvailable ? t('Update Available') : t('System Up to Date')}
                   </h2>
                   <p className="text-desert-stone-dark mb-6">
                     {versionInfo.updateAvailable
-                      ? t('A new version ({{version}}) is available for your monolith-nomad instance.', { version: versionInfo.latestVersion })
+                      ? t(
+                          'A new version ({{version}}) is available for your monolith-nomad instance.',
+                          { version: versionInfo.latestVersion }
+                        )
                       : t('Your system is running the latest version!')}
                   </p>
                 </>
@@ -299,8 +325,10 @@ export default function SystemUpdatePage(props: { system: Props }) {
 
               {isUpdating && updateStatus && (
                 <>
-                  <h2 className="text-2xl font-bold text-desert-green mb-2">
-                    {STAGE_LABELS[updateStatus.stage] ? t(STAGE_LABELS[updateStatus.stage]) : updateStatus.stage}
+                  <h2 className="text-xl font-medium text-text-primary mb-2">
+                    {STAGE_LABELS[updateStatus.stage]
+                      ? t(STAGE_LABELS[updateStatus.stage])
+                      : updateStatus.stage}
                   </h2>
                   <p className="text-desert-stone-dark mb-6">{updateStatus.message}</p>
                 </>
@@ -309,7 +337,7 @@ export default function SystemUpdatePage(props: { system: Props }) {
               <div className="flex justify-center gap-8 mb-6">
                 <div className="text-center">
                   <p className="text-sm text-desert-stone mb-1">{t('Current Version')}</p>
-                  <p className="text-xl font-bold text-desert-green">
+                  <p className="nd-display text-3xl text-text-primary">
                     {versionInfo.currentVersion}
                   </p>
                 </div>
@@ -376,7 +404,7 @@ export default function SystemUpdatePage(props: { system: Props }) {
               )}
             </div>
             <div className="border-t bg-surface-primary p-6">
-              <h3 className="text-lg font-semibold text-desert-green mb-4">
+              <h3 className="nd-eyebrow !text-text-secondary mb-4">
                 {t('What happens during an update?')}
               </h3>
               <div className="space-y-3">
@@ -434,18 +462,22 @@ export default function SystemUpdatePage(props: { system: Props }) {
             <Alert
               type="info"
               title={t('Backup Reminder')}
-              message={t("While updates are designed to be safe, it's always recommended to backup any critical data before proceeding.")}
+              message={t(
+                "While updates are designed to be safe, it's always recommended to backup any critical data before proceeding."
+              )}
               variant="solid"
             />
             <Alert
               type="warning"
               title={t('Temporary Downtime')}
-              message={t('Services will be briefly unavailable during the update process. This typically takes 2-5 minutes depending on your internet connection.')}
+              message={t(
+                'Services will be briefly unavailable during the update process. This typically takes 2-5 minutes depending on your internet connection.'
+              )}
               variant="solid"
             />
           </div>
           <StyledSectionHeader title={t('Early Access')} className="mt-8" />
-          <div className="bg-surface-primary rounded-lg border shadow-md overflow-hidden mt-6 p-6">
+          <div className="bg-surface-primary rounded-xl border overflow-hidden mt-6 p-6">
             <Switch
               checked={earlyAccessSetting.data?.value || false}
               onChange={(newVal) => {
@@ -453,7 +485,9 @@ export default function SystemUpdatePage(props: { system: Props }) {
               }}
               disabled={updateSettingMutation.isPending}
               label={t('Enable Early Access')}
-              description={t('Receive release candidate (RC) versions before they are officially released. Note: RC versions may contain bugs and are not recommended for environments where stability and data integrity are critical.')}
+              description={t(
+                'Receive release candidate (RC) versions before they are officially released. Note: RC versions may contain bugs and are not recommended for environments where stability and data integrity are critical.'
+              )}
             />
           </div>
           <CoreAutoUpdateSection />
@@ -462,48 +496,52 @@ export default function SystemUpdatePage(props: { system: Props }) {
           <ContentUpdatesSection />
           {/* release-note e-mails: only when a list is configured (off by default: upstream service) */}
           {releaseNotesEnabled && (
-          <div className="bg-surface-primary rounded-lg border shadow-md overflow-hidden py-6 mt-12">
-            <div className="flex flex-col md:flex-row justify-between items-center p-8 gap-y-8 md:gap-y-0 gap-x-8">
-              <div>
-                <h2 className="max-w-xl text-lg font-bold text-desert-green sm:text-xl lg:col-span-7">
-                  {t('Want to stay updated with the latest from monolith-nomad? Subscribe to receive release notes directly to your inbox. Unsubscribe anytime.')}
-                </h2>
-              </div>
-              <div className="flex flex-col">
-                <div className="flex gap-x-3">
-                  <Input
-                    name="email"
-                    label=""
-                    type="email"
-                    placeholder={t('Your email address')}
-                    disabled={false}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full"
-                    containerClassName="!mt-0"
-                  />
-                  <StyledButton
-                    variant="primary"
-                    disabled={!email}
-                    onClick={() => subscribeToReleaseNotesMutation.mutateAsync(email)}
-                    loading={subscribeToReleaseNotesMutation.isPending}
-                  >
-                    {t('Subscribe')}
-                  </StyledButton>
+            <div className="bg-surface-primary rounded-xl border overflow-hidden py-6 mt-12">
+              <div className="flex flex-col md:flex-row justify-between items-center p-8 gap-y-8 md:gap-y-0 gap-x-8">
+                <div>
+                  <h2 className="max-w-xl text-lg font-bold text-desert-green sm:text-xl lg:col-span-7">
+                    {t(
+                      'Want to stay updated with the latest from monolith-nomad? Subscribe to receive release notes directly to your inbox. Unsubscribe anytime.'
+                    )}
+                  </h2>
                 </div>
-                <p className="mt-2 text-sm text-desert-stone-dark">
-                  {t('We care about your privacy. monolith-nomad will never share your email with third parties or send you spam.')}
-                </p>
+                <div className="flex flex-col">
+                  <div className="flex gap-x-3">
+                    <Input
+                      name="email"
+                      label=""
+                      type="email"
+                      placeholder={t('Your email address')}
+                      disabled={false}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full"
+                      containerClassName="!mt-0"
+                    />
+                    <StyledButton
+                      variant="primary"
+                      disabled={!email}
+                      onClick={() => subscribeToReleaseNotesMutation.mutateAsync(email)}
+                      loading={subscribeToReleaseNotesMutation.isPending}
+                    >
+                      {t('Subscribe')}
+                    </StyledButton>
+                  </div>
+                  <p className="mt-2 text-sm text-desert-stone-dark">
+                    {t(
+                      'We care about your privacy. monolith-nomad will never share your email with third parties or send you spam.'
+                    )}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
           )}
 
           {showLogs && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-              <div className="bg-surface-primary rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] flex flex-col">
+              <div className="bg-surface-primary rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] flex flex-col">
                 <div className="p-6 border-b border-desert-stone-light flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-desert-green">{t('Update Logs')}</h3>
+                  <h3 className="text-lg font-medium text-text-primary">{t('Update Logs')}</h3>
                   <button
                     onClick={() => setShowLogs(false)}
                     className="text-desert-stone hover:text-desert-green transition-colors"
@@ -531,8 +569,8 @@ export default function SystemUpdatePage(props: { system: Props }) {
               </div>
             </div>
           )}
-        </main>
-      </div >
-    </SettingsLayout >
+        </div>
+      </div>
+    </SettingsLayout>
   )
 }

@@ -55,7 +55,10 @@ const CreatorPacksSection: React.FC<CreatorPacksSectionProps> = ({ allowUninstal
       setPackToInstall(null)
     } catch (error) {
       console.error('Error installing creator pack:', error)
-      addNotification({ message: t('An error occurred while starting the install.'), type: 'error' })
+      addNotification({
+        message: t('An error occurred while starting the install.'),
+        type: 'error',
+      })
     } finally {
       setInstalling(false)
     }
@@ -84,7 +87,7 @@ const CreatorPacksSection: React.FC<CreatorPacksSectionProps> = ({ allowUninstal
   return (
     <>
       <div className="flex items-center gap-3 mt-8 mb-4">
-        <div className="w-10 h-10 rounded-full bg-surface-primary border border-border-subtle flex items-center justify-center shadow-sm">
+        <div className="w-10 h-10 rounded-full bg-surface-primary border border-border-subtle flex items-center justify-center ">
           <IconMovie className="w-6 h-6 text-text-primary" />
         </div>
         <div>
@@ -112,7 +115,11 @@ const CreatorPacksSection: React.FC<CreatorPacksSectionProps> = ({ allowUninstal
 
       <StyledModal
         open={!!packToInstall}
-        title={packToInstall ? t('Install {{name}}?', { name: packToInstall.name }) : t('Install Creator Pack')}
+        title={
+          packToInstall
+            ? t('Install {{name}}?', { name: packToInstall.name })
+            : t('Install Creator Pack')
+        }
         onClose={() => !installing && setPackToInstall(null)}
         onCancel={() => setPackToInstall(null)}
         onConfirm={handleConfirmInstall}

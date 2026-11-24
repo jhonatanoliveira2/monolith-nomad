@@ -60,7 +60,10 @@ export default function NomadMdModal({ aiAssistantName, onClose }: NomadMdModalP
         addNotification({ type: 'error', message: t('Failed to save NOMAD.md.') })
         return
       }
-      addNotification({ type: 'success', message: t('NOMAD.md saved. It applies to new messages.') })
+      addNotification({
+        type: 'success',
+        message: t('NOMAD.md saved. It applies to new messages.'),
+      })
       queryClient.invalidateQueries({ queryKey: ['nomad-md'] })
       onClose()
     },
@@ -73,18 +76,20 @@ export default function NomadMdModal({ aiAssistantName, onClose }: NomadMdModalP
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm transition-opacity">
-      <div className="bg-surface-primary rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-surface-primary rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-border-subtle shrink-0">
           <div>
             <h2 className="text-2xl font-semibold text-text-primary">NOMAD.md</h2>
             <p className="text-sm text-text-muted mt-1">
-              {t('Custom instructions passed to {{name}} as a system prompt on every chat.', { name: assistantName })}
+              {t('Custom instructions passed to {{name}} as a system prompt on every chat.', {
+                name: assistantName,
+              })}
             </p>
           </div>
           <button
             onClick={onClose}
             aria-label={t('Close')}
-            className="p-2 hover:bg-surface-secondary rounded-lg transition-colors"
+            className="p-2 hover:bg-surface-secondary rounded-xl transition-colors"
           >
             <IconX className="h-6 w-6 text-text-muted" />
           </button>
@@ -94,8 +99,12 @@ export default function NomadMdModal({ aiAssistantName, onClose }: NomadMdModalP
           {isLoading || content === null ? (
             <div className="py-16 text-center text-text-muted">{t('Loading…')}</div>
           ) : (
-            <div className="rounded-lg border border-border-subtle overflow-hidden h-[55vh]">
-              <MarkdownEditor initialValue={content} onChange={setContent} className="h-full text-sm" />
+            <div className="rounded-xl border border-border-subtle overflow-hidden h-[55vh]">
+              <MarkdownEditor
+                initialValue={content}
+                onChange={setContent}
+                className="h-full text-sm"
+              />
             </div>
           )}
           <p className="text-xs text-text-muted mt-3">

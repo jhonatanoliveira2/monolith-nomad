@@ -1,5 +1,6 @@
 import KVStore from '#models/kv_store'
 import { SystemService } from '#services/system_service'
+import { isDrugReferenceInstalledCached } from '#services/drug_reference_availability'
 import { defineConfig } from '@adonisjs/inertia'
 import type { InferSharedProps } from '@adonisjs/inertia/types'
 import {
@@ -45,6 +46,10 @@ const inertiaConfig = defineConfig({
       assistantNameCache = { value, expiresAt: now + 60_000 }
       return value
     },
+    // optional modules the global navigation shows only when present (cached, see the helper)
+    features: async () => ({
+      drugReference: await isDrugReferenceInstalledCached(),
+    }),
   },
 
   /**

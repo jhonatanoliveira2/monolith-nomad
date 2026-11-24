@@ -83,7 +83,7 @@ export default function BuilderTagSelector({
           value={adjective}
           onChange={(e) => handleAdjectiveChange(e.target.value)}
           disabled={disabled}
-          className="px-3 py-2 bg-desert-stone-lighter border border-desert-stone-light rounded-lg text-text-primary font-medium focus:outline-none focus:ring-2 focus:ring-desert-green disabled:opacity-50"
+          className="px-3 py-2 bg-desert-stone-lighter border border-desert-stone-light rounded-xl text-text-primary font-medium focus:outline-none focus:ring-2 focus:ring-desert-green disabled:opacity-50"
         >
           {ADJECTIVES.map((adj) => (
             <option key={adj} value={adj}>
@@ -98,7 +98,7 @@ export default function BuilderTagSelector({
           value={noun}
           onChange={(e) => handleNounChange(e.target.value)}
           disabled={disabled}
-          className="px-3 py-2 bg-desert-stone-lighter border border-desert-stone-light rounded-lg text-text-primary font-medium focus:outline-none focus:ring-2 focus:ring-desert-green disabled:opacity-50"
+          className="px-3 py-2 bg-desert-stone-lighter border border-desert-stone-light rounded-xl text-text-primary font-medium focus:outline-none focus:ring-2 focus:ring-desert-green disabled:opacity-50"
         >
           {NOUNS.map((n) => (
             <option key={n} value={n}>
@@ -109,7 +109,7 @@ export default function BuilderTagSelector({
 
         <span className="text-desert-stone-dark font-bold">-</span>
 
-        <span className="px-3 py-2 bg-desert-stone-lighter border border-desert-stone-light rounded-lg text-text-primary font-mono font-bold">
+        <span className="px-3 py-2 bg-desert-stone-lighter border border-desert-stone-light rounded-xl text-text-primary font-mono font-bold">
           {number}
         </span>
 
@@ -117,7 +117,7 @@ export default function BuilderTagSelector({
           type="button"
           onClick={handleRandomize}
           disabled={disabled}
-          className="p-2 text-desert-stone-dark hover:text-desert-green hover:bg-desert-stone-lighter rounded-lg transition-colors disabled:opacity-50"
+          className="p-2 text-desert-stone-dark hover:text-desert-green hover:bg-desert-stone-lighter rounded-xl transition-colors disabled:opacity-50"
           title={t('Randomize')}
         >
           <IconRefresh className="w-5 h-5" />

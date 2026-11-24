@@ -34,6 +34,17 @@ export type Country = {
   population: number
 }
 
+/** A state/province usable as a map extract region (ISO 3166-2 code, e.g. BR-SP). */
+export type Subdivision = {
+  code: string
+  country: string
+  uf: string
+  name: string
+  /** IBGE macro-region id (norte, nordeste, centro-oeste, sudeste, sul) */
+  region: string
+  timezone: string
+}
+
 export type CountryGroup = {
   id: string
   name: string

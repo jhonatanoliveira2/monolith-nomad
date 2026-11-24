@@ -1,3 +1,4 @@
+import PageHeader from '~/components/nd/PageHeader'
 import { Head } from '@inertiajs/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
@@ -98,7 +99,9 @@ export default function ZimPage() {
         confirmVariant="danger"
       >
         <p className="text-text-secondary">
-          {t('Are you sure you want to delete {{name}}? This action cannot be undone.', { name: file.name })}
+          {t('Are you sure you want to delete {{name}}? This action cannot be undone.', {
+            name: file.name,
+          })}
         </p>
       </StyledModal>,
       'confirm-delete-file-modal'
@@ -106,7 +109,8 @@ export default function ZimPage() {
   }
 
   const deleteFileMutation = useMutation({
-    mutationFn: async (file: ZimFileWithMetadata) => api.deleteZimFile(file.name.replace('.zim', '')),
+    mutationFn: async (file: ZimFileWithMetadata) =>
+      api.deleteZimFile(file.name.replace('.zim', '')),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['zim-files'] })
     },
@@ -124,7 +128,10 @@ export default function ZimPage() {
           result.added > 0
             ? result.added === 1
               ? t('Found 1 new book. Library now has {{total}}.', { total: result.after })
-              : t('Found {{count}} new books. Library now has {{total}}.', { count: result.added, total: result.after })
+              : t('Found {{count}} new books. Library now has {{total}}.', {
+                  count: result.added,
+                  total: result.after,
+                })
             : result.after === 1
               ? t('Library is up to date (1 book).')
               : t('Library is up to date ({{count}} books).', { count: result.after }),
@@ -135,40 +142,43 @@ export default function ZimPage() {
   return (
     <SettingsLayout>
       <Head title={t('Content Manager')} />
-      <div className="xl:pl-72 w-full">
-        <main className="px-12 py-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex flex-col">
-              <h1 className="text-4xl font-semibold mb-2">{t('Content Manager')}</h1>
-              <p className="text-text-muted">
-                {t('Manage your stored content files.')}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <StyledButton
-                variant="secondary"
-                icon={showUploader ? 'IconX' : 'IconUpload'}
-                onClick={() => setShowUploader((v) => !v)}
-              >
-                {showUploader ? t('Hide Uploader') : t('Upload ZIM File')}
-              </StyledButton>
-              {isInstalled && (
+      <div className="w-full">
+        <div className="nd-page">
+          <PageHeader
+            eyebrow={t('Content')}
+            title={t('Content Manager')}
+            description={t('Manage your stored content files.')}
+            actions={
+              <>
                 <StyledButton
                   variant="secondary"
-                  icon={'IconRefresh'}
-                  loading={rescanMutation.isPending}
-                  title={t('Rebuild the Kiwix library index from the files on disk. Use this after manually adding ZIM files outside of monolith-nomad.')}
-                  onClick={() => rescanMutation.mutate()}
+                  icon={showUploader ? 'IconX' : 'IconUpload'}
+                  onClick={() => setShowUploader((v) => !v)}
                 >
-                  {t('Rescan Library')}
+                  {showUploader ? t('Hide Uploader') : t('Upload ZIM File')}
                 </StyledButton>
-              )}
-            </div>
-          </div>
+                {isInstalled && (
+                  <StyledButton
+                    variant="secondary"
+                    icon={'IconRefresh'}
+                    loading={rescanMutation.isPending}
+                    title={t(
+                      'Rebuild the Kiwix library index from the files on disk. Use this after manually adding ZIM files outside of monolith-nomad.'
+                    )}
+                    onClick={() => rescanMutation.mutate()}
+                  >
+                    {t('Rescan Library')}
+                  </StyledButton>
+                )}
+              </>
+            }
+          />
           {showUploader && (
             <div className="mt-6">
               <p className="text-text-muted text-sm mb-3">
-                {t('Upload a ZIM file from your browser. Files up to 20 GB are supported. For best results upload from the same machine or over a stable LAN connection. Larger files should be copied directly to the storage volume.')}
+                {t(
+                  'Upload a ZIM file from your browser. Files up to 20 GB are supported. For best results upload from the same machine or over a stable LAN connection. Larger files should be copied directly to the storage volume.'
+                )}
               </p>
               <ZimUploader
                 existingFilenames={data?.map((f) => f.name) ?? []}
@@ -183,7 +193,9 @@ export default function ZimPage() {
                       added > 0
                         ? added === 1
                           ? t('Upload complete. 1 new book added to the library.')
-                          : t('Upload complete. {{count}} new books added to the library.', { count: added })
+                          : t('Upload complete. {{count}} new books added to the library.', {
+                              count: added,
+                            })
                         : t('Upload complete. Library is up to date.'),
                   })
                 }}
@@ -192,9 +204,11 @@ export default function ZimPage() {
           )}
           {!isInstalled && (
             <Alert
-              title={t('The Kiwix application is not installed. Please install it to view downloaded ZIM files')}
+              title={t(
+                'The Kiwix application is not installed. Please install it to view downloaded ZIM files'
+              )}
               type="warning"
-              variant='solid'
+              variant="solid"
               className="!mt-6"
             />
           )}
@@ -208,9 +222,7 @@ export default function ZimPage() {
                 accessor: 'title',
                 title: renderSortHeader(t('Title'), 'name'),
                 render: (record) => (
-                  <span className="font-medium">
-                    {record.title || record.name}
-                  </span>
+                  <span className="font-medium">{record.title || record.name}</span>
                 ),
               },
               {
@@ -251,7 +263,7 @@ export default function ZimPage() {
             ]}
             data={sortedData}
           />
-        </main>
+        </div>
       </div>
     </SettingsLayout>
   )

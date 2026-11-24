@@ -76,10 +76,10 @@ export default function HorizontalBarChart({
             </div>
           </div>
           <div className="relative">
-            <div className="h-8 bg-desert-green-lighter bg-opacity-20 rounded-lg border border-desert-stone-light overflow-hidden">
+            <div className="h-8 bg-desert-green-lighter bg-opacity-20 rounded-xl border border-desert-stone-light overflow-hidden">
               <div
                 className={classNames(
-                  'h-full rounded-lg transition-all duration-1000 ease-out relative overflow-hidden',
+                  'h-full rounded-xl transition-all duration-1000 ease-out relative overflow-hidden',
                   getBarColor(item.value),
                   'shadow-lg',
                   getGlowColor(item.value)
@@ -93,9 +93,7 @@ export default function HorizontalBarChart({
             <div
               className={classNames(
                 'absolute top-1/2 -translate-y-1/2 font-bold text-sm',
-                item.value > 15
-                  ? 'left-3 text-white drop-shadow-md'
-                  : 'right-3 text-desert-green'
+                item.value > 15 ? 'left-3 text-white drop-shadow-md' : 'right-3 text-desert-green'
               )}
             >
               {Math.round(item.value)}%

@@ -44,7 +44,10 @@ export default function ContentUpdatesSection() {
     try {
       const result = await api.applyContentUpdate(update)
       if (result?.success) {
-        addNotification({ type: 'success', message: t('Update started for {{id}}', { id: update.resource_id }) })
+        addNotification({
+          type: 'success',
+          message: t('Update started for {{id}}', { id: update.resource_id }),
+        })
         // Remove from the updates list
         setCheckResult((prev) =>
           prev
@@ -58,7 +61,10 @@ export default function ContentUpdatesSection() {
         addNotification({ type: 'error', message: result?.error || t('Failed to start update') })
       }
     } catch {
-      addNotification({ type: 'error', message: t('Failed to start update for {{id}}', { id: update.resource_id }) })
+      addNotification({
+        type: 'error',
+        message: t('Failed to start update for {{id}}', { id: update.resource_id }),
+      })
     } finally {
       setApplyingIds((prev) => {
         const next = new Set(prev)
@@ -77,13 +83,27 @@ export default function ContentUpdatesSection() {
         const succeeded = result.results.filter((r) => r.success).length
         const failed = result.results.filter((r) => !r.success).length
         if (succeeded > 0) {
-          addNotification({ type: 'success', message: succeeded === 1 ? t('Started 1 update') : t('Started {{count}} updates', { count: succeeded }) })
+          addNotification({
+            type: 'success',
+            message:
+              succeeded === 1
+                ? t('Started 1 update')
+                : t('Started {{count}} updates', { count: succeeded }),
+          })
         }
         if (failed > 0) {
-          addNotification({ type: 'error', message: failed === 1 ? t('1 update could not be started') : t('{{count}} updates could not be started', { count: failed }) })
+          addNotification({
+            type: 'error',
+            message:
+              failed === 1
+                ? t('1 update could not be started')
+                : t('{{count}} updates could not be started', { count: failed }),
+          })
         }
         // Remove successful updates from the list
-        const successIds = new Set(result.results.filter((r) => r.success).map((r) => r.resource_id))
+        const successIds = new Set(
+          result.results.filter((r) => r.success).map((r) => r.resource_id)
+        )
         setCheckResult((prev) =>
           prev
             ? { ...prev, updates: prev.updates.filter((u) => !successIds.has(u.resource_id)) }
@@ -104,7 +124,7 @@ export default function ContentUpdatesSection() {
     <div className="mt-8">
       <StyledSectionHeader title={t('Manual Content Updates')} />
 
-      <div className="bg-surface-primary rounded-lg border shadow-md overflow-hidden p-6">
+      <div className="bg-surface-primary rounded-xl border overflow-hidden p-6">
         <div className="flex items-center justify-between">
           <p className="text-desert-stone-dark">
             {t('Check if newer versions of your installed ZIM files and maps are available.')}
@@ -172,10 +192,11 @@ export default function ContentUpdatesSection() {
                   title: t('Type'),
                   render: (record) => (
                     <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${record.resource_type === 'zim'
-                        ? 'bg-surface-secondary text-text-primary'
-                        : 'bg-desert-olive-lighter text-desert-olive-dark'
-                        }`}
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        record.resource_type === 'zim'
+                          ? 'bg-surface-secondary text-text-primary'
+                          : 'bg-desert-olive-lighter text-desert-olive-dark'
+                      }`}
                     >
                       {record.resource_type === 'zim' ? 'ZIM' : t('Map')}
                     </span>

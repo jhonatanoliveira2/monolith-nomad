@@ -8,7 +8,7 @@ import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '.
 
 // Paragraph component
 const Paragraph = ({ children }: { children: React.ReactNode }) => {
-  return <p className="mb-4 leading-relaxed text-desert-green-darker/85">{children}</p>
+  return <p className="mb-4 leading-relaxed text-text-secondary">{children}</p>
 }
 
 // Link component
@@ -37,7 +37,7 @@ const Link = ({
 // Inline code component
 const InlineCode = ({ content, children }: { content?: string; children?: React.ReactNode }) => {
   return (
-    <code className="bg-desert-green-lighter/30 text-desert-green-darker border border-desert-green-lighter/50 px-1.5 py-0.5 rounded text-[0.875em] font-mono">
+    <code className="bg-surface-elevated text-text-primary border border-border-default px-1.5 py-0.5 rounded-md nd-mono text-[0.875em] font-mono">
       {content || children}
     </code>
   )
@@ -55,14 +55,14 @@ const CodeBlock = ({
 }) => {
   const code = content || (typeof children === 'string' ? children : '')
   return (
-    <div className="my-6 overflow-hidden rounded-lg border border-desert-green-dark/20">
+    <div className="my-6 overflow-hidden rounded-[var(--radius-card)] border border-neutral-800">
       {language && (
-        <div className="bg-desert-green-dark px-4 py-1.5 text-xs font-mono text-desert-green-lighter uppercase tracking-wider">
+        <div className="bg-neutral-900 px-4 py-2 nd-eyebrow !text-[10px] !text-neutral-400 border-b border-neutral-800">
           {language}
         </div>
       )}
-      <pre className="bg-desert-green-darker overflow-x-auto p-4">
-        <code className="text-sm font-mono text-desert-green-lighter leading-relaxed whitespace-pre">
+      <pre className="bg-neutral-950 overflow-x-auto p-4">
+        <code className="text-sm font-mono text-neutral-200 leading-relaxed whitespace-pre">
           {code}
         </code>
       </pre>
@@ -72,9 +72,7 @@ const CodeBlock = ({
 
 // Horizontal rule component
 const HorizontalRule = () => {
-  return (
-    <hr className="my-10 border-0 h-px bg-gradient-to-r from-transparent via-desert-tan-lighter to-transparent" />
-  )
+  return <hr className="my-10 nd-rule" />
 }
 
 // Callout component
@@ -88,15 +86,15 @@ const Callout = ({
   children: React.ReactNode
 }) => {
   const styles: Record<string, string> = {
-    info: 'bg-desert-sand/60 border-desert-olive text-desert-green-darker',
-    warning: 'bg-desert-orange-lighter/15 border-desert-orange text-desert-green-darker',
-    error: 'bg-desert-red-lighter/15 border-desert-red text-desert-green-darker',
-    success: 'bg-desert-olive-lighter/15 border-desert-olive text-desert-green-darker',
+    info: 'bg-surface-secondary border-border-default text-text-primary',
+    warning: 'bg-desert-orange-lighter border-desert-orange-light text-desert-orange-dark',
+    error: 'bg-desert-red-lighter border-desert-red-light text-desert-red-dark',
+    success: 'bg-desert-olive-lighter border-desert-olive-light text-desert-olive-dark',
   }
 
   return (
-    <div className={`border-l-4 rounded-r-lg p-5 mb-6 ${styles[type] || styles.info}`}>
-      {title && <h4 className="font-semibold mb-2">{title}</h4>}
+    <div className={`border rounded-[var(--radius-card)] p-5 mb-6 ${styles[type] || styles.info}`}>
+      {title && <h4 className="font-medium mb-2">{title}</h4>}
       <div className="[&>p:last-child]:mb-0">{children}</div>
     </div>
   )
@@ -128,7 +126,9 @@ interface MarkdocRendererProps {
 
 const MarkdocRenderer: React.FC<MarkdocRendererProps> = ({ content }) => {
   return (
-    <div className="text-base tracking-wide">{Markdoc.renderers.react(content, React, { components })}</div>
+    <div className="text-base tracking-wide">
+      {Markdoc.renderers.react(content, React, { components })}
+    </div>
   )
 }
 

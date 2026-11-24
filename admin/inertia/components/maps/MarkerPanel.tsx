@@ -76,13 +76,13 @@ const getColorSortValue = (color: string, customColor?: string | null): ColorSor
 }
 
 export default function MarkerPanel({
-                                      markers,
-                                      onDelete,
-                                      onFlyTo,
-                                      onSelect,
-                                      onToggleVisibility,
-                                      selectedMarkerId,
-                                    }: MarkerPanelProps) {
+  markers,
+  onDelete,
+  onFlyTo,
+  onSelect,
+  onToggleVisibility,
+  selectedMarkerId,
+}: MarkerPanelProps) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -125,17 +125,17 @@ export default function MarkerPanel({
               ? Number(a.visible) - Number(b.visible)
               : sortField === 'icon'
                 ? (a.icon ? 1 : 0) - (b.icon ? 1 : 0) ||
-                (a.icon ?? '').localeCompare(b.icon ?? '', undefined, { sensitivity: 'base' })
+                  (a.icon ?? '').localeCompare(b.icon ?? '', undefined, { sensitivity: 'base' })
                 : (() => {
-                  const aColor = getColorSortValue(a.color, a.customColor)
-                  const bColor = getColorSortValue(b.color, b.customColor)
+                    const aColor = getColorSortValue(a.color, a.customColor)
+                    const bColor = getColorSortValue(b.color, b.customColor)
 
-                  return (
-                    aColor.bucket - bColor.bucket ||
-                    aColor.hue - bColor.hue ||
-                    aColor.lightness - bColor.lightness
-                  )
-                })()
+                    return (
+                      aColor.bucket - bColor.bucket ||
+                      aColor.hue - bColor.hue ||
+                      aColor.lightness - bColor.lightness
+                    )
+                  })()
 
         return sortDirection === 'asc' ? result : -result
       })
@@ -262,7 +262,7 @@ export default function MarkerPanel({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="absolute left-4 top-[72px] z-40 flex items-center gap-1.5 rounded-lg border border-border-subtle bg-surface-primary/95 px-3 py-2 shadow-lg backdrop-blur-sm transition-colors hover:bg-surface-secondary"
+        className="absolute left-4 top-[72px] z-40 flex items-center gap-1.5 rounded-xl border border-border-subtle bg-surface-primary/95 px-3 py-2 shadow-lg backdrop-blur-sm transition-colors hover:bg-surface-secondary"
         title={t('Show saved locations')}
       >
         <IconMapPin size={18} className="text-desert-orange" />
@@ -278,7 +278,7 @@ export default function MarkerPanel({
   }
 
   return (
-    <div className="absolute left-4 top-[72px] z-40 w-72 rounded-lg border border-border-subtle bg-surface-primary/95 shadow-lg backdrop-blur-sm">
+    <div className="absolute left-4 top-[72px] z-40 w-72 rounded-xl border border-border-subtle bg-surface-primary/95 shadow-lg backdrop-blur-sm">
       {/* The whole title bar closes the panel, mirroring the "Pins" button that
           opens it -- clicking the title to open but having to find the X to
           close is the kind of asymmetry that makes a panel feel fiddly. The X
@@ -308,10 +308,7 @@ export default function MarkerPanel({
           )}
         </div>
 
-        <span
-          aria-hidden="true"
-          className="rounded p-0.5 text-text-muted transition-colors"
-        >
+        <span aria-hidden="true" className="rounded p-0.5 text-text-muted transition-colors">
           <IconX size={16} />
         </span>
       </div>
@@ -364,7 +361,9 @@ export default function MarkerPanel({
         {markers.length === 0 ? (
           <div className="px-3 py-6 text-center">
             <IconMapPinFilled size={24} className="mx-auto mb-2 text-text-muted" />
-            <p className="text-sm text-text-muted">{t('Click anywhere on the map to drop a pin')}</p>
+            <p className="text-sm text-text-muted">
+              {t('Click anywhere on the map to drop a pin')}
+            </p>
           </div>
         ) : filteredAndSortedMarkers.length === 0 ? (
           <div className="px-3 py-6 text-center">

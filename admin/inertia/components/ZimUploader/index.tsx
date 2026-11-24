@@ -1,5 +1,6 @@
 import Uppy, { type Body, type Meta, type UploadResult } from '@uppy/core'
 import Dashboard from '@uppy/react/dashboard'
+import '../file-uploader/index.css'
 import XHRUpload from '@uppy/xhr-upload'
 import '@uppy/core/css/style.min.css'
 import '@uppy/dashboard/css/style.min.css'

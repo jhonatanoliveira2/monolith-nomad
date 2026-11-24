@@ -22,7 +22,7 @@ export default function InteractionColumn({ entry, onRemove }: Props) {
   const displayName = entry.brand_name ?? entry.generic_name ?? t('Unknown Drug')
 
   return (
-    <div className="flex h-full flex-col min-w-0 border border-desert-tan-lighter rounded-lg overflow-hidden">
+    <div className="flex h-full flex-col min-w-0 border border-desert-tan-lighter rounded-xl overflow-hidden">
       {/* Column header — fixed min-height so columns line up even when names wrap */}
       <div className="flex min-h-[3.5rem] bg-desert-sand border-b border-desert-tan-lighter px-4 py-3">
         <div className="flex w-full items-start justify-between gap-2">

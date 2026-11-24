@@ -3,6 +3,7 @@ import { SETTINGS_KEYS } from '../../constants/kv_store.js'
 import type { KVStoreKey } from '../../types/kv_store.js'
 import { CONTEXT_LADDER } from '../utils/context_window.js'
 import { RESPONSE_STYLE_PRESETS } from '../../constants/ollama.js'
+import { BRAZIL_STATES, isValidTimezone } from '../../constants/brazil.js'
 
 export const getSettingSchema = vine.compile(
   vine.object({
@@ -34,6 +35,21 @@ export function validateSettingValue(key: KVStoreKey, value: unknown): string | 
         return 'Time window values must be in 24-hour HH:MM format (e.g. "20:00").'
       }
       return null
+    case 'regional.timezone':
+      if (value === null || value === undefined || value === '') return null
+      return isValidTimezone(value) ? null : 'Unknown time zone.'
+    case 'regional.state':
+      if (value === null || value === undefined || value === '') return null
+      return BRAZIL_STATES.some((s) => s.code === value) ? null : 'Unknown state.'
+    case 'ui.easySetupDraft':
+      if (value === null || value === undefined || value === '') return null
+      if (typeof value !== 'string' || value.length > 20000) return 'Draft too large.'
+      try {
+        JSON.parse(value)
+        return null
+      } catch {
+        return 'Draft must be JSON.'
+      }
     case 'autoUpdate.cooloffHours':
     case 'contentAutoUpdate.cooloffHours': {
       const num = Number(value)

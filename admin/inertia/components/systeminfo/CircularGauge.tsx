@@ -42,21 +42,21 @@ export default function CircularGauge({
   // Size configs: container size must match SVG size (2 * (radius + strokeWidth))
   const sizes = {
     sm: {
-      container: 'w-28 h-28',  // 112px = 2 * (48 + 8)
+      container: 'w-28 h-28', // 112px = 2 * (48 + 8)
       strokeWidth: 8,
       radius: 48,
       fontSize: 'text-xl',
       labelSize: 'text-xs',
     },
     md: {
-      container: 'w-[140px] h-[140px]',  // 140px = 2 * (60 + 10)
+      container: 'w-[140px] h-[140px]', // 140px = 2 * (60 + 10)
       strokeWidth: 10,
       radius: 60,
       fontSize: 'text-2xl',
       labelSize: 'text-sm',
     },
     lg: {
-      container: 'w-[244px] h-[244px]',  // 244px = 2 * (110 + 12)
+      container: 'w-[244px] h-[244px]', // 244px = 2 * (110 + 12)
       strokeWidth: 12,
       radius: 110,
       fontSize: 'text-4xl',
@@ -106,7 +106,8 @@ export default function CircularGauge({
             fill="none"
             stroke="currentColor"
             strokeWidth={config.strokeWidth}
-            className="text-desert-green-lighter opacity-30"
+            strokeDasharray="2 5"
+            className="text-led-off"
           />
 
           {/* Progress circle */}
@@ -120,14 +121,7 @@ export default function CircularGauge({
             strokeDasharray={circumference}
             strokeDashoffset={offset}
             strokeLinecap="round"
-            className={classNames(
-              `text-${color}`,
-              'transition-all duration-1000 ease-out',
-              'drop-shadow-[0_0_1px_currentColor]'
-            )}
-            style={{
-              filter: 'drop-shadow(0 0 1px currentColor)',
-            }}
+            className={classNames(`text-${color}`, 'transition-all duration-1000 ease-out')}
           />
 
           {/* Tick marks */}
@@ -157,18 +151,19 @@ export default function CircularGauge({
           })}
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          {icon && <div className="text-desert-green opacity-60 mb-1">{icon}</div>}
-          <div className={classNames('font-bold text-desert-green', config.fontSize)}>
+          {icon && <div className="text-text-muted mb-1">{icon}</div>}
+          <div className={classNames('nd-display text-text-primary', config.fontSize)}>
             {Math.round(displayValue)}%
           </div>
-          {subtext && (
-            <div className="text-xs text-desert-stone-dark opacity-70 font-mono mt-0.5">
-              {subtext}
-            </div>
-          )}
+          {subtext && <div className="text-[11px] text-text-muted nd-mono mt-1">{subtext}</div>}
         </div>
       </div>
-      <div className={classNames('font-semibold text-desert-green text-center', config.labelSize)}>
+      <div
+        className={classNames(
+          'nd-eyebrow !text-text-secondary text-center',
+          config.labelSize === 'text-base' ? '!text-sm' : ''
+        )}
+      >
         {label}
       </div>
     </div>

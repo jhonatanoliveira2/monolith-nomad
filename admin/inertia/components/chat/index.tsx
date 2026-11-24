@@ -148,7 +148,7 @@ export default function Chat({
       try {
         const stored = localStorage.getItem(`nomad:thinking:${m.name}`)
         if (stored !== null) next[m.name] = stored === 'true'
-      } catch { }
+      } catch {}
     }
     setThinkingOverrides(next)
   }, [installedModels])
@@ -169,7 +169,7 @@ export default function Chat({
     setThinkingOverrides((prev) => ({ ...prev, [model]: value }))
     try {
       localStorage.setItem(`nomad:thinking:${model}`, String(value))
-    } catch { }
+    } catch {}
   }, [])
 
   const { data: chatSuggestions, isLoading: chatSuggestionsLoading } = useQuery<string[]>({
@@ -333,7 +333,9 @@ export default function Chat({
         confirmVariant="danger"
       >
         <p className="text-text-primary">
-          {t('Are you sure you want to delete all chat sessions? This action cannot be undone and all conversations will be permanently deleted.')}
+          {t(
+            'Are you sure you want to delete all chat sessions? This action cannot be undone and all conversations will be permanently deleted.'
+          )}
         </p>
       </StyledModal>,
       'confirm-clear-history-modal'
@@ -458,7 +460,8 @@ export default function Chat({
               model: selectedModel || 'llama3.2',
               messages: chatMessages,
               stream: true,
-              sessionId: sessionId ? Number(sessionId) : undefined, think: effectiveThinking(selectedModel),
+              sessionId: sessionId ? Number(sessionId) : undefined,
+              think: effectiveThinking(selectedModel),
               collection: collectionFilter || undefined,
               images: images.map((image) => image.file),
             },
@@ -496,13 +499,13 @@ export default function Chat({
                   prev.map((m) =>
                     m.id === assistantMsgId
                       ? {
-                        ...m,
-                        content: m.content + chunkContent,
-                        thinking: (m.thinking ?? '') + chunkThinking,
-                        isStreaming: !done,
-                        isThinking: isThinkingPhase,
-                        thinkingDuration: thinkingDuration ?? undefined,
-                      }
+                          ...m,
+                          content: m.content + chunkContent,
+                          thinking: (m.thinking ?? '') + chunkThinking,
+                          isStreaming: !done,
+                          isThinking: isThinkingPhase,
+                          thinkingDuration: thinkingDuration ?? undefined,
+                        }
                       : m
                   )
                 )
@@ -572,7 +575,18 @@ export default function Chat({
         })
       }
     },
-    [activeSessionId, messages, selectedModel, collectionFilter, chatMutation, queryClient, streamingEnabled, effectiveThinking, abortCurrentStream, t]
+    [
+      activeSessionId,
+      messages,
+      selectedModel,
+      collectionFilter,
+      chatMutation,
+      queryClient,
+      streamingEnabled,
+      effectiveThinking,
+      abortCurrentStream,
+      t,
+    ]
   )
 
   return (
@@ -595,8 +609,8 @@ export default function Chat({
       )}
       <div
         className={classNames(
-          'flex border border-border-subtle overflow-hidden shadow-sm w-full',
-          isInModal ? 'h-full rounded-lg' : 'h-screen'
+          'flex border border-border-subtle overflow-hidden  w-full',
+          isInModal ? 'h-full rounded-[var(--radius-card)]' : 'h-[100dvh] border-y-0 border-r-0'
         )}
       >
         <ChatSidebar
@@ -623,7 +637,7 @@ export default function Chat({
             <div className="flex items-center gap-2 min-w-0">
               <button
                 type="button"
-                className="rounded-lg p-1.5 hover:bg-surface-primary focus:outline-none focus:ring-2 focus:ring-desert-green md:hidden"
+                className="rounded-xl p-1.5 hover:bg-surface-primary focus:outline-none focus:ring-2 focus:ring-desert-green md:hidden"
                 aria-label={t('Open conversation sidebar')}
                 aria-controls="chat-sidebar"
                 aria-expanded={isMobileSidebarOpen}
@@ -632,7 +646,9 @@ export default function Chat({
                 <IconMenu2 className="h-6 w-6 text-text-muted" aria-hidden="true" />
               </button>
               <h2 className="text-lg font-semibold text-text-primary truncate">
-                {!activeSession?.title || activeSession.title === 'New Chat' ? t('New Chat') : activeSession.title}
+                {!activeSession?.title || activeSession.title === 'New Chat'
+                  ? t('New Chat')
+                  : activeSession.title}
               </h2>
             </div>
             <div className="flex items-center gap-2 sm:gap-4 min-w-0">
@@ -645,7 +661,9 @@ export default function Chat({
                       : 'text-desert-olive-dark bg-desert-olive-lighter border border-desert-olive-light'
                   )}
                 >
-                  {remoteStatus?.connected === false ? t('Remote Disconnected') : t('Remote Connected')}
+                  {remoteStatus?.connected === false
+                    ? t('Remote Disconnected')
+                    : t('Remote Connected')}
                 </span>
               )}
               {ragEnabled && (
@@ -657,11 +675,13 @@ export default function Chat({
                     id="collection-select"
                     value={collectionFilter}
                     onChange={(e) => setCollectionFilter(e.target.value)}
-                    className="px-3 py-1.5 border border-border-default rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-desert-green focus:border-transparent bg-surface-primary"
+                    className="px-3 py-1.5 border border-border-default rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-desert-green focus:border-transparent bg-surface-primary"
                   >
                     <option value="">{t('All', { context: 'feminine' })}</option>
                     {knownCollections.map((c) => (
-                      <option key={c} value={c}>{c}</option>
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -679,7 +699,7 @@ export default function Chat({
                     id="model-select"
                     value={pendingModelSwitch ?? selectedModel}
                     onChange={(e) => handleUserSelectedModel(e.target.value)}
-                    className="min-w-0 max-w-44 sm:max-w-none px-2 sm:px-3 py-1.5 border border-border-default rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-desert-green focus:border-transparent bg-surface-primary"
+                    className="min-w-0 max-w-44 sm:max-w-none px-2 sm:px-3 py-1.5 border border-border-default rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-desert-green focus:border-transparent bg-surface-primary"
                   >
                     {installedModels.map((model) => (
                       <option key={model.name} value={model.name}>
@@ -691,11 +711,15 @@ export default function Chat({
                 )}
               </div>
               <div className="flex items-center">
-                <span className="text-sm text-text-secondary select-none">{t('Knowledge Base:')}</span>
+                <span className="text-sm text-text-secondary select-none">
+                  {t('Knowledge Base:')}
+                </span>
                 <InfoTooltip
                   position="bottom"
                   align="right"
-                  text={t('When on, the assistant searches your knowledge base for relevant documents before answering. Turning this off is faster and lighter on hardware, which helps when your knowledge base is small or empty. This is the same setting as in AI Assistant settings.')}
+                  text={t(
+                    'When on, the assistant searches your knowledge base for relevant documents before answering. Turning this off is faster and lighter on hardware, which helps when your knowledge base is small or empty. This is the same setting as in AI Assistant settings.'
+                  )}
                 />
                 <Switch
                   id="chat-rag-toggle"
@@ -709,7 +733,9 @@ export default function Chat({
                   <InfoTooltip
                     position="bottom"
                     align="right"
-                    text={t('When on, this model works through its reasoning before answering. Slower, but often better on tricky questions. Your choice is remembered for this model; the default for other models is set in AI Assistant settings.')}
+                    text={t(
+                      'When on, this model works through its reasoning before answering. Slower, but often better on tricky questions. Your choice is remembered for this model; the default for other models is set in AI Assistant settings.'
+                    )}
                   />
                   <Switch
                     id="chat-thinking-toggle"
@@ -727,7 +753,7 @@ export default function Chat({
                       onClose()
                     }
                   }}
-                  className="rounded-lg hover:bg-surface-secondary transition-colors"
+                  className="rounded-xl hover:bg-surface-secondary transition-colors"
                 >
                   <IconX className="h-6 w-6 text-text-muted" aria-hidden="true" />
                 </button>

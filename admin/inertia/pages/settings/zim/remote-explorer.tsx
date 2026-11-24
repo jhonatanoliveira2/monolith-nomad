@@ -1,3 +1,4 @@
+import PageHeader from '~/components/nd/PageHeader'
 import {
   keepPreviousData,
   useInfiniteQuery,
@@ -310,8 +311,7 @@ export default function ZimRemoteExplorer() {
         confirmVariant="primary"
       >
         <p className="text-text-primary">
-          {t('Are you sure you want to download')}{' '}
-          <strong>{record.title}</strong>?{' '}
+          {t('Are you sure you want to download')} <strong>{record.title}</strong>?{' '}
           {t(
             'It may take some time for it to be available depending on the file size and your internet connection. The Kiwix application will be restarted after the download is complete.'
           )}
@@ -321,7 +321,11 @@ export default function ZimRemoteExplorer() {
     )
   }
 
-  async function confirmCustomDownload(file: { name: string; url: string; size_bytes: number | null }) {
+  async function confirmCustomDownload(file: {
+    name: string
+    url: string
+    size_bytes: number | null
+  }) {
     openModal(
       <StyledModal
         title={t('Confirm Download?')}
@@ -336,8 +340,7 @@ export default function ZimRemoteExplorer() {
         confirmVariant="primary"
       >
         <p className="text-text-primary">
-          Are you sure you want to download{' '}
-          <strong>{file.name}</strong>
+          Are you sure you want to download <strong>{file.name}</strong>
           {file.size_bytes ? ` (${formatBytes(file.size_bytes)})` : ''}?{' '}
           {t('The Kiwix application will be restarted after the download is complete.')}
         </p>
@@ -360,7 +363,11 @@ export default function ZimRemoteExplorer() {
     }
   }
 
-  async function downloadCustomFile(file: { name: string; url: string; size_bytes: number | null }) {
+  async function downloadCustomFile(file: {
+    name: string
+    url: string
+    size_bytes: number | null
+  }) {
     try {
       await api.downloadRemoteZimFile(file.url, {
         title: file.name.replace(/\.zim$/, ''),
@@ -497,14 +504,13 @@ export default function ZimRemoteExplorer() {
   return (
     <SettingsLayout>
       <Head title={t('Content Explorer')} />
-      <div className="xl:pl-72 w-full">
-        <main className="px-12 py-6">
-          <div className="flex justify-between items-center">
-            <div className="flex flex-col">
-              <h1 className="text-4xl font-semibold mb-2">{t('Content Explorer')}</h1>
-              <p className="text-text-muted">{t('Browse and download content for offline reading!')}</p>
-            </div>
-          </div>
+      <div className="w-full">
+        <div className="nd-page">
+          <PageHeader
+            eyebrow={t('Content')}
+            title={t('Content Explorer')}
+            description={t('Browse and download content for offline reading!')}
+          />
           {!isOnline && (
             <Alert
               title={t('No internet connection. You may not be able to download files.')}
@@ -516,7 +522,9 @@ export default function ZimRemoteExplorer() {
           )}
           {!isInstalled && (
             <Alert
-              title={t('The Kiwix application is not installed. Please install it to view downloaded content files.')}
+              title={t(
+                'The Kiwix application is not installed. Please install it to view downloaded content files.'
+              )}
               type="warning"
               variant="solid"
               className="!mt-6"
@@ -535,13 +543,13 @@ export default function ZimRemoteExplorer() {
 
           {/* Wikipedia Selector */}
           {isLoadingWikipedia ? (
-            <div className="mt-8 bg-surface-primary rounded-lg border border-border-subtle p-6">
+            <div className="mt-8 bg-surface-primary rounded-xl border border-border-subtle p-6">
               <div className="flex justify-center py-6">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-desert-green"></div>
               </div>
             </div>
           ) : wikipediaState && wikipediaState.options.length > 0 ? (
-            <div className="mt-8 bg-surface-primary rounded-lg border border-border-subtle p-6">
+            <div className="mt-8 bg-surface-primary rounded-xl border border-border-subtle p-6">
               <WikipediaSelector
                 options={wikipediaState.options}
                 currentSelection={wikipediaState.currentSelection}
@@ -560,12 +568,14 @@ export default function ZimRemoteExplorer() {
 
           {/* Tiered Category Collections */}
           <div className="flex items-center gap-3 mt-8 mb-4">
-            <div className="w-10 h-10 rounded-full bg-surface-primary border border-border-subtle flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 rounded-full bg-surface-primary border border-border-subtle flex items-center justify-center ">
               <IconBooks className="w-6 h-6 text-text-primary" />
             </div>
             <div>
               <h3 className="text-xl font-semibold text-text-primary">{t('Additional Content')}</h3>
-              <p className="text-sm text-text-muted">{t('Curated collections for offline reference')}</p>
+              <p className="text-sm text-text-muted">
+                {t('Curated collections for offline reference')}
+              </p>
             </div>
           </div>
           {categories && categories.length > 0 ? (
@@ -685,7 +695,10 @@ export default function ZimRemoteExplorer() {
                     title: t('Summary'),
                     render(record) {
                       return (
-                        <span className="block max-w-md truncate text-text-muted" title={record.summary}>
+                        <span
+                          className="block max-w-md truncate text-text-muted"
+                          title={record.summary}
+                        >
                           {record.summary}
                         </span>
                       )
@@ -783,7 +796,9 @@ export default function ZimRemoteExplorer() {
                           {record.size_bytes > 0 && (
                             <div>
                               <span className="text-text-muted">{t('Size:')} </span>
-                              <span className="text-text-primary">{formatBytes(record.size_bytes)}</span>
+                              <span className="text-text-primary">
+                                {formatBytes(record.size_bytes)}
+                              </span>
                             </div>
                           )}
                         </div>
@@ -853,14 +868,19 @@ export default function ZimRemoteExplorer() {
               {browseError && (
                 <Alert
                   title={t('Could not fetch directory listing from this URL.')}
-                  message={t('The server may not support directory browsing, or the URL may be incorrect.')}
+                  message={t(
+                    'The server may not support directory browsing, or the URL may be incorrect.'
+                  )}
                   type="error"
                   variant="solid"
                 />
               )}
 
               {!isBrowsing && !browseError && browseData && (
-                <div className="bg-surface-primary rounded-lg border border-border-subtle overflow-hidden relative" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                <div
+                  className="bg-surface-primary rounded-xl border border-border-subtle overflow-hidden relative"
+                  style={{ maxHeight: '600px', overflowY: 'auto' }}
+                >
                   {browseData.directories.length === 0 && browseData.files.length === 0 ? (
                     <p className="text-text-muted p-6 text-center">
                       {t('No directories or ZIM files found at this location.')}
@@ -869,8 +889,12 @@ export default function ZimRemoteExplorer() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-border-subtle bg-surface-secondary sticky top-0 z-10">
-                          <th className="text-left px-4 py-3 font-medium text-text-secondary">{t('Name')}</th>
-                          <th className="text-right px-4 py-3 font-medium text-text-secondary w-32">{t('Size')}</th>
+                          <th className="text-left px-4 py-3 font-medium text-text-secondary">
+                            {t('Name')}
+                          </th>
+                          <th className="text-right px-4 py-3 font-medium text-text-secondary w-32">
+                            {t('Size')}
+                          </th>
                           <th className="text-right px-4 py-3 font-medium text-text-secondary w-36"></th>
                         </tr>
                       </thead>
@@ -945,13 +969,15 @@ export default function ZimRemoteExplorer() {
                     {customLibraries.map((lib) => (
                       <div
                         key={lib.id}
-                        className="flex items-center justify-between bg-surface-secondary rounded-lg px-4 py-3 border border-border-subtle"
+                        className="flex items-center justify-between bg-surface-secondary rounded-xl px-4 py-3 border border-border-subtle"
                       >
                         <div className="min-w-0 flex-1">
                           <p className="font-medium text-text-primary truncate">
                             {lib.name}
                             {lib.is_default && (
-                              <span className="ml-2 text-xs text-text-muted font-normal">{t('(built-in)')}</span>
+                              <span className="ml-2 text-xs text-text-muted font-normal">
+                                {t('(built-in)')}
+                              </span>
                             )}
                           </p>
                           <p className="text-xs text-text-muted truncate">{lib.base_url}</p>
@@ -982,7 +1008,9 @@ export default function ZimRemoteExplorer() {
                   <Input
                     name="library-url"
                     label={t('Base URL')}
-                    placeholder={t('e.g., {{example}}', { example: 'https://cdimage.debian.org/mirror/kiwix.org/zim/' })}
+                    placeholder={t('e.g., {{example}}', {
+                      example: 'https://cdimage.debian.org/mirror/kiwix.org/zim/',
+                    })}
                     value={newLibraryUrl}
                     onChange={(e) => setNewLibraryUrl(e.target.value)}
                   />
@@ -1001,7 +1029,7 @@ export default function ZimRemoteExplorer() {
               </div>
             </div>
           </StyledModal>
-        </main>
+        </div>
       </div>
     </SettingsLayout>
   )

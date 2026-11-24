@@ -62,6 +62,7 @@ import {
   IconMap2,
   IconArrowLeft,
   IconArrowRight,
+  IconAlertCircle,
 } from '@tabler/icons-react'
 
 /**
@@ -73,6 +74,7 @@ import {
  */
 export const icons = {
   IconAntenna,
+  IconAlertCircle,
   IconAlertTriangle,
   IconArrowLeft,
   IconArrowRight,

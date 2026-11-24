@@ -1,3 +1,4 @@
+import PageHeader from '~/components/nd/PageHeader'
 import { Head, router } from '@inertiajs/react'
 import StyledTable from '~/components/StyledTable'
 import SettingsLayout from '~/layouts/SettingsLayout'
@@ -61,7 +62,10 @@ export default function MapsManager(props: {
     queryFn: () => api.getGlobalMapInfo(),
     refetchOnWindowFocus: false,
   })
-  const globalMapAlreadyDownloaded = hasDownloadedGlobalMap(globalMapInfo?.key, props.maps.regionFiles)
+  const globalMapAlreadyDownloaded = hasDownloadedGlobalMap(
+    globalMapInfo?.key,
+    props.maps.regionFiles
+  )
 
   const setupWorldBasemap = useMutation({
     mutationFn: () => api.setupWorldBasemap(),
@@ -88,7 +92,9 @@ export default function MapsManager(props: {
       invalidateDownloads()
       addNotification({
         type: 'success',
-        message: t('Global map download has been queued. This is a large file (~125 GB) and may take a while.'),
+        message: t(
+          'Global map download has been queued. This is a large file (~125 GB) and may take a while.'
+        ),
       })
       closeAllModals()
     },
@@ -190,7 +196,9 @@ export default function MapsManager(props: {
         confirmLoading={file.type === 'file' && deletingFileKey === file.key}
       >
         <p className="text-text-secondary">
-          {t('Are you sure you want to delete {{name}}? This action cannot be undone.', { name: file.name })}
+          {t('Are you sure you want to delete {{name}}? This action cannot be undone.', {
+            name: file.name,
+          })}
         </p>
       </StyledModal>,
       'confirm-delete-file-modal'
@@ -206,9 +214,12 @@ export default function MapsManager(props: {
           if (isCollection) {
             if (record.all_installed) {
               addNotification({
-                message: t('All resources in the collection "{{name}}" have already been downloaded.', {
-                  name: record.name,
-                }),
+                message: t(
+                  'All resources in the collection "{{name}}" have already been downloaded.',
+                  {
+                    name: record.name,
+                  }
+                ),
                 type: 'info',
               })
               return
@@ -224,7 +235,8 @@ export default function MapsManager(props: {
         confirmVariant="primary"
       >
         <p className="text-text-secondary">
-          {t('Are you sure you want to download')} <strong>{isCollection ? record.name : record}</strong>?{' '}
+          {t('Are you sure you want to download')}{' '}
+          <strong>{isCollection ? record.name : record}</strong>?{' '}
           {t(
             'It may take some time for it to be available depending on the file size and your internet connection.'
           )}
@@ -308,20 +320,18 @@ export default function MapsManager(props: {
   return (
     <SettingsLayout>
       <Head title={t('Maps Manager')} />
-      <div className="xl:pl-72 w-full">
-        <main className="px-12 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <h1 className="text-4xl font-semibold mb-2">{t('Maps Manager')}</h1>
-              <p className="text-text-muted">{t('Manage your stored map files and explore new regions!')}</p>
-            </div>
-            <div className="flex space-x-4">
-
-            </div>
-          </div>
+      <div className="w-full">
+        <div className="nd-page">
+          <PageHeader
+            eyebrow={t('Content')}
+            title={t('Maps Manager')}
+            description={t('Manage your stored map files and explore new regions!')}
+          />
           {!props.maps.baseAssetsExist && (
             <Alert
-              title={t('The base map assets have not been installed. Please download them first to enable map functionality.')}
+              title={t(
+                'The base map assets have not been installed. Please download them first to enable map functionality.'
+              )}
               type="warning"
               variant="solid"
               className="my-4"
@@ -355,10 +365,13 @@ export default function MapsManager(props: {
           {globalMapInfo && globalMapAlreadyDownloaded && (
             <Alert
               title={t('Global Map Installed')}
-              message={t('Your global map build {{date}} ({{size}}) is stored locally and ready for offline use.', {
-                date: globalMapInfo.date,
-                size: formatBytes(globalMapInfo.size, 1),
-              })}
+              message={t(
+                'Your global map build {{date}} ({{size}}) is stored locally and ready for offline use.',
+                {
+                  date: globalMapInfo.date,
+                  size: formatBytes(globalMapInfo.size, 1),
+                }
+              )}
               type="success"
               variant="bordered"
               className="mt-8"
@@ -469,7 +482,7 @@ export default function MapsManager(props: {
             data={props.maps.regionFiles || []}
           />
           <ActiveDownloads filetype="map" withHeader />
-        </main>
+        </div>
       </div>
     </SettingsLayout>
   )

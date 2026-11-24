@@ -35,12 +35,12 @@ export default function ConditionsShow({ condition, drugs, remedies, drugRowCoun
     <AppLayout compact>
       <Head title={label} />
 
-      <div className="p-4 max-w-3xl mx-auto">
+      <div className="nd-page nd-page-narrow">
         {/* Back nav */}
         <div className="mb-4">
           <Link
             href="/drug-reference"
-            className="inline-flex items-center gap-1 text-sm text-desert-green hover:underline"
+            className="nd-eyebrow inline-flex items-center gap-1.5 hover:!text-text-primary"
           >
             <IconArrowLeft size={16} />
             {t('Drug Reference')}
@@ -49,7 +49,9 @@ export default function ConditionsShow({ condition, drugs, remedies, drugRowCoun
 
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold">{label}</h1>
+          <h1 className="text-3xl sm:text-4xl font-medium text-text-primary leading-tight">
+            {label}
+          </h1>
           {condition?.category && (
             <p className="text-sm text-text-muted mt-0.5">{t(condition.category)}</p>
           )}
@@ -60,10 +62,12 @@ export default function ConditionsShow({ condition, drugs, remedies, drugRowCoun
 
         {/* Drug list / empty states */}
         {noData ? (
-          <div className="border-2 border-dashed border-border-default rounded-lg p-8 text-center">
+          <div className="border-2 border-dashed border-border-default rounded-xl p-8 text-center">
             <p className="text-lg font-semibold mb-2">{t('No drug data yet')}</p>
             <p className="mb-6 opacity-70">
-              {t('Download the offline FDA drug labels from Drug Reference to see matches for this situation.')}
+              {t(
+                'Download the offline FDA drug labels from Drug Reference to see matches for this situation.'
+              )}
             </p>
             <Link href="/drug-reference">
               <span className="inline-block rounded bg-desert-green px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-desert-green-dark">
@@ -76,7 +80,9 @@ export default function ConditionsShow({ condition, drugs, remedies, drugRowCoun
             <Trans
               i18nKey="No over-the-counter drugs match “{{label}}” in the current label data. Try searching by drug name in <link>Drug Reference</link>."
               values={{ label }}
-              components={{ link: <Link href="/drug-reference" className="text-desert-green hover:underline" /> }}
+              components={{
+                link: <Link href="/drug-reference" className="text-desert-green hover:underline" />,
+              }}
             />
           </div>
         ) : (
@@ -84,10 +90,12 @@ export default function ConditionsShow({ condition, drugs, remedies, drugRowCoun
             <div className="flex items-baseline justify-between mb-2">
               <h2 className="text-base font-semibold">{t('Over-the-counter options')}</h2>
               <span className="text-xs text-text-muted">
-                {drugs.length === 1 ? t('1 result') : t('{{count}} results', { count: drugs.length })}
+                {drugs.length === 1
+                  ? t('1 result')
+                  : t('{{count}} results', { count: drugs.length })}
               </span>
             </div>
-            <div className="divide-y divide-border-default border border-border-default rounded-lg overflow-hidden">
+            <div className="divide-y divide-border-default border border-border-default rounded-xl overflow-hidden">
               {drugs.map((d) => (
                 <DrugResultRow key={`${d.id}`} result={d} />
               ))}
@@ -99,12 +107,16 @@ export default function ConditionsShow({ condition, drugs, remedies, drugRowCoun
         {remedies.length > 0 && (
           <div className="mt-8">
             <div className="flex items-center gap-2 mb-3">
-              <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-desert-tan/20 text-desert-tan-dark">
+              <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-xl bg-desert-tan/20 text-desert-tan-dark">
                 <IconLeaf size={16} />
               </span>
-              <h2 className="text-base font-semibold text-desert-tan-dark">{t('Natural remedies')}</h2>
+              <h2 className="text-base font-semibold text-desert-tan-dark">
+                {t('Natural remedies')}
+              </h2>
               <span className="text-xs text-desert-stone ml-auto">
-                {remedies.length === 1 ? t('1 remedy') : t('{{count}} remedies', { count: remedies.length })}
+                {remedies.length === 1
+                  ? t('1 remedy')
+                  : t('{{count}} remedies', { count: remedies.length })}
               </span>
             </div>
 
@@ -153,7 +165,7 @@ export default function ConditionsShow({ condition, drugs, remedies, drugRowCoun
 function NaturalRemedyCard({ remedy }: { remedy: NaturalRemedy }) {
   const { t } = useTranslation()
   return (
-    <div className="rounded-lg border border-desert-tan-lighter/60 bg-desert-white overflow-hidden">
+    <div className="rounded-xl border border-desert-tan-lighter/60 bg-desert-white overflow-hidden">
       {/* Card header */}
       <div className="flex items-start justify-between gap-2 bg-desert-tan/10 px-4 py-3 border-b border-desert-tan-lighter/40">
         <div>

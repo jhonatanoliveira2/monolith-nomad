@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { usePage } from '@inertiajs/react'
 import { IconBrain } from '@tabler/icons-react'
 import api from '~/lib/api'
 import StyledButton from '~/components/StyledButton'
 import { useNotifications } from '~/context/notification_context'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '~/lib/format'
+import { useAiAssistantName } from '~/hooks/use_ai_assistant_name'
 
 /**
  * First-chat onboarding banner (RFC #883 Phase 3 task 12).
@@ -34,8 +34,7 @@ export default function KbPolicyPromptBanner() {
   // pages so the banner pulls the user-set name when surfaced. Default to
   // "AI Assistant" when accessed outside that context (no-op for chat pages,
   // but keeps the component safe for future reuse elsewhere).
-  const aiAssistantName =
-    usePage<{ aiAssistantName?: string }>().props?.aiAssistantName || t('AI Assistant')
+  const aiAssistantName = useAiAssistantName()
 
   const { data: promptState } = useQuery({
     queryKey: ['kbPolicyPromptState'],
@@ -51,7 +50,10 @@ export default function KbPolicyPromptBanner() {
     onSuccess: () => {
       addNotification({
         type: 'success',
-        message: t('{{name}} will index your existing content. You can track progress in the Knowledge Base panel.', { name: aiAssistantName }),
+        message: t(
+          '{{name}} will index your existing content. You can track progress in the Knowledge Base panel.',
+          { name: aiAssistantName }
+        ),
       })
       queryClient.invalidateQueries({ queryKey: ['kbPolicyPromptState'] })
       queryClient.invalidateQueries({ queryKey: ['ingestPolicy'] })
@@ -61,7 +63,8 @@ export default function KbPolicyPromptBanner() {
     onError: (error: any) => {
       addNotification({
         type: 'error',
-        message: error?.message || t('Could not start indexing. Try again from the Knowledge Base panel.'),
+        message:
+          error?.message || t('Could not start indexing. Try again from the Knowledge Base panel.'),
       })
     },
   })
@@ -71,7 +74,9 @@ export default function KbPolicyPromptBanner() {
     onSuccess: () => {
       addNotification({
         type: 'success',
-        message: t('Your content stays unindexed for now. You can opt in any time from the Knowledge Base panel.'),
+        message: t(
+          'Your content stays unindexed for now. You can opt in any time from the Knowledge Base panel.'
+        ),
       })
       queryClient.invalidateQueries({ queryKey: ['kbPolicyPromptState'] })
       queryClient.invalidateQueries({ queryKey: ['ingestPolicy'] })
@@ -98,9 +103,14 @@ export default function KbPolicyPromptBanner() {
             <strong>
               {fileCount === 1
                 ? t('Index your existing file for {{name}}?', { name: aiAssistantName })
-                : t('Index your {{count}} existing files for {{name}}?', { count: formatNumber(fileCount), name: aiAssistantName })}
-            </strong>
-            {' '}{t('When indexed, {{name}} can reference them while answering your questions.', { name: aiAssistantName })}
+                : t('Index your {{count}} existing files for {{name}}?', {
+                    count: formatNumber(fileCount),
+                    name: aiAssistantName,
+                  })}
+            </strong>{' '}
+            {t('When indexed, {{name}} can reference them while answering your questions.', {
+              name: aiAssistantName,
+            })}
           </p>
         </div>
         <div className="flex gap-2 flex-shrink-0">

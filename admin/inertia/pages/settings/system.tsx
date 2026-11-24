@@ -1,3 +1,4 @@
+import PageHeader from '~/components/nd/PageHeader'
 import { Head } from '@inertiajs/react'
 import SettingsLayout from '~/layouts/SettingsLayout'
 import { SystemInformationResponse } from '../../../types/system'
@@ -10,7 +11,13 @@ import Alert from '~/components/Alert'
 import GpuPassthroughAlert from '~/components/GpuPassthroughAlert'
 import { useSystemInfo } from '~/hooks/use_system_info'
 import StatusCard from '~/components/systeminfo/StatusCard'
-import { IconCpu, IconDatabase, IconServer, IconDeviceDesktop, IconComponents } from '@tabler/icons-react'
+import {
+  IconCpu,
+  IconDatabase,
+  IconServer,
+  IconDeviceDesktop,
+  IconComponents,
+} from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 import { formatDateTime } from '~/lib/format'
 
@@ -24,12 +31,11 @@ export default function SettingsPage(props: {
 
   // Use (total - available) to reflect actual memory pressure.
   // mem.used includes reclaimable buff/cache on Linux, which inflates the number.
-  const memoryUsed = info?.mem.total && info?.mem.available != null
-    ? info.mem.total - info.mem.available
-    : info?.mem.used || 0
-  const memoryUsagePercent = info?.mem.total
-    ? ((memoryUsed / info.mem.total) * 100).toFixed(1)
-    : 0
+  const memoryUsed =
+    info?.mem.total && info?.mem.available != null
+      ? info.mem.total - info.mem.available
+      : info?.mem.used || 0
+  const memoryUsagePercent = info?.mem.total ? ((memoryUsed / info.mem.total) * 100).toFixed(1) : 0
 
   const swapUsagePercent = info?.mem.swaptotal
     ? ((info.mem.swapused / info.mem.swaptotal) * 100).toFixed(1)
@@ -39,11 +45,12 @@ export default function SettingsPage(props: {
   const uptimeDays = Math.floor(uptimeSeconds / 86400)
   const uptimeHours = Math.floor((uptimeSeconds % 86400) / 3600)
   const uptimeMinutes = Math.floor((uptimeSeconds % 3600) / 60)
-  const uptimeDisplay = uptimeDays > 0
-    ? `${uptimeDays}d ${uptimeHours}h ${uptimeMinutes}m`
-    : uptimeHours > 0
-      ? `${uptimeHours}h ${uptimeMinutes}m`
-      : `${uptimeMinutes}m`
+  const uptimeDisplay =
+    uptimeDays > 0
+      ? `${uptimeDays}d ${uptimeHours}h ${uptimeMinutes}m`
+      : uptimeHours > 0
+        ? `${uptimeHours}h ${uptimeMinutes}m`
+        : `${uptimeMinutes}m`
 
   // Build storage display items - fall back to fsSize when disk array is empty
   const storageItems = getAllDiskDisplayItems(info?.disk, info?.fsSize)
@@ -51,14 +58,16 @@ export default function SettingsPage(props: {
   return (
     <SettingsLayout>
       <Head title={t('System Information')} />
-      <div className="xl:pl-72 w-full">
-        <main className="px-6 lg:px-12 py-6 lg:py-8">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-desert-green mb-2">{t('System Information')}</h1>
-            <p className="text-desert-stone-dark">
-              {t('Real-time monitoring and diagnostics • Last updated: {{date}} • Refreshing data every 30 seconds', { date: formatDateTime(new Date()) })}
-            </p>
-          </div>
+      <div className="w-full">
+        <div className="nd-page">
+          <PageHeader
+            eyebrow={t('System')}
+            title={t('System Information')}
+            description={t(
+              'Real-time monitoring and diagnostics • Last updated: {{date}} • Refreshing data every 30 seconds',
+              { date: formatDateTime(new Date()) }
+            )}
+          />
           {Number(memoryUsagePercent) > 90 && (
             <div className="mb-6">
               <Alert
@@ -70,13 +79,13 @@ export default function SettingsPage(props: {
             </div>
           )}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-desert-green mb-6 flex items-center gap-2">
+            <h2 className="text-xl font-medium text-text-primary mb-5 flex items-center gap-3">
               <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-accent" />
               {t('Resource Usage')}
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <div className="bg-desert-white rounded-lg p-6 border border-desert-stone-light shadow-sm hover:shadow-lg transition-shadow">
+              <div className="bg-desert-white rounded-xl p-6 border border-desert-stone-light ">
                 <CircularGauge
                   value={info?.currentLoad.currentLoad || 0}
                   label={t('CPU Usage')}
@@ -87,7 +96,7 @@ export default function SettingsPage(props: {
                   icon={<IconCpu className="w-8 h-8" />}
                 />
               </div>
-              <div className="bg-desert-white rounded-lg p-6 border border-desert-stone-light shadow-sm hover:shadow-lg transition-shadow">
+              <div className="bg-desert-white rounded-xl p-6 border border-desert-stone-light ">
                 <CircularGauge
                   value={Number(memoryUsagePercent)}
                   label={t('Memory Usage')}
@@ -98,7 +107,7 @@ export default function SettingsPage(props: {
                   icon={<IconDatabase className="w-8 h-8" />}
                 />
               </div>
-              <div className="bg-desert-white rounded-lg p-6 border border-desert-stone-light shadow-sm hover:shadow-lg transition-shadow">
+              <div className="bg-desert-white rounded-xl p-6 border border-desert-stone-light ">
                 <CircularGauge
                   value={Number(swapUsagePercent)}
                   label={t('Swap Usage')}
@@ -112,7 +121,7 @@ export default function SettingsPage(props: {
             </div>
           </section>
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-desert-green mb-6 flex items-center gap-2">
+            <h2 className="text-xl font-medium text-text-primary mb-5 flex items-center gap-3">
               <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-accent" />
               {t('System Details')}
             </h2>
@@ -152,8 +161,12 @@ export default function SettingsPage(props: {
                     title={t('No GPU acceleration available')}
                     message={
                       info.gpuHealth.gpuVendor === 'intel'
-                        ? t('An Intel GPU is present, but monolith-nomad can only accelerate the AI Assistant on NVIDIA (CUDA) and AMD (ROCm) hardware. Inference will run on the CPU, so expect lower throughput than the hardware suggests.')
-                        : t('A GPU is present, but monolith-nomad can only accelerate the AI Assistant on NVIDIA (CUDA) and AMD (ROCm) hardware. Inference will run on the CPU, so expect lower throughput than the hardware suggests.')
+                        ? t(
+                            'An Intel GPU is present, but monolith-nomad can only accelerate the AI Assistant on NVIDIA (CUDA) and AMD (ROCm) hardware. Inference will run on the CPU, so expect lower throughput than the hardware suggests.'
+                          )
+                        : t(
+                            'A GPU is present, but monolith-nomad can only accelerate the AI Assistant on NVIDIA (CUDA) and AMD (ROCm) hardware. Inference will run on the CPU, so expect lower throughput than the hardware suggests.'
+                          )
                     }
                     variant="bordered"
                   />
@@ -161,7 +174,10 @@ export default function SettingsPage(props: {
               )}
               {info?.gpuHealth?.status === 'passthrough_failed' && (
                 <div className="lg:col-span-2">
-                  <GpuPassthroughAlert gpuHealth={info.gpuHealth} assistantName={t('AI Assistant')} />
+                  <GpuPassthroughAlert
+                    gpuHealth={info.gpuHealth}
+                    assistantName={t('AI Assistant')}
+                  />
                 </div>
               )}
               {info?.graphics?.controllers && info.graphics.controllers.length > 0 && (
@@ -169,70 +185,80 @@ export default function SettingsPage(props: {
                   title={t('Graphics')}
                   icon={<IconComponents className="w-6 h-6" />}
                   variant="elevated"
-                  data={info.graphics.controllers.map((gpu, i) => {
-                    const prefix = info.graphics.controllers.length > 1 ? `GPU ${i + 1} ` : ''
-                    return [
-                      { label: `${prefix}${t('Model')}`, value: gpu.model },
-                      { label: `${prefix}${t('Vendor')}`, value: gpu.vendor },
-                      { label: `${prefix}VRAM`, value: gpu.vram ? `${gpu.vram} MB` : t('N/A') },
-                    ]
-                  }).flat()}
+                  data={info.graphics.controllers
+                    .map((gpu, i) => {
+                      const prefix = info.graphics.controllers.length > 1 ? `GPU ${i + 1} ` : ''
+                      return [
+                        { label: `${prefix}${t('Model')}`, value: gpu.model },
+                        { label: `${prefix}${t('Vendor')}`, value: gpu.vendor },
+                        { label: `${prefix}VRAM`, value: gpu.vram ? `${gpu.vram} MB` : t('N/A') },
+                      ]
+                    })
+                    .flat()}
                 />
               )}
             </div>
           </section>
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-desert-green mb-6 flex items-center gap-2">
+            <h2 className="text-xl font-medium text-text-primary mb-5 flex items-center gap-3">
               <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-accent" />
               {t('Memory Allocation')}
             </h2>
-            <div className="bg-desert-white rounded-lg p-8 border border-desert-stone-light shadow-sm hover:shadow-lg transition-shadow">
+            <div className="nd-card p-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-desert-green mb-1">
+                  <div className="nd-display text-4xl text-text-primary mb-2">
                     {formatBytes(info?.mem.total || 0)}
                   </div>
-                  <div className="text-sm text-desert-stone-dark uppercase tracking-wide">
-                    {t('Total RAM')}
-                  </div>
+                  <div className="nd-eyebrow">{t('Total RAM')}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-desert-green mb-1">
+                  <div className="nd-display text-4xl text-text-primary mb-2">
                     {formatBytes(memoryUsed)}
                   </div>
-                  <div className="text-sm text-desert-stone-dark uppercase tracking-wide">
-                    {t('Used RAM')}
-                  </div>
+                  <div className="nd-eyebrow">{t('Used RAM')}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-desert-green mb-1">
+                  <div className="nd-display text-4xl text-text-primary mb-2">
                     {formatBytes(info?.mem.available || 0)}
                   </div>
-                  <div className="text-sm text-desert-stone-dark uppercase tracking-wide">
-                    {t('Available RAM')}
-                  </div>
+                  <div className="nd-eyebrow">{t('Available RAM')}</div>
                 </div>
               </div>
-              <div className="relative h-12 bg-desert-stone-lighter rounded-lg overflow-hidden border border-desert-stone-light">
+              {/* same usage scale as the dashboard meters: neutral, orange from 70 %, red from 90 % */}
+              <div className="flex items-center gap-4">
                 <div
-                  className="absolute left-0 top-0 h-full bg-desert-orange transition-all duration-1000"
-                  style={{ width: `${memoryUsagePercent}%` }}
-                ></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-sm font-bold text-white drop-shadow-md z-10">
-                    {t('{{percent}}% Utilized', { percent: memoryUsagePercent })}
-                  </span>
+                  className="relative h-2 flex-1 overflow-hidden rounded-full bg-led-off"
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Number(memoryUsagePercent)}
+                  aria-label={t('Memory usage')}
+                >
+                  <div
+                    className={`absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ${
+                      Number(memoryUsagePercent) >= 90
+                        ? 'bg-desert-red'
+                        : Number(memoryUsagePercent) >= 70
+                          ? 'bg-desert-orange'
+                          : 'bg-led'
+                    }`}
+                    style={{ width: `${memoryUsagePercent}%` }}
+                  />
                 </div>
+                <span className="nd-mono text-sm text-text-primary shrink-0">
+                  {t('{{percent}}% Utilized', { percent: memoryUsagePercent })}
+                </span>
               </div>
             </div>
           </section>
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-desert-green mb-6 flex items-center gap-2">
+            <h2 className="text-xl font-medium text-text-primary mb-5 flex items-center gap-3">
               <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-accent" />
               {t('Storage Devices')}
             </h2>
 
-            <div className="bg-desert-white rounded-lg p-8 border border-desert-stone-light shadow-sm hover:shadow-lg transition-shadow">
+            <div className="nd-card p-8">
               {storageItems.length > 0 ? (
                 <HorizontalBarChart
                   items={storageItems}
@@ -263,7 +289,7 @@ export default function SettingsPage(props: {
             </div>
           </section>
           <section>
-            <h2 className="text-2xl font-bold text-desert-green mb-6 flex items-center gap-2">
+            <h2 className="text-xl font-medium text-text-primary mb-5 flex items-center gap-3">
               <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-accent" />
               {t('System Status')}
             </h2>
@@ -273,7 +299,7 @@ export default function SettingsPage(props: {
               <StatusCard title={t('Storage Devices')} value={storageItems.length} />
             </div>
           </section>
-        </main>
+        </div>
       </div>
     </SettingsLayout>
   )

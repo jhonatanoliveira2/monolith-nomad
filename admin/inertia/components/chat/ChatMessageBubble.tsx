@@ -16,8 +16,10 @@ export default function ChatMessageBubble({ message, onContinue }: ChatMessageBu
   return (
     <div
       className={classNames(
-        'max-w-[70%] rounded-lg px-4 py-3',
-        message.role === 'user' ? 'bg-desert-green text-white' : 'bg-surface-secondary text-text-primary'
+        'max-w-[70%] rounded-xl px-4 py-3',
+        message.role === 'user'
+          ? 'bg-desert-green text-white'
+          : 'bg-surface-secondary text-text-primary'
       )}
     >
       {message.images && message.images.length > 0 && (
@@ -79,7 +81,7 @@ export default function ChatMessageBubble({ message, onContinue }: ChatMessageBu
                 }
                 return (
                   <code
-                    className="block bg-neutral-800 text-neutral-100 p-3 rounded-lg overflow-x-auto font-mono text-sm my-2"
+                    className="block bg-neutral-800 text-neutral-100 p-3 rounded-xl overflow-x-auto font-mono text-sm my-2"
                     {...props}
                   >
                     {children}

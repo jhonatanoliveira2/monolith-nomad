@@ -1,6 +1,6 @@
 import classNames from '~/lib/class_names'
 import StyledButton from '../StyledButton'
-import { router, usePage } from '@inertiajs/react'
+import { router } from '@inertiajs/react'
 import { ChatSession } from '../../../types/chat'
 import { IconMessage } from '@tabler/icons-react'
 import { useState } from 'react'
@@ -8,6 +8,7 @@ import KnowledgeBaseModal from './KnowledgeBaseModal'
 import NomadMdModal from './NomadMdModal'
 import UbuntuLogo from '../UbuntuLogo'
 import { useTranslation } from 'react-i18next'
+import { useAiAssistantName } from '~/hooks/use_ai_assistant_name'
 
 interface ChatSidebarProps {
   sessions: ChatSession[]
@@ -31,7 +32,7 @@ export default function ChatSidebar({
   onMobileClose,
 }: ChatSidebarProps) {
   const { t } = useTranslation()
-  const { aiAssistantName } = usePage<{ aiAssistantName: string }>().props
+  const aiAssistantName = useAiAssistantName()
   const [isKnowledgeBaseModalOpen, setIsKnowledgeBaseModalOpen] = useState(
     () => new URLSearchParams(window.location.search).get('knowledge_base') === 'true'
   )
@@ -84,7 +85,7 @@ export default function ChatSidebar({
                   onMobileClose?.()
                 }}
                 className={classNames(
-                  'w-full text-left px-3 py-2 rounded-lg transition-colors group',
+                  'w-full text-left px-3 py-2 rounded-xl transition-colors group',
                   activeSessionId === session.id
                     ? 'bg-desert-green text-white'
                     : 'hover:bg-surface-secondary text-text-primary'
@@ -98,7 +99,9 @@ export default function ChatSidebar({
                     )}
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{session.title === 'New Chat' ? t('New Chat') : session.title}</div>
+                    <div className="font-medium text-sm truncate">
+                      {session.title === 'New Chat' ? t('New Chat') : session.title}
+                    </div>
                     {session.lastMessage && (
                       <div
                         className={classNames(
@@ -117,7 +120,7 @@ export default function ChatSidebar({
         )}
       </div>
       <div className="p-4 flex flex-col items-center justify-center gap-y-2">
-        <UbuntuLogo title="monolith-nomad" className="h-24 w-24 mb-6 text-text-primary" />
+        <UbuntuLogo title="monolith-nomad" grid={21} className="h-24 w-24 mb-6 text-text-primary" />
         <StyledButton
           onClick={() => {
             // /chat is served by the admin app itself, so navigate in place rather than

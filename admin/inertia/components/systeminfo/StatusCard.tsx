@@ -1,16 +1,19 @@
+import StatusDot from '~/components/nd/StatusDot'
+
 export type StatusCardProps = {
   title: string
   value: string | number
 }
 
+/** One live reading (uptime, load…): label, steady LED, dot-matrix value. */
 export default function StatusCard({ title, value }: StatusCardProps) {
   return (
-    <div className="bg-desert-white rounded-lg p-6 border border-desert-stone-light">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-desert-stone-dark">{title}</span>
-        <div className="w-2 h-2 bg-desert-olive rounded-full animate-pulse" />
+    <div className="nd-card p-5">
+      <div className="flex items-center justify-between mb-3">
+        <span className="nd-eyebrow">{title}</span>
+        <StatusDot tone="ok" />
       </div>
-      <div className="text-2xl font-bold text-desert-green">{value}</div>
+      <div className="nd-display text-3xl text-text-primary">{value}</div>
     </div>
   )
 }

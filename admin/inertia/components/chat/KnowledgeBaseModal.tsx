@@ -592,20 +592,20 @@ export default function KnowledgeBaseModal({
           modal width, which is the exact defect #1198 fixed (the Delete button falls
           off the right edge at every viewport). Measured on NOMAD3: table 1018px
           against 961px of usable width at 5xl. */}
-      <div className="bg-surface-primary rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-surface-primary rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-border-subtle shrink-0">
           <h2 className="text-2xl font-semibold text-text-primary">{t('Knowledge Base')}</h2>
           <button
             onClick={onClose}
             aria-label={t('Close')}
-            className="p-2 hover:bg-surface-secondary rounded-lg transition-colors"
+            className="p-2 hover:bg-surface-secondary rounded-xl transition-colors"
           >
             <IconX className="h-6 w-6 text-text-muted" />
           </button>
         </div>
         <div className="overflow-y-auto flex-1 p-6">
           {qdrantOffline && (
-            <div className="mb-4 p-4 bg-desert-red-lighter border border-desert-red-light rounded-lg text-desert-red-dark text-sm flex items-center justify-between gap-4">
+            <div className="mb-4 p-4 bg-desert-red-lighter border border-desert-red-light rounded-xl text-desert-red-dark text-sm flex items-center justify-between gap-4">
               <span>
                 <strong>{t('Knowledge Base unavailable:')}</strong>{' '}
                 {t('The Qdrant vector database is offline.')}
@@ -621,7 +621,7 @@ export default function KnowledgeBaseModal({
               </StyledButton>
             </div>
           )}
-          <div className="bg-surface-primary rounded-lg border shadow-md overflow-hidden">
+          <div className="bg-surface-primary rounded-xl border overflow-hidden">
             <div className="p-6">
               <FileUploader
                 ref={fileUploaderRef}
@@ -708,7 +708,7 @@ export default function KnowledgeBaseModal({
               </div>
             </div>
           </div>
-          <div className="my-8 p-4 rounded-lg border border-border-subtle bg-surface-secondary">
+          <div className="my-8 p-4 rounded-xl border border-border-subtle bg-surface-secondary">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex-1 min-w-[14rem]">
                 <p className="text-sm font-medium text-text-primary">

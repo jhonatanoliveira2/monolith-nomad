@@ -1,3 +1,4 @@
+import PageHeader from '~/components/nd/PageHeader'
 import { Head } from '@inertiajs/react'
 import StyledTable from '~/components/StyledTable'
 import SettingsLayout from '~/layouts/SettingsLayout'
@@ -60,7 +61,9 @@ export default function SettingsPage(props: { system: { services: ServiceSlim[] 
       setCheckingUpdates(false)
       window.location.reload()
     })
-    return () => { unsubscribe() }
+    return () => {
+      unsubscribe()
+    }
   }, [])
 
   async function handleCheckUpdates() {
@@ -76,7 +79,9 @@ export default function SettingsPage(props: { system: { services: ServiceSlim[] 
       }
     } catch (error) {
       console.error('Error checking for updates:', error)
-      showError(t('Failed to check for updates: {{error}}', { error: error.message || t('Unknown error') }))
+      showError(
+        t('Failed to check for updates: {{error}}', { error: error.message || t('Unknown error') })
+      )
       setCheckingUpdates(false)
     }
   }
@@ -124,7 +129,9 @@ export default function SettingsPage(props: { system: { services: ServiceSlim[] 
       }
     } catch (error) {
       console.error('Error installing service:', error)
-      showError(t('Failed to install service: {{error}}', { error: error.message || t('Unknown error') }))
+      showError(
+        t('Failed to install service: {{error}}', { error: error.message || t('Unknown error') })
+      )
     } finally {
       setIsInstalling(false)
     }
@@ -165,7 +172,9 @@ export default function SettingsPage(props: { system: { services: ServiceSlim[] 
       setLoading(true)
       const response = await api.forceReinstallService(record.service_name)
       if (!response) {
-        throw new Error(t('An internal error occurred while trying to force reinstall the service.'))
+        throw new Error(
+          t('An internal error occurred while trying to force reinstall the service.')
+        )
       }
       if (!response.success) {
         throw new Error(response.message)
@@ -179,7 +188,11 @@ export default function SettingsPage(props: { system: { services: ServiceSlim[] 
       }, 3000)
     } catch (error) {
       console.error(`Error force reinstalling service ${record.service_name}:`, error)
-      showError(t('Failed to force reinstall service: {{error}}', { error: error.message || t('Unknown error') }))
+      showError(
+        t('Failed to force reinstall service: {{error}}', {
+          error: error.message || t('Unknown error'),
+        })
+      )
     }
   }
 
@@ -208,7 +221,11 @@ export default function SettingsPage(props: { system: { services: ServiceSlim[] 
             // above and refreshes the version + status. Leave the button disabled until then.
           } catch (error) {
             console.error(`Error updating service ${record.service_name}:`, error)
-            showError(t('Failed to update service: {{error}}', { error: error.message || t('Unknown error') }))
+            showError(
+              t('Failed to update service: {{error}}', {
+                error: error.message || t('Unknown error'),
+              })
+            )
             setUpdatingServices((prev) => {
               const next = new Set(prev)
               next.delete(record.service_name)
@@ -276,26 +293,31 @@ export default function SettingsPage(props: { system: { services: ServiceSlim[] 
         <StyledButton
           icon={'IconExternalLink'}
           onClick={() => {
-            window.open(getServiceLink(record.ui_location || 'unknown', record.custom_url), '_blank')
+            window.open(
+              getServiceLink(record.ui_location || 'unknown', record.custom_url),
+              '_blank'
+            )
           }}
         >
           {t('Open')}
         </StyledButton>
-        {record.available_update_version && (() => {
-          const isUpdating =
-            updatingServices.has(record.service_name) || record.installation_status === 'installing'
-          return (
-            <StyledButton
-              icon="IconArrowUp"
-              variant="primary"
-              onClick={() => handleUpdateService(record)}
-              disabled={isInstalling || !isOnline || isUpdating}
-              loading={isUpdating}
-            >
-              {isUpdating ? t('Updating...') : t('Update')}
-            </StyledButton>
-          )
-        })()}
+        {record.available_update_version &&
+          (() => {
+            const isUpdating =
+              updatingServices.has(record.service_name) ||
+              record.installation_status === 'installing'
+            return (
+              <StyledButton
+                icon="IconArrowUp"
+                variant="primary"
+                onClick={() => handleUpdateService(record)}
+                disabled={isInstalling || !isOnline || isUpdating}
+                loading={isUpdating}
+              >
+                {isUpdating ? t('Updating...') : t('Update')}
+              </StyledButton>
+            )
+          })()}
         {record.status && record.status !== 'unknown' && (
           <>
             <StyledButton
@@ -315,8 +337,12 @@ export default function SettingsPage(props: { system: { services: ServiceSlim[] 
                   >
                     <p className="text-text-primary">
                       {record.status === 'running'
-                        ? t('Are you sure you want to stop {{name}}?', { name: record.service_name })
-                        : t('Are you sure you want to start {{name}}?', { name: record.service_name })}
+                        ? t('Are you sure you want to stop {{name}}?', {
+                            name: record.service_name,
+                          })
+                        : t('Are you sure you want to start {{name}}?', {
+                            name: record.service_name,
+                          })}
                     </p>
                   </StyledModal>,
                   `${record.service_name}-affect-modal`
@@ -341,7 +367,9 @@ export default function SettingsPage(props: { system: { services: ServiceSlim[] 
                       cancelText={t('Cancel')}
                     >
                       <p className="text-text-primary">
-                        {t('Are you sure you want to restart {{name}}?', { name: record.service_name })}
+                        {t('Are you sure you want to restart {{name}}?', {
+                          name: record.service_name,
+                        })}
                       </p>
                     </StyledModal>,
                     `${record.service_name}-affect-modal`
@@ -362,24 +390,25 @@ export default function SettingsPage(props: { system: { services: ServiceSlim[] 
   return (
     <SettingsLayout>
       <Head title={t('App Settings')} />
-      <div className="xl:pl-72 w-full">
-        <main className="px-12 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-4xl font-semibold">{t('Apps')}</h1>
-              <p className="text-text-muted mt-1">
-                {t('Manage the applications that are available in monolith-nomad. Nightly update checks will automatically detect when new versions of these apps are available.')}
-              </p>
-            </div>
-            <StyledButton
-              icon="IconRefreshAlert"
-              onClick={handleCheckUpdates}
-              disabled={checkingUpdates || !isOnline}
-              loading={checkingUpdates}
-            >
-              {t('Check for Updates')}
-            </StyledButton>
-          </div>
+      <div className="w-full">
+        <div className="nd-page">
+          <PageHeader
+            eyebrow={t('Apps')}
+            title={t('Apps')}
+            description={t(
+              'Manage the applications that are available in monolith-nomad. Nightly update checks will automatically detect when new versions of these apps are available.'
+            )}
+            actions={
+              <StyledButton
+                icon="IconRefreshAlert"
+                onClick={handleCheckUpdates}
+                disabled={checkingUpdates || !isOnline}
+                loading={checkingUpdates}
+              >
+                {t('Check for Updates')}
+              </StyledButton>
+            }
+          />
           {loading && <LoadingSpinner fullscreen />}
           {!loading && (
             <StyledTable<ServiceSlim & { actions?: any }>
@@ -451,9 +480,8 @@ export default function SettingsPage(props: { system: { services: ServiceSlim[] 
           {installActivity.length > 0 && (
             <InstallActivityFeed activity={installActivity} className="mt-8" withHeader />
           )}
-        </main>
+        </div>
       </div>
     </SettingsLayout>
   )
 }
-

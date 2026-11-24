@@ -80,20 +80,17 @@ function StyledTable<T extends { [key: string]: any }>({
 
   return (
     <div
-      className={classNames(
-        'w-full overflow-x-auto bg-surface-primary ring-1 ring-border-default sm:mx-0 sm:rounded-lg p-1 shadow-md',
-        className
-      )}
+      className={classNames('w-full overflow-x-auto nd-card sm:mx-0', className)}
       ref={ref}
       {...containerProps}
     >
       <table className="min-w-full overflow-auto" {...restTableProps}>
-        <thead className='border-b border-border-subtle '>
+        <thead className="border-b border-border-default">
           <tr>
             {expandable && (
               <th
                 className={classNames(
-                  'whitespace-nowrap text-left font-semibold text-text-primary w-12',
+                  'whitespace-nowrap text-left w-12',
                   compact ? `${leftPadding} py-2` : `${leftPadding} py-4  pr-3`
                 )}
               />
@@ -101,8 +98,9 @@ function StyledTable<T extends { [key: string]: any }>({
             {columns.map((column, index) => (
               <th
                 key={index}
+                scope="col"
                 className={classNames(
-                  'whitespace-nowrap text-left font-semibold text-text-primary',
+                  'whitespace-nowrap text-left nd-eyebrow !text-[10px] font-normal',
                   compact ? `${leftPadding} py-2` : `${leftPadding} py-4  pr-3`
                 )}
               >
@@ -121,15 +119,32 @@ function StyledTable<T extends { [key: string]: any }>({
                   <tr
                     data-index={'index' in record ? record.index : recordIdx}
                     onClick={() => onRowClick?.(record)}
+                    tabIndex={onRowClick ? 0 : undefined}
+                    onKeyDown={
+                      onRowClick
+                        ? (e) => {
+                            if (e.target !== e.currentTarget) return
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              onRowClick(record)
+                            }
+                          }
+                        : undefined
+                    }
                     style={{
                       ...tableRowStyle,
                       height: 'height' in record ? record.height : 'auto',
                       transform:
-                        'translateY' in record ? 'translateY(' + record.transformY + 'px)' : undefined,
+                        'translateY' in record
+                          ? 'translateY(' + record.transformY + 'px)'
+                          : undefined,
                     }}
                     className={classNames(
                       rowLines ? 'border-b border-border-subtle' : '',
-                      onRowClick ? `cursor-pointer hover:bg-surface-secondary ` : ''
+                      onRowClick
+                        ? 'cursor-pointer hover:bg-surface-secondary focus-visible:outline-2 focus-visible:outline-accent focus-visible:-outline-offset-2'
+                        : 'hover:bg-surface-secondary/50',
+                      'transition-colors duration-[140ms] last:border-b-0'
                     )}
                   >
                     {expandable && (
@@ -141,6 +156,7 @@ function StyledTable<T extends { [key: string]: any }>({
                         onClick={(e) => toggleRowExpansion(record, recordIdx, e)}
                       >
                         <button
+                          type="button"
                           className="text-text-muted hover:text-text-primary focus:outline-none"
                           aria-label={isExpanded ? t('Collapse row') : t('Expand row')}
                         >
@@ -167,7 +183,7 @@ function StyledTable<T extends { [key: string]: any }>({
                       <td
                         key={index}
                         className={classNames(
-                          'relative text-sm max-w-72 break-words text-left',
+                          'relative text-sm text-text-primary font-normal max-w-72 break-words text-left',
                           column.noTruncate ? '' : 'whitespace-nowrap truncate',
                           column.className || '',
                           compact ? `${leftPadding} py-2` : `${leftPadding} py-4 pr-3`
@@ -191,7 +207,10 @@ function StyledTable<T extends { [key: string]: any }>({
             })}
           {!loading && data.length === 0 && (
             <tr>
-              <td colSpan={columns.length + (expandable ? 1 : 0)} className="!text-center py-8 text-text-muted">
+              <td
+                colSpan={columns.length + (expandable ? 1 : 0)}
+                className="!text-center py-8 text-text-muted"
+              >
                 {noDataText ?? t('No records found')}
               </td>
             </tr>

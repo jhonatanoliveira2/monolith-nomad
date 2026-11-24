@@ -196,7 +196,8 @@ class API {
 
   async downloadCategoryTier(
     categorySlug: string,
-    tierSlug: string
+    tierSlug: string,
+    resourceIds?: string[]
   ): Promise<{
     message: string
     categorySlug: string
@@ -207,6 +208,7 @@ class API {
       const response = await this.client.post('/zim/download-category-tier', {
         categorySlug,
         tierSlug,
+        ...(resourceIds ? { resourceIds } : {}),
       })
       return response.data
     })()
@@ -823,6 +825,16 @@ class API {
     return catchInternal(async () => {
       const response = await this.client.get<{ groups: CountryGroup[] }>('/maps/country-groups')
       return response.data.groups
+    })()
+  }
+
+  /** States of a country available as map extract regions (Brazil: the 27 federative units). */
+  async listSubdivisions(country: CountryCode) {
+    return catchInternal(async () => {
+      const response = await this.client.get<{
+        subdivisions: import('../../types/maps').Subdivision[]
+      }>(`/maps/countries/${encodeURIComponent(country)}/subdivisions`)
+      return response.data.subdivisions
     })()
   }
 

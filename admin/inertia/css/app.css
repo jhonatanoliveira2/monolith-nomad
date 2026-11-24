@@ -64,6 +64,9 @@
   --color-accent: #0e0e0e;
   --color-accent-contrast: #ffffff;
   --color-alert: #d71921;
+  /* Ubuntu orange: the one highlight colour (brand dot, active navigation, focus, live activity, progress) */
+  --color-highlight: #e95420;
+  --color-highlight-contrast: #ffffff;
 
   --color-desert-white: #ffffff;
   --color-desert-sand: #f2f2f2;
@@ -115,6 +118,18 @@
   /* Button interactive states */
   --color-btn-green-hover: #333333;
   --color-btn-green-active: #000000;
+
+  /* Design-system additions (redesign, 2026-11-23). Translucent chrome, indicator and radii. */
+  --color-glass: rgb(255 255 255 / 0.78);
+  --color-scrim: rgb(0 0 0 / 0.45);
+  --color-led: #0e0e0e;
+  --color-led-off: #cfcfcf;
+  --radius-card: 1.25rem;
+  --radius-panel: 1.75rem;
+  --animate-nd-rise: nd-rise 480ms var(--ease-nothing) both;
+  --animate-nd-fade: nd-fade 240ms var(--ease-nothing) both;
+  --animate-nd-blink: nd-blink 1.2s steps(1, end) infinite;
+  --animate-nd-dots: nd-dots 1.2s var(--ease-nothing) infinite;
 }
 
 html {
@@ -195,7 +210,19 @@ body {
   --color-btn-green-hover: #3a3a3a;
   --color-btn-green-active: #1f1f1f;
 
+  --color-glass: rgb(10 10 10 / 0.74);
+  --color-scrim: rgb(0 0 0 / 0.66);
+  --color-led: #f2f2f2;
+  --color-led-off: #333333;
+
   color-scheme: dark;
+}
+
+/* Light theme: the same dot field, ink on paper */
+body {
+  background-image: radial-gradient(circle, rgb(14 14 14 / 0.06) 0.8px, transparent 1px);
+  background-size: 9px 9px;
+  background-position: 4px 4px;
 }
 
 /* Dot-matrix texture behind the page (the shell's DotGrid: 9 px pitch, 1.6 px dot, 7 %) */
@@ -337,4 +364,320 @@ body {
 .themed-scrollbar:hover::-webkit-scrollbar-thumb:hover,
 .themed-scrollbar:focus::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-text-muted);
+}
+
+/* ==========================================================================
+ * monolith-nomad design system (Nothing-inspired). Reusable roles on top of the tokens above;
+ * React primitives live in inertia/components/nd/. Documented in docs/design-system.md.
+ *
+ * Type roles:   .nd-display (Doto, numbers and the wordmark) · headings (Space Grotesk, tight)
+ *               .nd-eyebrow (Space Mono, upper case: labels, groups, metadata)
+ * Surfaces:     page (dot field) → .nd-card (surface) → raised (surface-elevated) → .nd-glass (chrome)
+ * Spacing:      4 px grid; cards pad 20 px (p-5), sections are 40 px apart (gap-10)
+ * Motion:       140 ms feedback · 240 ms state · 480 ms entrance, one easing (--ease-nothing)
+ * ========================================================================== */
+
+@keyframes nd-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes nd-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes nd-blink {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  61%,
+  100% {
+    opacity: 0.25;
+  }
+}
+
+@keyframes nd-dots {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes nd-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@layer base {
+  ::selection {
+    background: var(--color-highlight);
+    color: var(--color-highlight-contrast);
+  }
+
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.015em;
+  }
+
+  /* One visible focus style for everything that does not draw its own ring */
+  a:focus-visible,
+  button:focus-visible,
+  [role='button']:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid var(--color-highlight);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Page container: same width and rhythm on every screen */
+  .nd-page {
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding: 1.5rem 1rem 4rem;
+  }
+  .nd-page-narrow {
+    max-width: 56rem;
+  }
+  @media (min-width: 640px) {
+    .nd-page {
+      padding-inline: 1.5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .nd-page {
+      padding: 2.5rem 2.5rem 5rem;
+    }
+  }
+
+  .nd-display {
+    font-family: var(--font-dot);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  .nd-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--color-text-muted);
+  }
+
+  .nd-mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .nd-card {
+    background-color: var(--color-surface-primary);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-card);
+  }
+
+  .nd-card-interactive {
+    transition:
+      border-color var(--duration-fast) var(--ease-nothing),
+      background-color var(--duration-fast) var(--ease-nothing),
+      transform var(--duration-fast) var(--ease-nothing);
+  }
+  .nd-card-interactive:hover {
+    border-color: var(--color-text-muted);
+    background-color: var(--color-surface-secondary);
+  }
+  .nd-card-interactive:active {
+    transform: scale(0.995);
+  }
+  .nd-card-interactive:focus-visible {
+    outline: 2px solid var(--color-highlight);
+    outline-offset: 2px;
+  }
+
+  /* Translucent chrome (top bar, toasts, floating toolbars). Text on it stays on solid colour tokens. */
+  .nd-glass {
+    background-color: var(--color-glass);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+  }
+
+  /* Local dot field, for hero areas and empty states */
+  .nd-dot-field {
+    background-image: radial-gradient(
+      circle,
+      color-mix(in oklab, var(--color-text-primary) 14%, transparent) 0.9px,
+      transparent 1.1px
+    );
+    background-size: 9px 9px;
+    background-position: 4px 4px;
+  }
+
+  /* Dotted rule: the dot language as a divider */
+  .nd-rule {
+    height: 2px;
+    border: 0;
+    background-image: radial-gradient(circle, var(--color-border-default) 1px, transparent 1.2px);
+    background-size: 6px 2px;
+    background-repeat: repeat-x;
+  }
+
+  .nd-led {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    flex-shrink: 0;
+    background-color: currentColor;
+  }
+
+  .nd-kbd {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1;
+    padding: 0.25rem 0.375rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--color-border-default);
+    color: var(--color-text-muted);
+  }
+
+  .nd-skeleton {
+    border-radius: 0.75rem;
+    background: linear-gradient(
+      90deg,
+      var(--color-surface-secondary) 0%,
+      var(--color-surface-elevated) 50%,
+      var(--color-surface-secondary) 100%
+    );
+    background-size: 200% 100%;
+    animation: nd-shimmer 1.6s linear infinite;
+  }
+
+  /* Form controls share one look (inputs, selects, search fields, textareas) */
+  .nd-field {
+    width: 100%;
+    border-radius: 0.875rem;
+    border: 1px solid var(--color-border-default);
+    background-color: var(--color-surface-primary);
+    color: var(--color-text-primary);
+    padding: 0.5rem 0.875rem;
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+    transition:
+      border-color var(--duration-fast) var(--ease-nothing),
+      box-shadow var(--duration-fast) var(--ease-nothing);
+  }
+  .nd-field::placeholder {
+    color: var(--color-text-muted);
+  }
+  .nd-field:hover {
+    border-color: var(--color-text-muted);
+  }
+  .nd-field:focus,
+  .nd-field:focus-visible {
+    outline: none;
+    border-color: var(--color-highlight);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-highlight) 25%, transparent);
+  }
+}
+
+/* ---------- Document reader (pdf.js text layer; rules from pdfjs-dist web/pdf_viewer.css, Apache-2.0) ---------- */
+.nd-pdf-page {
+  --scale-round-x: 1px;
+  --scale-round-y: 1px;
+  position: relative;
+  margin-inline: auto;
+  background: #ffffff;
+  box-shadow: 0 0 0 1px var(--color-border-default);
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+.nd-pdf-page canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.nd-pdf-page .textLayer {
+  position: absolute;
+  text-align: initial;
+  inset: 0;
+  overflow: clip;
+  opacity: 1;
+  line-height: 1;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  caret-color: CanvasText;
+  z-index: 0;
+  --min-font-size: 1;
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+}
+.nd-pdf-page .textLayer :is(span, br) {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+  user-select: text;
+}
+.nd-pdf-page .textLayer > :not(.markedContent),
+.nd-pdf-page .textLayer .markedContent span:not(.markedContent) {
+  z-index: 1;
+  --font-height: 0;
+  font-size: calc(var(--text-scale-factor) * var(--font-height));
+  --scale-x: 1;
+  --rotate: 0deg;
+  transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+}
+.nd-pdf-page .textLayer .markedContent {
+  display: contents;
+}
+.nd-pdf-page .textLayer ::selection {
+  background: rgb(0 0 0 / 0.22);
+  color: transparent;
+}
+.nd-pdf-page .textLayer .endOfContent {
+  display: block;
+  position: absolute;
+  inset: 100% 0 0;
+  z-index: 0;
+  cursor: default;
+  user-select: none;
+}
+/* search hits: Nothing red at low opacity, readable over any page */
+.nd-pdf-page .textLayer .nd-hit {
+  background-color: rgb(215 25 33 / 0.28);
+  border-radius: 2px;
+}
+.nd-pdf-page .textLayer .nd-hit-current {
+  background-color: rgb(215 25 33 / 0.5);
+  outline: 1px solid #d71921;
+}
+/* the dark reading mode inverts the page, not the interface (images stay recognisable) */
+[data-reader-dark='true'] .nd-pdf-page canvas {
+  filter: invert(0.92) hue-rotate(180deg);
 }
