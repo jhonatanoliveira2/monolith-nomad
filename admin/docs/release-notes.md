@@ -2,7 +2,7 @@
 
 Issues and suggestions: [GitHub Issues](https://github.com/jhonatanoliveira2/monolith-nomad/issues).
 
-## Unreleased
+## Version 1.2.0 - November 24, 2026
 
 ### Interface
 - **Nothing redesign:** a single navigation grouped by Knowledge, Content, Apps, System and Help; a command palette (**Ctrl K**); a dashboard with system status and downloads; and a **[Downloads](/downloads)** screen with every queue in one place.
