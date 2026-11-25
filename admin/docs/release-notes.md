@@ -2,7 +2,7 @@
 
 Issues and suggestions: [GitHub Issues](https://github.com/jhonatanoliveira2/monolith-nomad/issues).
 
-## Unreleased
+## Version 1.3.0 - November 25, 2026
 
 ### Local assistant (offline AI)
 - **Everything on the server:** chat, embeddings, library search and translation use only Ollama, Qdrant and the local translator. The internet is only used to download models and content.
