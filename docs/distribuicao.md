@@ -10,7 +10,7 @@ O compose (`install/management_compose.yaml`) usa as imagens do fork. Elas preci
    - **Build Primary Docker Image** → `ghcr.io/jhonatanoliveira2/project-nomad`
    - **Build Sidecar Updater** → `…/project-nomad-sidecar-updater`
    - **Build Disk Collector** → `…/project-nomad-disk-collector`
-   - **Build Translate Proxy** → `…/project-nomad-translate`. Use a versão `0.1.2`, que é a do seeder (`service_seeder.ts`).
+   - **Build Translate Proxy** → `…/project-nomad-translate`. Use a versão do seeder (`service_seeder.ts`), hoje `0.2.0`; o tradutor tem numeração própria e só muda quando `install/nomad-translate` muda.
 2. Em **Packages**, abra cada pacote, vá em *Package settings* e mude *Change visibility* para **Public**. Pacotes novos no ghcr nascem privados.
 3. Para o atualizador do app encontrar versões, publique uma **release** com tag semver (`v1.36.0`). O app compara com a versão gravada na imagem (o build-arg `VERSION`).
 
@@ -27,7 +27,7 @@ Os workflows publicam em `ghcr.io/<dono do repositório em minúsculas>`. Isso �
 | Checagem de versão e atualização automática | `api.github.com/repos/jhonatanoliveira2/monolith-nomad/releases` | `admin/constants/project.ts` |
 | Catálogos (`collections/*.json`) | `raw.githubusercontent.com/jhonatanoliveira2/monolith-nomad/…/collections/` | `admin/constants/project.ts` |
 | ZIM mini da Wikipédia (pré-instalação do Kiwix) | este repositório, `install/wikipedia_en_100_mini_2026-01.zim` | `docker_service.ts` |
-| Imagem do tradutor | `ghcr.io/jhonatanoliveira2/project-nomad-translate:0.1.2` | `service_seeder.ts` |
+| Imagem do tradutor | `ghcr.io/jhonatanoliveira2/project-nomad-translate:0.2.0` | `service_seeder.ts` |
 | Rótulos OCI da imagem | `org.opencontainers.image.source` = este repositório (vincula o pacote do ghcr ao repo) | `Dockerfile` |
 
 **Os nomes técnicos não mudaram, de propósito:** `/opt/project-nomad`, os containers `nomad_*`, o projeto compose `project-nomad`, os nomes base das imagens `project-nomad*` e os cabeçalhos `X-NOMAD-*`. Renomeá-los deixaria containers órfãos e quebraria o caminho de atualização.

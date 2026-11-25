@@ -2,9 +2,15 @@ import logger from '@adonisjs/core/services/logger'
 import KVStore from '#models/kv_store'
 import { RAG_MIN_FINAL_SCORE } from '../../constants/ollama.js'
 import { parseMinRelevance } from './misc.js'
+import { EMBEDDING_PROFILES, isEmbeddingProfileId } from './embedding_profile.js'
 
 /**
  * Resolves the user's retrieval relevance floor (`rag.minRelevance`), cached.
+ *
+ * Unset means the balanced floor of the index's embedding profile (`rag.embeddingProfile`): scores
+ * live on each model's own scale, and the nomic-tuned 0.62 drops most relevant passages under
+ * EmbeddingGemma. Until a profile is recorded (the first search records it) the legacy default is
+ * used, uncached, so the next turn picks the recorded profile up.
  *
  * Read on every chat turn, changed roughly never, so a KV round-trip per turn
  * would be pure overhead on the critical path. Cached at module scope rather
@@ -32,8 +38,12 @@ export async function resolveMinFinalScore(): Promise<number> {
   if (cache && now < cache.expiresAt) return cache.value
 
   let raw: string | null = null
+  let profileId: string | null = null
   try {
-    raw = await KVStore.getValue('rag.minRelevance')
+    ;[raw, profileId] = await Promise.all([
+      KVStore.getValue('rag.minRelevance'),
+      KVStore.getValue('rag.embeddingProfile'),
+    ])
   } catch (error) {
     // A KV read failure must not take retrieval out, and must not be cached —
     // fall back to the default and let the next turn try again.
@@ -43,7 +53,9 @@ export async function resolveMinFinalScore(): Promise<number> {
     return RAG_MIN_FINAL_SCORE
   }
 
-  const value = parseMinRelevance(raw, RAG_MIN_FINAL_SCORE)
-  cache = { value, expiresAt: now + CACHE_TTL_MS }
+  const recorded = isEmbeddingProfileId(profileId) ? EMBEDDING_PROFILES[profileId] : null
+  const fallback = recorded ? recorded.relevanceFloors.balanced : RAG_MIN_FINAL_SCORE
+  const value = parseMinRelevance(raw, fallback)
+  if (recorded) cache = { value, expiresAt: now + CACHE_TTL_MS }
   return value
 }

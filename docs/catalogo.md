@@ -52,14 +52,39 @@ Na instalação, cada download é conferido contra o SHA-256 do metalink. Quando
 - uma divergência de hash ou de formato falha o download de vez, com a mensagem "Falha na verificação de integridade". A página oficial da obra continua no card como alternativa;
 - o arquivo instalado entra na Base de Conhecimento (RAG), como os ZIMs, e é servido só se tiver linha de instalação (`GET /api/library/files/:filename`, sem acesso a outras pastas);
 - leitura offline: PDF no visualizador do navegador, EPUB no leitor da página (epub.js, sem scripts do livro);
-- sem internet e sem cache, o app usa a cópia do `library.json` embutida na imagem.
+- a imagem traz uma cópia do `library.json`. Entre ela e a versão em cache, baixada do GitHub, vale a de `spec_version` mais nova (`app/utils/manifest_version.ts`). Assim uma instalação sem internet tem a Biblioteca desde o primeiro boot, e uma imagem construída antes do push não troca o próprio catálogo por um mais antigo. Uma versão mais nova publicada no GitHub continua valendo.
 
 O Calibre-Web continua disponível no Depósito de Apps para quem quiser uma biblioteca própria. Os arquivos da Biblioteca ficam fora de `storage/books`, porque o Calibre-Web só exibe o que está registrado no `metadata.db` dele.
 
 A verificação com rede (`node scripts/check-catalog-availability.mjs`) inclui os documentos: com `--hashes`, baixa cada um e compara com o SHA-256 fixado.
 
+## Biblioteca de sobrevivência
+
+Área `sobrevivencia` da Biblioteca: **25 publicações oficiais brasileiras em PDF (~138 MB)**, curadas em 24/11/2026. É a base principal do modo Sobrevivência do assistente local (ver [`assistente-local.md`](assistente-local.md)).
+
+**Como entra uma obra:**
+- metadados escritos à mão em `collections/curation/survival-library.json` (título, autoria, edição, áreas, assuntos, níveis, URL oficial, licença);
+- `node scripts/build-library-entries.mjs` baixa o PDF da URL oficial, confere a assinatura `%PDF-`, procura a evidência da licença (`license_evidence`) no texto das 8 primeiras páginas, calcula tamanho e SHA-256 e grava as entradas em `library.json`. Sem a evidência no arquivo, a obra fica de fora;
+- o vínculo com níveis, ameaças, fases, temas e regiões fica em `collections/survival.json` (campo `works`), que também liga 19 ZIMs já existentes no catálogo (água, alimentos, medicina, pós-desastre, Ready.gov, Appropedia, rádio amador e outros).
+
+**Obras por editor:**
+
+| Editor | Obras | Licença impressa no arquivo |
+|---|---|---|
+| Ministério da Saúde | 17: água em casa e qualidade da água, inundações (guia, abrigos, UBS), planos de contingência (chuvas intensas, seca e estiagem, barragens), queimadas, violências em emergências climáticas, animais peçonhentos, protocolos de acidentes ofídicos e escorpiônicos, Guia de Vigilância em Saúde (3 volumes), alimentos regionais | CC BY-NC-SA 4.0 |
+| Ministério do Desenvolvimento Regional (SEDEC) | 2: caderno de gestão integrada de riscos (GIRD+10), guia de alertas do Governo Federal | CC BY-NC-SA 4.0; reprodução de dados com citação da fonte |
+| Ministério do Meio Ambiente e Mudança do Clima | 6: "Comunidades preparadas" (guia de diálogos e cadernos de inundações, deslizamentos, secas, incêndios, ondas de calor) | reprodução sem fins lucrativos com citação |
+
+**Níveis da Configuração Rápida** (cumulativos): **Essencial** (9 obras curtas para o público: cadernos do MMA, água em casa, animais peçonhentos, queimadas), **Padrão** (+11: planos de contingência, inundações, alertas, GIRD, alimentos regionais), **Completo** (+5: protocolos clínicos e Guia de Vigilância). O padrão é Completo.
+
+**gov.br:** os servidores respondem 403 a `HEAD`. A sonda de download tenta um `GET` de 1 byte quando o `HEAD` é recusado; sem isso os 22 PDFs do gov.br falhariam.
+
+**Avaliadas e deixadas de fora (24/11/2026):** Embrapa (agricultura, hortas, semiárido: "Todos os direitos reservados" no arquivo); OPAS (primeiros cuidados psicológicos), CICV, manuais da Defesa Civil de 1999, suporte básico de vida do SAMU e materiais da Fiocruz (sem licença de reprodução no arquivo).
+
 ## O que não existe em português (pendências)
 
 Até 21/11/2026 não foi encontrado nenhum ZIM pronto, no Kiwix ou em outra fonte confiável, para: legislação brasileira, SUS e saúde pública, ENEM e vestibulares, Embrapa e agricultura brasileira, IBGE e dados nacionais, Defesa Civil (equivalente ao Ready.gov), bulário da Anvisa (equivalente ao openFDA). Para esses conteúdos o caminho seria pedir uma receita ao Kiwix (repositório `openzim/zim-requests`), não montar arquivos aqui.
+
+Sobrevivência (24/11/2026): faltam em português, com licença no arquivo, agricultura e produção de alimentos (Embrapa), primeiros socorros para leigos, primeiros cuidados psicológicos e orientação e navegação. Para essas áreas o agente usa os ZIMs em inglês (busca com termos em inglês) e diz quando a fonte não é brasileira.
 
 Mapas: o Brasil já é coberto pela extração por país (Protomaps, em Configurações → Mapas). A coleção pronta `maps.json` continua só com os estados dos EUA.

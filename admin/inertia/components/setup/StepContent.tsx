@@ -9,6 +9,7 @@ import WikipediaSelector from '~/components/WikipediaSelector'
 import { DEFAULT_SELECTION, PROFILES, type SetupDraft } from '~/lib/setup_plan'
 import type { CategoryWithStatus } from '../../../types/collections'
 import CategoryPlanner, { PROFILE_LABEL } from './CategoryPlanner'
+import SurvivalLibraryPicker from './SurvivalLibraryPicker'
 
 export default function StepContent({
   draft,
@@ -20,6 +21,7 @@ export default function StepContent({
   kiwixReady,
   enableKiwix,
   online,
+  survival,
 }: {
   draft: SetupDraft
   update: (patch: Partial<SetupDraft>) => void
@@ -30,23 +32,40 @@ export default function StepContent({
   kiwixReady: boolean
   enableKiwix: () => void
   online: boolean
+  survival: {
+    items: React.ComponentProps<typeof SurvivalLibraryPicker>['items']
+    plan: React.ComponentProps<typeof SurvivalLibraryPicker>['plan']
+  }
 }) {
   const { t } = useTranslation()
+  // Survival PDFs come first (the priority content) and need no Kiwix
+  const survivalSection = (
+    <SurvivalLibraryPicker
+      draft={draft}
+      update={update}
+      items={survival.items}
+      plan={survival.plan}
+      online={online}
+    />
+  )
 
   if (!kiwixReady) {
     return (
-      <EmptyState
-        icon={<IconBooks size={22} />}
-        title={t('Content needs the Information Library')}
-        description={t(
-          'Wikipedia, courses and reference collections open in the Information Library (Kiwix).'
-        )}
-        action={
-          <StyledButton onClick={enableKiwix} disabled={!online}>
-            {t('Add the Information Library')}
-          </StyledButton>
-        }
-      />
+      <div className="space-y-10">
+        {survivalSection}
+        <EmptyState
+          icon={<IconBooks size={22} />}
+          title={t('Content needs the Information Library')}
+          description={t(
+            'Wikipedia, courses and reference collections open in the Information Library (Kiwix).'
+          )}
+          action={
+            <StyledButton onClick={enableKiwix} disabled={!online}>
+              {t('Add the Information Library')}
+            </StyledButton>
+          }
+        />
+      </div>
     )
   }
 
@@ -62,6 +81,7 @@ export default function StepContent({
 
   return (
     <div className="space-y-10">
+      {survivalSection}
       <section aria-labelledby="content-wikipedia">
         <h2 id="content-wikipedia" className="sr-only">
           Wikipedia

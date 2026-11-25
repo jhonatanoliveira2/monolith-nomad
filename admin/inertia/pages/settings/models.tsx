@@ -42,6 +42,8 @@ export default function ModelsPage(props: {
       ragEnabled: boolean
       contextWindow: string
       minRelevance: number
+      /** Presets on the index's embedding model scale (scores differ between models). */
+      minRelevancePresets: { value: number; label: string }[]
       relevanceCheck: boolean
       responseStyle: string
     }
@@ -245,8 +247,9 @@ export default function ModelsPage(props: {
   // floor, which is not a thing anyone can reason about directly. The stored
   // setting is still the number, so retuning these labels later cannot orphan a
   // saved value.
+  const relevancePresets = props.models.settings.minRelevancePresets ?? RAG_MIN_RELEVANCE_PRESETS
   const minRelevanceOptions = [
-    ...RAG_MIN_RELEVANCE_PRESETS.map((preset) => ({
+    ...relevancePresets.map((preset) => ({
       value: String(preset.value),
       label: t(preset.label),
     })),
@@ -254,7 +257,7 @@ export default function ModelsPage(props: {
     // preset ladder is reachable. Surface it as a disabled option rather than
     // letting the select render empty — same treatment the tasks model gets when
     // the chosen model has since been deleted.
-    ...(RAG_MIN_RELEVANCE_PRESETS.some((p) => String(p.value) === minRelevance)
+    ...(relevancePresets.some((p) => String(p.value) === minRelevance)
       ? []
       : [
           {

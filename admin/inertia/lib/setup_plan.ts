@@ -198,6 +198,11 @@ export type SetupDraft = {
   ingestPolicy: 'Always' | 'Manual'
   timezone: string
   state: string | null
+  /** Survival works of the Library to download (official Brazilian PDFs). Absent in older drafts. */
+  survivalLibrary: SurvivalLibraryProfile
+  /** Living environment and place, for the survival agent's answers. */
+  environment: 'urbano' | 'rural' | null
+  place: string | null
 }
 
 const isStringArray = (v: unknown): v is string[] =>
@@ -249,7 +254,100 @@ export function parseDraft(raw: unknown): SetupDraft | null {
     ingestPolicy: d.ingestPolicy === 'Always' ? 'Always' : 'Manual',
     timezone: typeof d.timezone === 'string' ? d.timezone : 'America/Sao_Paulo',
     state: typeof d.state === 'string' ? d.state : null,
+    survivalLibrary: SURVIVAL_LIBRARY_PROFILES.includes(d.survivalLibrary)
+      ? d.survivalLibrary
+      : DEFAULT_SURVIVAL_LIBRARY,
+    environment: d.environment === 'urbano' || d.environment === 'rural' ? d.environment : null,
+    place: typeof d.place === 'string' ? d.place.slice(0, 80) : null,
   }
+}
+
+// ---- Survival library (collections/library.json, area "sobrevivencia") ----
+
+export type SurvivalLibraryProfile = 'none' | 'essential' | 'standard' | 'complete'
+export const SURVIVAL_LIBRARY_PROFILES: SurvivalLibraryProfile[] = [
+  'none',
+  'essential',
+  'standard',
+  'complete',
+]
+/** The whole set is ~130 MB of PDFs, so the complete level is the default. */
+export const DEFAULT_SURVIVAL_LIBRARY: SurvivalLibraryProfile = 'complete'
+
+/**
+ * Works added at each level (each level includes the previous ones):
+ * - essential: what a family uses first — community preparedness by hazard (MMA), safe water at
+ *   home, venomous animals, smoke from fires;
+ * - standard: Ministry of Health contingency plans and flood guidance, Civil Defence (MDR), water
+ *   quality, violence prevention in shelters, regional foods;
+ * - complete: clinical protocols for snake and scorpion accidents and the 3-volume surveillance
+ *   guide (epidemics), written for health professionals.
+ */
+export const SURVIVAL_LIBRARY_TIERS: Record<Exclude<SurvivalLibraryProfile, 'none'>, string[]> = {
+  essential: [
+    'mma-guia-dialogos-eventos-extremos',
+    'mma-caderno-inundacoes',
+    'mma-caderno-deslizamentos',
+    'mma-caderno-secas',
+    'mma-caderno-incendios',
+    'mma-caderno-ondas-de-calor',
+    'ms-agua-tratada-em-casa',
+    'ms-guia-animais-peconhentos',
+    'ms-queimadas-incendios',
+  ],
+  standard: [
+    'ms-qualidade-da-agua',
+    'ms-guia-inundacao',
+    'ms-inundacoes-abrigos',
+    'ms-inundacoes-ubs',
+    'ms-plano-chuvas-intensas',
+    'ms-plano-seca-estiagem',
+    'ms-plano-barragens',
+    'ms-violencias-emergencias-climaticas',
+    'mdr-caderno-gird',
+    'mdr-guia-alertas',
+    'ms-alimentos-regionais',
+  ],
+  complete: [
+    'ms-pcdt-acidentes-ofidicos',
+    'ms-pcdt-acidentes-escorpionicos',
+    'ms-guia-vigilancia-saude-vol-1',
+    'ms-guia-vigilancia-saude-vol-2',
+    'ms-guia-vigilancia-saude-vol-3',
+  ],
+}
+
+export function survivalLibraryIds(profile: SurvivalLibraryProfile): string[] {
+  if (profile === 'none') return []
+  const order: Exclude<SurvivalLibraryProfile, 'none'>[] = ['essential', 'standard', 'complete']
+  return order.slice(0, order.indexOf(profile) + 1).flatMap((tier) => SURVIVAL_LIBRARY_TIERS[tier])
+}
+
+type SurvivalItem = {
+  id: string
+  title: string
+  files: { format: string; status: string; size_bytes?: number }[]
+}
+
+/**
+ * PDFs to queue for a survival level: works present in the manifest whose PDF is not installed or
+ * already downloading. Ids missing from the manifest (an older cached copy) are simply skipped.
+ */
+export function survivalLibraryPlan(items: SurvivalItem[], profile: SurvivalLibraryProfile) {
+  const wanted = new Set(survivalLibraryIds(profile))
+  const queue: { id: string; title: string; bytes: number }[] = []
+  let skipped = 0
+  for (const item of items) {
+    if (!wanted.has(item.id)) continue
+    const pdf = item.files.find((f) => f.format === 'pdf')
+    if (!pdf) continue
+    if (pdf.status === 'installed' || pdf.status === 'downloading') {
+      skipped++
+      continue
+    }
+    queue.push({ id: item.id, title: item.title, bytes: pdf.size_bytes ?? 0 })
+  }
+  return { queue, skipped, bytes: queue.reduce((n, q) => n + q.bytes, 0) }
 }
 
 /** ISO codes for the map extract of a draft (BR, or the BR-XX states of the chosen regions/states). */

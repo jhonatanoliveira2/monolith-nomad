@@ -14,7 +14,8 @@ import {
   readModelfileSamplers,
 } from '../utils/sampler.js'
 import { NomadOllamaModel, SamplerProfile } from '../../types/ollama.js'
-import { EMBEDDING_MODEL_NAME, FALLBACK_RECOMMENDED_OLLAMA_MODELS } from '../../constants/ollama.js'
+import { FALLBACK_RECOMMENDED_OLLAMA_MODELS } from '../../constants/ollama.js'
+import { isKnownEmbeddingModel } from '../utils/embedding_profile.js'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import logger from '@adonisjs/core/services/logger'
@@ -94,6 +95,8 @@ export type NomadChatUsage = {
   promptTokens?: number
   completionTokens?: number
   promptEvalMs?: number
+  /** Generation time (native transport only), for tokens-per-second monitoring. */
+  evalMs?: number
 }
 
 export type NomadChatResponse = {
@@ -206,6 +209,12 @@ function toNativeMessages(messages: ChatInput['messages']): Array<{
     return out
   })
 }
+
+/**
+ * The num_ctx last requested per model (process-wide: services are not singletons). Kept so calls
+ * that don't set a window keep the loaded instance instead of forcing a reload; see _nativeOptions.
+ */
+const lastNumCtxByModel = new Map<string, number>()
 
 @inject()
 export class OllamaService {
@@ -597,7 +606,13 @@ export class OllamaService {
    */
   private _nativeOptions(chatRequest: ChatInput): Record<string, number> {
     const options: Record<string, number> = {}
-    if (chatRequest.numCtx) options.num_ctx = chatRequest.numCtx
+    // Auxiliary calls (query rewrite, relevance check, suggestions, survival classification,
+    // translation, partial summaries) don't know the window. Sent without num_ctx they ask for the
+    // server default, and when they share the chat model Ollama reloads it twice per turn (~8 s
+    // each on gemma4:12b, measured 25/11/2026). Reuse the last window the chat path sent instead.
+    const numCtx = chatRequest.numCtx ?? lastNumCtxByModel.get(chatRequest.model)
+    if (chatRequest.numCtx) lastNumCtxByModel.set(chatRequest.model, chatRequest.numCtx)
+    if (numCtx) options.num_ctx = numCtx
     if (chatRequest.numPredict) options.num_predict = chatRequest.numPredict
     // Spread first so an explicit temperature below overrides the style's.
     Object.assign(options, nativeSamplerOptions(chatRequest.sampler))
@@ -710,6 +725,7 @@ export class OllamaService {
         promptTokens: response.prompt_eval_count,
         completionTokens: response.eval_count,
         promptEvalMs: nsToMs(response.prompt_eval_duration),
+        evalMs: nsToMs(response.eval_duration),
       },
     }
   }
@@ -809,6 +825,7 @@ export class OllamaService {
                     promptTokens: chunk.prompt_eval_count,
                     completionTokens: chunk.eval_count,
                     promptEvalMs: nsToMs(chunk.prompt_eval_duration),
+                    evalMs: nsToMs(chunk.eval_duration),
                   },
                 }
               : {}),
@@ -1179,6 +1196,34 @@ export class OllamaService {
    * Only the Ollama-native endpoint is supported — backends that expose
    * `/v1/embeddings` (LM Studio, llama.cpp) don't surface placement info.
    */
+  /** Models resident in Ollama right now (/api/ps), with how much of each sits in VRAM. */
+  public async getLoadedModels(): Promise<
+    Array<{
+      name: string
+      sizeBytes: number
+      vramBytes: number
+      contextLength: number | null
+      expiresAt: string | null
+    }>
+  > {
+    try {
+      // Not installed, not running, or an OpenAI-compatible backend: nothing is loaded
+      await this._ensureDependencies()
+      if (!this.baseUrl) return []
+      const response = await axios.get(`${this.baseUrl}/api/ps`, { timeout: 3000 })
+      const models: any[] = response.data?.models ?? []
+      return models.map((m) => ({
+        name: String(m.name ?? ''),
+        sizeBytes: Number(m.size ?? 0),
+        vramBytes: Number(m.size_vram ?? 0),
+        contextLength: typeof m.context_length === 'number' ? m.context_length : null,
+        expiresAt: typeof m.expires_at === 'string' ? m.expires_at : null,
+      }))
+    } catch {
+      return []
+    }
+  }
+
   public async isEmbeddingGpuAccelerated(): Promise<boolean> {
     await this._ensureDependencies()
     if (!this.baseUrl) return false
@@ -1252,7 +1297,7 @@ export class OllamaService {
     }
 
     const toUnload = loadedModels.filter(
-      (name) => name !== EMBEDDING_MODEL_NAME && name !== targetModel && name !== tasksModel
+      (name) => !isKnownEmbeddingModel(name) && name !== targetModel && name !== tasksModel
     )
 
     await Promise.all(

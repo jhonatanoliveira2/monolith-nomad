@@ -1,5 +1,6 @@
 import type Docker from 'dockerode'
 import { mapGfxToHsaOverride, readHsaOverrideFromEnv } from '../utils/amd_hsa_override.js'
+import type { AmdBackend } from '../utils/amd_backend.js'
 
 /**
  * Pure helpers for classifying which compute backend Ollama actually loaded,
@@ -100,6 +101,13 @@ function isRocmImage(image: string | undefined): boolean {
   return /:[^/:]*rocm[^/:]*$/i.test(image ?? '')
 }
 
+/** An AMD container set up for Ollama's Vulkan backend: OLLAMA_VULKAN=1 with /dev/dri passed in. */
+function isVulkanAmdContainer(container: OllamaContainerSnapshot): boolean {
+  return (
+    (container.Config?.Env ?? []).includes('OLLAMA_VULKAN=1') && hasDevice(container, '/dev/dri')
+  )
+}
+
 /**
  * Which GPU vendor, if any, Ollama is expected to run on.
  *
@@ -128,7 +136,11 @@ export function resolveExpectedGpuVendor(input: {
     if ((container.HostConfig?.DeviceRequests ?? []).some((r) => r.Driver === 'nvidia')) {
       return 'nvidia'
     }
-    if (isRocmImage(container.Config?.Image) || hasDevice(container, '/dev/kfd')) {
+    if (
+      isRocmImage(container.Config?.Image) ||
+      hasDevice(container, '/dev/kfd') ||
+      isVulkanAmdContainer(container)
+    ) {
       return 'amd'
     }
   }
@@ -145,10 +157,21 @@ export function resolveExpectedGpuVendor(input: {
  */
 export function diffAmdOllamaConfig(
   container: OllamaContainerSnapshot,
-  desiredHsaOverride: string | null
+  desiredHsaOverride: string | null,
+  desiredBackend: AmdBackend = 'rocm'
 ): string[] {
   const drift: string[] = []
   const env = container.Config?.Env ?? []
+
+  // Vulkan (RDNA 4 default, see amd_backend.ts): the standard image, /dev/dri only, no HSA override
+  if (desiredBackend === 'vulkan') {
+    if (isRocmImage(container.Config?.Image)) {
+      drift.push(`image is ${container.Config?.Image}, not the standard build with Vulkan`)
+    }
+    if (!hasDevice(container, '/dev/dri')) drift.push('/dev/dri is not passed through')
+    if (!env.includes('OLLAMA_VULKAN=1')) drift.push('OLLAMA_VULKAN=1 is not set')
+    return drift
+  }
 
   if (!isRocmImage(container.Config?.Image)) {
     drift.push(`image is ${container.Config?.Image ?? 'unknown'}, not the ROCm build`)
@@ -186,7 +209,8 @@ export function parseAmdGfxTargetFromLogs(logText: string): string | null {
 export function diagnoseAmdCpuFallback(
   container: OllamaContainerSnapshot,
   logText: string,
-  desiredHsaOverride: string | null
+  desiredHsaOverride: string | null,
+  desiredBackend: AmdBackend = 'rocm'
 ) {
   const gfx = parseAmdGfxTargetFromLogs(logText)
   const current = readHsaOverrideFromEnv(container.Config?.Env)
@@ -195,7 +219,8 @@ export function diagnoseAmdCpuFallback(
   // The override the container carries is the better suggestion then (#1377).
   const suggested = current ?? (gfx ? mapGfxToHsaOverride(gfx) : null)
   return {
-    amdReinstallWouldChange: diffAmdOllamaConfig(container, desiredHsaOverride).length > 0,
+    amdReinstallWouldChange:
+      diffAmdOllamaConfig(container, desiredHsaOverride, desiredBackend).length > 0,
     ...(gfx && { amdGfxTarget: gfx }),
     ...(current && { currentHsaOverride: current }),
     ...(suggested && { suggestedHsaOverride: suggested }),

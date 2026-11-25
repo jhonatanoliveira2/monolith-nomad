@@ -41,6 +41,14 @@ export function validateSettingValue(key: KVStoreKey, value: unknown): string | 
     case 'regional.state':
       if (value === null || value === undefined || value === '') return null
       return BRAZIL_STATES.some((s) => s.code === value) ? null : 'Unknown state.'
+    case 'regional.environment':
+      if (value === null || value === undefined || value === '') return null
+      return value === 'urbano' || value === 'rural' ? null : 'Environment must be urbano or rural.'
+    case 'regional.place':
+      if (value === null || value === undefined || value === '') return null
+      if (typeof value !== 'string' || value.trim().length > 80) return 'Place name too long.'
+      // eslint-disable-next-line no-control-regex
+      return /[\u0000-\u001f<>]/.test(value) ? 'Invalid characters in place name.' : null
     case 'ui.easySetupDraft':
       if (value === null || value === undefined || value === '') return null
       if (typeof value !== 'string' || value.length > 20000) return 'Draft too large.'
@@ -171,6 +179,11 @@ export function validateSettingValue(key: KVStoreKey, value: unknown): string | 
       }
       return null
     }
+    case 'ai.amdBackend':
+      if (value === null || value === undefined || value === '') return null
+      return ['auto', 'rocm', 'vulkan'].includes(String(value))
+        ? null
+        : 'Backend must be auto, rocm or vulkan.'
     case 'ai.amdHsaOverride': {
       // Lands in the Ollama container env as HSA_OVERRIDE_GFX_VERSION, so only
       // the forms DockerService._resolveAmdHsaOverride honours are accepted.

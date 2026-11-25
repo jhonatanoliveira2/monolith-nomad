@@ -15,7 +15,8 @@
  */
 
 import { parseParameterBillions } from './context_window.js'
-import type { ChatSource } from '../../types/chat.js'
+import type { ChatSource, ChatSourceLocation } from '../../types/chat.js'
+import { locationLabel } from './document_segments.js'
 
 export type ContextLimits = { maxResults: number; maxTokens: number }
 export type ContextLimitTier = { maxParams: number; maxResults: number; maxTokens: number }
@@ -65,9 +66,11 @@ export function buildContextBlock(docs: BudgetableChunk[]): string {
       const title =
         doc.metadata?.archive_title || doc.metadata?.full_title || doc.metadata?.article_title
       const date = doc.metadata?.archive_date
+      // Page range or chapter of a PDF/EPUB passage, so the model can cite "p. 12" truthfully
+      const where = locationLabel(doc.metadata)
       const label = title
-        ? `[Context ${idx + 1} — ${title}${date ? ` (${date})` : ''}]`
-        : `[Context ${idx + 1}]`
+        ? `[Context ${idx + 1} — ${title}${date ? ` (${date})` : ''}${where ? `, ${where}` : ''}]`
+        : `[Context ${idx + 1}${where ? ` — ${where}` : ''}]`
       return `${label}\n${doc.text}`
     })
     .join('\n\n')
@@ -90,22 +93,53 @@ export function buildCitations(docs: BudgetableChunk[]): ChatSource[] {
   const seen = new Set<string>()
   const sources: ChatSource[] = []
 
+  const byKey = new Map<string, ChatSource>()
+
   for (const doc of docs) {
     const title =
       doc.metadata?.archive_title || doc.metadata?.full_title || doc.metadata?.article_title
     const path = doc.metadata?.source as string | undefined
     const key = path || title
-    if (!key || seen.has(key)) continue
+    if (!key) continue
+
+    // Several chunks of one document collapse into one entry, but each distinct page range or chapter
+    // they came from is kept, so "Guia X, p. 12 e p. 40" stays checkable.
+    const label = locationLabel(doc.metadata)
+    const location: ChatSourceLocation | null = label
+      ? {
+          label,
+          ...(typeof doc.metadata?.page_start === 'number'
+            ? { page: doc.metadata.page_start }
+            : {}),
+          ...(typeof doc.metadata?.chapter_href === 'string'
+            ? { href: doc.metadata.chapter_href }
+            : {}),
+        }
+      : null
+
+    if (seen.has(key)) {
+      const existing = byKey.get(key)!
+      if (location && !existing.locations?.some((l) => l.label === location.label)) {
+        existing.locations = [...(existing.locations ?? []), location].slice(0, MAX_LOCATIONS)
+      }
+      continue
+    }
     seen.add(key)
 
-    sources.push({
+    const entry: ChatSource = {
       // A user-uploaded PDF carries no embedded title, so fall back to its
       // filename -- which is what the user named it and will recognise.
       title: title || path!.split('/').pop() || path!,
       date: doc.metadata?.archive_date,
       source: path,
-    })
+      ...(location ? { locations: [location] } : {}),
+    }
+    byKey.set(key, entry)
+    sources.push(entry)
   }
 
   return sources
 }
+
+/** Distinct pages/chapters listed per cited source. */
+const MAX_LOCATIONS = 6

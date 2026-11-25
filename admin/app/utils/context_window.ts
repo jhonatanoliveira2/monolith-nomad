@@ -135,6 +135,26 @@ const KV_BYTES_PER_ELEMENT = 2
  * to `estimateKvBytesPerToken`.
  */
 export function computeKvBytesPerToken(modelInfo: unknown): number | undefined {
+  return computeKvCost(modelInfo)?.perToken
+}
+
+/**
+ * KV-cache cost split into what grows with the window and what does not.
+ *
+ * Per layer: 2 (K and V) x kv_heads x head_dim x bytes_per_element, with per-layer values where the
+ * GGUF gives arrays. Gemma 3/4 do: `attention.head_count_kv` is a list (8 on sliding layers, 1 on
+ * global ones) and `attention.sliding_window_pattern` marks the sliding layers, whose cache never
+ * holds more than `attention.sliding_window` tokens (with `key_length_swa`). Reading the list as a
+ * missing scalar fell back to head_count on every layer and priced gemma4:12b at 1.5 MiB/token
+ * instead of 16 KiB, which pinned it to the 4k floor on a 16 GB card (measured 25/11/2026: loaded at
+ * 16k it used ~10 GB of VRAM in total).
+ *
+ * `perToken` is the cost of the global layers; `fixedBytes` is the sliding layers at their full
+ * window, charged once whatever the context size.
+ */
+export function computeKvCost(
+  modelInfo: unknown
+): { perToken: number; fixedBytes: number } | undefined {
   if (!modelInfo) return undefined
   const entries: [string, any][] =
     modelInfo instanceof Map
@@ -147,16 +167,21 @@ export function computeKvBytesPerToken(modelInfo: unknown): number | undefined {
 
   const arch = info.get('general.architecture')
   if (typeof arch !== 'string') return undefined
+  const raw = (suffix: string): unknown => info.get(`${arch}.${suffix}`)
   const num = (suffix: string): number | undefined => {
-    const value = info.get(`${arch}.${suffix}`)
+    const value = raw(suffix)
     return typeof value === 'number' && value > 0 ? value : undefined
   }
 
   const layers = num('block_count')
+  if (!layers) return undefined
   // Grouped-query attention means KV heads are usually far fewer than attention
   // heads; using head_count here would overestimate cost several-fold.
-  const kvHeads = num('attention.head_count_kv') ?? num('attention.head_count')
-  if (!layers || !kvHeads) return undefined
+  const kvHeadsRaw = raw('attention.head_count_kv')
+  const kvHeadsList =
+    Array.isArray(kvHeadsRaw) && kvHeadsRaw.length === layers ? (kvHeadsRaw as unknown[]) : null
+  const kvHeadsScalar = num('attention.head_count_kv') ?? num('attention.head_count')
+  if (!kvHeadsList && !kvHeadsScalar) return undefined
 
   // Prefer explicit key/value lengths; otherwise derive head_dim from the
   // embedding width and the attention head count.
@@ -167,8 +192,29 @@ export function computeKvBytesPerToken(modelInfo: unknown): number | undefined {
     if (embedding && heads) headDim = embedding / heads
   }
   if (!headDim) return undefined
+  const valueDim = num('attention.value_length') ?? headDim
 
-  return 2 * layers * kvHeads * headDim * KV_BYTES_PER_ELEMENT
+  const window = num('attention.sliding_window')
+  const patternRaw = raw('attention.sliding_window_pattern')
+  const pattern =
+    window && Array.isArray(patternRaw) && patternRaw.length === layers ? patternRaw : null
+  const swaKeyDim = num('attention.key_length_swa') ?? headDim
+  const swaValueDim =
+    num('attention.value_length_swa') ?? (swaKeyDim === headDim ? valueDim : swaKeyDim)
+
+  let perToken = 0
+  let slidingPerToken = 0
+  for (let layer = 0; layer < layers; layer++) {
+    const listed = kvHeadsList ? Number(kvHeadsList[layer]) : Number.NaN
+    const kvHeads = Number.isFinite(listed) && listed > 0 ? listed : (kvHeadsScalar ?? 0)
+    if (pattern && pattern[layer] === true) {
+      slidingPerToken += kvHeads * (swaKeyDim + swaValueDim) * KV_BYTES_PER_ELEMENT
+    } else {
+      perToken += kvHeads * (headDim + valueDim) * KV_BYTES_PER_ELEMENT
+    }
+  }
+  if (perToken === 0 && slidingPerToken === 0) return undefined
+  return { perToken, fixedBytes: slidingPerToken * (window ?? 0) }
 }
 
 /**
@@ -200,6 +246,8 @@ export type ContextWindowInputs = {
   modelfileNumCtx?: number
   /** Cost of one token of KV cache, exact or estimated. */
   kvBytesPerToken: number
+  /** KV cache that does not grow with the window (sliding-window layers), in bytes. */
+  kvFixedBytes?: number
   /** Memory available for the model, in bytes (VRAM, or a share of system RAM). */
   availableBytes?: number
   /** On-disk size of the weights, in bytes — they occupy the same pool. */
@@ -238,7 +286,10 @@ export function resolveContextWindow(inputs: ContextWindowInputs): ContextWindow
 
   let affordableTokens: number | undefined
   if (inputs.availableBytes && inputs.availableBytes > 0 && inputs.kvBytesPerToken > 0) {
-    const forKv = inputs.availableBytes * MEMORY_SAFETY_FRACTION - (inputs.modelBytes ?? 0)
+    const forKv =
+      inputs.availableBytes * MEMORY_SAFETY_FRACTION -
+      (inputs.modelBytes ?? 0) -
+      (inputs.kvFixedBytes ?? 0)
     affordableTokens = Math.max(0, Math.floor(forKv / inputs.kvBytesPerToken))
     ceilings.push({ value: affordableTokens, source: 'memory' })
   }

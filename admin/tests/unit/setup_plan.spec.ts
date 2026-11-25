@@ -13,9 +13,12 @@ import {
   mapCodes,
   mapLabel,
   mapSlug,
+  DEFAULT_SURVIVAL_LIBRARY,
   parseDraft,
   profileSummary,
   selectedResources,
+  survivalLibraryIds,
+  survivalLibraryPlan,
 } from '../../inertia/lib/setup_plan.js'
 import type { SpecCategory } from '../../types/collections.js'
 
@@ -159,6 +162,9 @@ test('drafts round-trip and broken drafts are refused', () => {
     ingestPolicy: 'Manual',
     timezone: 'America/Manaus',
     state: 'BR-AM',
+    survivalLibrary: 'standard',
+    environment: 'urbano',
+    place: 'Manaus',
   }
   assert.deepEqual(parseDraft(JSON.stringify(draft)), draft)
   assert.equal(parseDraft('{oops'), null)
@@ -189,5 +195,91 @@ test('maps: Brazil, IBGE regions and states become extract codes, labels and fil
       regions: ['norte', 'nordeste', 'centro-oeste', 'sudeste', 'sul'],
     }).length,
     27
+  )
+})
+
+// ---- Survival library levels (collections/library.json, area "sobrevivencia") ----
+
+test('survival library levels are cumulative and every id exists in the library manifest', async () => {
+  const library = JSON.parse(
+    readFileSync(new URL('../../../collections/library.json', import.meta.url), 'utf8')
+  )
+  const libraryIds = new Set(library.items.map((i: { id: string }) => i.id))
+  const essential = survivalLibraryIds('essential')
+  const standard = survivalLibraryIds('standard')
+  const complete = survivalLibraryIds('complete')
+  assert.deepEqual(survivalLibraryIds('none'), [])
+  assert.ok(essential.every((id) => standard.includes(id)))
+  assert.ok(standard.every((id) => complete.includes(id)))
+  for (const id of complete) assert.ok(libraryIds.has(id), `${id} missing from library.json`)
+  // every survival-area work of the manifest is reachable from some level
+  const area = library.items.filter((i: { areas: string[] }) => i.areas.includes('sobrevivencia'))
+  for (const item of area) assert.ok(complete.includes(item.id), `${item.id} not in any level`)
+})
+
+test('survivalLibraryPlan skips installed and downloading PDFs and sums the rest', async () => {
+  const items = [
+    {
+      id: 'ms-agua-tratada-em-casa',
+      title: 'Água',
+      files: [{ format: 'pdf', status: 'installed', size_bytes: 10 }],
+    },
+    {
+      id: 'mma-caderno-secas',
+      title: 'Secas',
+      files: [{ format: 'pdf', status: 'available', size_bytes: 100 }],
+    },
+    {
+      id: 'mma-caderno-incendios',
+      title: 'Incêndios',
+      files: [{ format: 'pdf', status: 'downloading', size_bytes: 5 }],
+    },
+    {
+      id: 'ms-guia-vigilancia-saude-vol-1',
+      title: 'GVS',
+      files: [{ format: 'pdf', status: 'available', size_bytes: 1000 }],
+    },
+  ]
+  const essential = survivalLibraryPlan(items, 'essential')
+  assert.deepEqual(
+    essential.queue.map((q) => q.id),
+    ['mma-caderno-secas']
+  )
+  assert.equal(essential.skipped, 2)
+  assert.equal(essential.bytes, 100)
+  assert.equal(survivalLibraryPlan(items, 'complete').bytes, 1100)
+  assert.equal(survivalLibraryPlan(items, 'none').queue.length, 0)
+})
+
+test('parseDraft fills the survival fields of drafts saved before they existed', async () => {
+  const old = {
+    version: 1,
+    step: 3,
+    services: [],
+    creatorPacks: [],
+    aiModels: [],
+    maps: { scope: 'country', regions: [], states: [], maxzoom: 13, collections: [] },
+    categories: {},
+    wikipedia: null,
+    ingestPolicy: 'Manual',
+    timezone: 'America/Manaus',
+    state: 'BR-AM',
+  }
+  const d = parseDraft(JSON.stringify(old))!
+  assert.equal(d.survivalLibrary, DEFAULT_SURVIVAL_LIBRARY)
+  assert.equal(d.environment, null)
+  assert.equal(d.place, null)
+  const d2 = parseDraft({
+    ...old,
+    survivalLibrary: 'essential',
+    environment: 'rural',
+    place: 'Parintins',
+  })!
+  assert.equal(d2.survivalLibrary, 'essential')
+  assert.equal(d2.environment, 'rural')
+  assert.equal(d2.place, 'Parintins')
+  assert.equal(
+    parseDraft({ ...old, survivalLibrary: 'bogus', environment: 'x' })!.survivalLibrary,
+    DEFAULT_SURVIVAL_LIBRARY
   )
 })

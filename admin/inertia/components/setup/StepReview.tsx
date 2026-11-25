@@ -74,6 +74,7 @@ export default function StepReview({
   modelBytes,
   packBytes,
   collectionsBytes,
+  survival,
 }: {
   draft: SetupDraft
   goTo: (step: number) => void
@@ -88,6 +89,7 @@ export default function StepReview({
   modelBytes: number
   packBytes: number
   collectionsBytes: number
+  survival: { queue: { id: string }[]; skipped: number; bytes: number }
 }) {
   const { t } = useTranslation()
   const state = BRAZIL_STATES.find((s) => s.code === draft.state)
@@ -103,6 +105,15 @@ export default function StepReview({
           value={state ? `${state.name} (${state.uf})` : t('Not specified')}
         />
         <Row label={t('Time zone')} value={tz ? `${tz.offset} · ${tz.label}` : draft.timezone} />
+        <Row
+          label={t('Environment')}
+          value={
+            draft.environment
+              ? t(draft.environment === 'rural' ? 'Rural' : 'Urban')
+              : t('Not specified')
+          }
+        />
+        {draft.place && <Row label={t('City or area')} value={draft.place} />}
         <Row label={t('Language')} value="Português (Brasil)" />
       </Group>
 
@@ -153,6 +164,19 @@ export default function StepReview({
       </Group>
 
       <Group title={t('Content')} onEdit={() => goTo(3)}>
+        {draft.survivalLibrary !== 'none' && (
+          <Row
+            label={t('Survival library')}
+            value={
+              survival.queue.length === 0
+                ? t('Already installed')
+                : survival.queue.length === 1
+                  ? t('1 publication')
+                  : t('{{count}} publications', { count: survival.queue.length })
+            }
+            bytes={survival.bytes}
+          />
+        )}
         {wikipediaLabel && <Row label={wikipediaLabel} bytes={wikipediaBytes} />}
         {Object.entries(draft.categories).length === 0 && !wikipediaLabel ? (
           <p className="text-sm text-text-muted">{t('No content selected.')}</p>

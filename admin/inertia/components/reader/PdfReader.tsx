@@ -11,7 +11,7 @@ import IconButton from '~/components/nd/IconButton'
 import { fold } from '~/lib/library_filters'
 import ReaderSearchPanel, { type SearchHit } from './ReaderSearchPanel'
 import ReaderToc, { type TocNode } from './ReaderToc'
-import type { ReaderPanel } from './types'
+import type { ReaderApi, ReaderPanel } from './types'
 import { isControlKeyTarget, readStorage, writeStorage } from './reader_utils'
 
 // pdf.js, legacy build: transpiled for older browsers (e.g. Firefox ESR on Ubuntu LTS)
@@ -53,6 +53,9 @@ export default function PdfReader({
   setPanel,
   info,
   darkPages,
+  assistant,
+  apiRef,
+  initialPage,
 }: {
   url: string
   filename: string
@@ -60,6 +63,12 @@ export default function PdfReader({
   setPanel: (p: ReaderPanel) => void
   info: React.ReactNode
   darkPages: boolean
+  /** The assistant panel's content, shown when `panel === 'assistant'`. */
+  assistant?: React.ReactNode
+  /** Filled with this reader's ReaderApi for the assistant panel. */
+  apiRef?: React.MutableRefObject<ReaderApi | null>
+  /** Page to open (a cited page from an answer), instead of the last one read. */
+  initialPage?: number
 }) {
   const { t } = useTranslation()
   const scroller = useRef<HTMLDivElement>(null)
@@ -293,9 +302,53 @@ export default function PdfReader({
   useEffect(() => {
     if (!doc || !baseSize || restored.current || !containerWidth) return
     restored.current = true
-    const saved = Number(readStorage(PAGE_KEY(filename)))
+    const saved = initialPage || Number(readStorage(PAGE_KEY(filename)))
     if (saved > 1) requestAnimationFrame(() => goTo(saved))
-  }, [doc, baseSize, containerWidth, filename, goTo])
+  }, [doc, baseSize, containerWidth, filename, goTo, initialPage])
+
+  // The last text selected inside the pages: clicking a panel button may clear the live selection
+  const lastSelection = useRef('')
+  useEffect(() => {
+    const onChange = () => {
+      const sel = window.getSelection()
+      const text = sel?.toString().trim() ?? ''
+      if (text && sel?.anchorNode && scroller.current?.contains(sel.anchorNode)) {
+        lastSelection.current = text
+      }
+    }
+    document.addEventListener('selectionchange', onChange)
+    return () => document.removeEventListener('selectionchange', onChange)
+  }, [])
+
+  // The assistant reads the open page (or a range) straight from the document in memory
+  useEffect(() => {
+    if (!apiRef) return
+    const pageText = async (n: number) => {
+      if (!doc) return ''
+      const content = await (await doc.getPage(n)).getTextContent()
+      return content.items.map((i) => ('str' in i ? i.str : '')).join(' ').replace(/\s+/g, ' ').trim()
+    }
+    apiRef.current = {
+      location: () => ({ label: `p. ${pageRef.current}`, page: pageRef.current }),
+      selection: () => lastSelection.current,
+      currentText: async () => {
+        const n = pageRef.current
+        return { label: `p. ${n}`, page: n, text: await pageText(n) }
+      },
+      rangeText: async (from, to) => {
+        const parts: string[] = []
+        for (let n = from; n <= to; n++) parts.push(`[p. ${n}]\n${await pageText(n)}`)
+        return { label: from === to ? `p. ${from}` : `p. ${from}–${to}`, page: from, text: parts.join('\n\n') }
+      },
+      pageCount: () => doc?.numPages ?? 0,
+      goTo: (target) => {
+        if (target.page) goTo(target.page, true)
+      },
+    }
+    return () => {
+      apiRef.current = null
+    }
+  }, [apiRef, doc, goTo])
 
   // The current page follows the scroll position
   useEffect(() => {
@@ -469,7 +522,9 @@ export default function PdfReader({
   return (
     <div className="relative flex min-h-0 flex-1">
       {panel && (
-        <aside className="absolute inset-y-0 left-0 z-30 flex w-[min(22rem,90vw)] flex-col border-r border-border-subtle bg-surface-primary shadow-2xl lg:static lg:z-auto lg:shadow-none">
+        <aside
+          className={`absolute inset-y-0 left-0 z-30 flex ${panel === 'assistant' ? 'w-[min(28rem,94vw)]' : 'w-[min(22rem,90vw)]'} flex-col border-r border-border-subtle bg-surface-primary shadow-2xl lg:static lg:z-auto lg:shadow-none`}
+        >
           {panel === 'contents' && (
             <ReaderToc
               nodes={outline}
@@ -495,6 +550,7 @@ export default function PdfReader({
             />
           )}
           {panel === 'info' && <div className="overflow-y-auto p-5">{info}</div>}
+          {panel === 'assistant' && assistant}
         </aside>
       )}
 

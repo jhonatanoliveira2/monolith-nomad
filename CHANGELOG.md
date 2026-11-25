@@ -2,6 +2,34 @@
 
 Mudanças de cada versão. A base é o commit `f633b36` do projeto de origem (1.35.2-rc.1); os arquivos alterados desde então estão em [`MODIFICATIONS.md`](MODIFICATIONS.md). Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [1.3.0] - 2026-11-25
+
+### Adicionado
+
+- **Assistente local (IA offline):** `AssistantController` (`/api/assistant/status`, `/performance`, `/translate`, `/reader` em SSE), página `/settings/assistant` e documento técnico [`docs/assistente-local.md`](docs/assistente-local.md).
+- **Modo Sobrevivência:** `SurvivalService` e mapa `collections/survival.json` (níveis 1–6, fases, 12 temas, 25 ameaças, 5 regiões, vínculo das obras); classificação por heurística refinada pelo modelo local; busca priorizada nas obras de sobrevivência; instruções de citação e de limites (sem dados em tempo real).
+- **Assistente nos leitores:** `ReaderAssistantPanel` (perguntar, explicar, resumir por partes, traduzir) e citações com página ou capítulo (`page_start`, `page_end`, `chapter`) no índice.
+- **Tradução local sob demanda:** `TranslationService` (Bergamot quando há o par, senão o modelo local) com cache `translation_cache`; API de texto no proxy `nomad-translate`.
+- **Perfil de embedding por índice** (`rag.embeddingProfile`), `embeddinggemma` para índices novos e `POST /api/rag/reset-and-rebuild`.
+- **Backend AMD** (`ai.amdBackend`): Vulkan em RDNA 4, ROCm nas demais; monitoramento de GPU por sysfs e tokens/s.
+- **Biblioteca de sobrevivência:** 25 PDFs oficiais curados em `collections/curation/survival-library.json` e gerados por `scripts/build-library-entries.mjs`; níveis na Configuração Rápida; ambiente e cidade nas preferências regionais.
+- Testes `local_agent`, `survival_knowledge`, `document_locations`, `download_head_refused` e o funcional `local_assistant`.
+
+### Alterado
+
+- Categoria de sobrevivência dos ZIMs reorganizada (MDWiki, USDA, Appropedia, Energypedia e outros).
+- Modelos recomendados pela VRAM medida (`model_recommendation.ts`).
+- Imagem do tradutor `project-nomad-translate` 0.2.0 no seeder (API de texto); Ollama 0.40.18.
+
+### Corrigido
+
+- Downloads do gov.br: o servidor responde 403 a `HEAD`; a sonda tenta um `GET` de 1 byte (app e `check-catalog-availability.mjs`).
+- Piso de relevância por modelo de embedding (`relevanceFloors`): o 0,62 do nomic descartava todos os trechos em 3 de 12 perguntas sob o `embeddinggemma`; agora 0,50 (12/12 com a obra certa, 0/6 fora do tema). A tela de Modelos mostra as opções do perfil do índice e a reconstrução reajusta a predefinição escolhida.
+- Custo do cache KV com cabeças por camada e janela deslizante (`computeKvCost`): o gemma4:12b ficava preso em 4.096 tokens; numa GPU de 16 GB passa a 131.072.
+- Chamadas auxiliares sem `num_ctx` (classificação, tradução, resumos, reescrita, juiz, sugestões) recarregavam o modelo do chat a cada uso (~8,5 s); o `OllamaService` reaproveita a última janela do modelo.
+- Localização no modo Sobrevivência: "para" era lido como Pará, nomes casavam por prefixo ("sul" em "sulfato") e "zona norte" virava a região Norte; cidades que são palavras comuns ("Natal", "Santos") só contam depois de "em".
+- Uma imagem com o `library.json` mais novo que o do GitHub usava o do GitHub assim que ficava online e perdia as obras novas. Agora vale a `spec_version` mais nova (`utils/manifest_version.ts`).
+
 ## [1.2.0] - 2026-11-24
 
 ### Adicionado

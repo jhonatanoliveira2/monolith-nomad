@@ -38,3 +38,10 @@ export const estimateBatchSchema = vine.compile(
       .maxLength(500),
   })
 )
+
+/** Optional body of POST /api/rag/reset-and-rebuild: rebuild the index with another embedding model. */
+export const resetAndRebuildSchema = vine.compile(
+  vine.object({
+    embeddingProfile: vine.enum(['embeddinggemma', 'nomic-v1.5'] as const).optional(),
+  })
+)

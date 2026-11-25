@@ -4,6 +4,7 @@ import {
   MIN_CONTEXT,
   UNKNOWN_BACKEND_CONTEXT,
   computeKvBytesPerToken,
+  computeKvCost,
   estimateKvBytesPerToken,
   parseParameterBillions,
   parseUserContextCap,
@@ -183,4 +184,53 @@ test('parses the user context cap setting', () => {
   assert.equal(parseUserContextCap('nonsense'), undefined)
   // Below the floor is meaningless; treat it as unset rather than crippling chat.
   assert.equal(parseUserContextCap('512'), undefined)
+})
+
+// ---- Per-layer KV heads and sliding-window layers (Gemma 3/4) ----
+
+// gemma4:12b as /api/show reports it (25/11/2026): every 6th layer global with 1 KV head of 512,
+// the other 40 sliding (window 1024) with 8 KV heads of 256.
+const GEMMA4_12B_INFO = (() => {
+  const layers = 48
+  const sliding = Array.from({ length: layers }, (_, i) => (i + 1) % 6 !== 0)
+  return {
+    'general.architecture': 'gemma4',
+    'gemma4.block_count': layers,
+    'gemma4.attention.head_count': 16,
+    'gemma4.attention.head_count_kv': sliding.map((s) => (s ? 8 : 1)),
+    'gemma4.attention.key_length': 512,
+    'gemma4.attention.value_length': 512,
+    'gemma4.attention.key_length_swa': 256,
+    'gemma4.attention.value_length_swa': 256,
+    'gemma4.attention.sliding_window': 1024,
+    'gemma4.attention.sliding_window_pattern': sliding,
+    'gemma4.embedding_length': 3840,
+  }
+})()
+
+test('per-layer KV heads and sliding layers: only global layers grow with the window', () => {
+  const cost = computeKvCost(GEMMA4_12B_INFO)!
+  // 8 global layers x 1 head x (512 + 512) x 2 bytes
+  assert.equal(cost.perToken, 16 * 1024)
+  // 40 sliding layers x 8 heads x (256 + 256) x 2 bytes, for 1024 tokens
+  assert.equal(cost.fixedBytes, 40 * 8 * 512 * 2 * 1024)
+  assert.equal(computeKvBytesPerToken(GEMMA4_12B_INFO), 16 * 1024)
+})
+
+test('gemma4:12b on a 16 GB card is no longer pinned to the 4k floor', () => {
+  const cost = computeKvCost(GEMMA4_12B_INFO)!
+  const decision = resolveContextWindow({
+    modelMaxCtx: 262144,
+    kvBytesPerToken: cost.perToken,
+    kvFixedBytes: cost.fixedBytes,
+    availableBytes: 16304 * 1024 * 1024,
+    modelBytes: 7.6e9,
+  })
+  assert.ok(decision.contextWindow >= 16384, `got ${decision.contextWindow}`)
+})
+
+test('a model without per-layer metadata keeps the scalar formula and no fixed cost', () => {
+  const cost = computeKvCost(LLAMA3_8B_INFO)!
+  assert.equal(cost.perToken, 128 * KIB)
+  assert.equal(cost.fixedBytes, 0)
 })

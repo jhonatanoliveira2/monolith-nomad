@@ -161,7 +161,36 @@ export default function StepResources({
               ))}
             </select>
           </label>
+          <label className="block">
+            <span className="text-sm font-medium text-text-primary">{t('Environment')}</span>
+            <select
+              className="nd-field mt-1.5"
+              value={draft.environment ?? ''}
+              onChange={(e) =>
+                update({ environment: (e.target.value || null) as SetupDraft['environment'] })
+              }
+            >
+              <option value="">{t('Not specified')}</option>
+              <option value="urbano">{t('Urban')}</option>
+              <option value="rural">{t('Rural')}</option>
+            </select>
+          </label>
+          <label className="block">
+            <span className="text-sm font-medium text-text-primary">{t('City or area')}</span>
+            <input
+              className="nd-field mt-1.5"
+              maxLength={80}
+              value={draft.place ?? ''}
+              placeholder={t('e.g. Manaus')}
+              onChange={(e) => update({ place: e.target.value || null })}
+            />
+          </label>
         </div>
+        <p className="mt-2 text-xs text-text-muted">
+          {t(
+            'State, environment and city tailor the survival assistant to your region. They stay on this server.'
+          )}
+        </p>
         <div className="mt-4 flex flex-wrap gap-1.5" aria-label={t('Regional formats')}>
           {[
             t('Português (Brasil)'),

@@ -17,6 +17,9 @@ import { resolveResponseStyle } from '../utils/response_style.js'
 import { resolveSamplerProfile } from '../utils/sampler.js'
 import type { PipelineTrace } from '../../types/rag.js'
 import { buildCitations } from '../utils/rag_prompt.js'
+import { SurvivalService } from '#services/survival_service'
+import { recordInference } from '../utils/inference_stats.js'
+import { survivalContextTemplate } from '../utils/survival_knowledge.js'
 import logger from '@adonisjs/core/services/logger'
 import { rm } from 'node:fs/promises'
 import {
@@ -37,7 +40,8 @@ export default class OllamaController {
     private ollamaService: OllamaService,
     private ragPipelineService: RagPipelineService,
     private ragService: RagService,
-    private tokenCalibration: TokenCalibrationService
+    private tokenCalibration: TokenCalibrationService,
+    private survivalService: SurvivalService
   ) {}
 
   async availableModels({ request }: HttpContext) {
@@ -160,10 +164,45 @@ export default class OllamaController {
       // settings, both writing rag.enabled). Unset means on, preserving the
       // behaviour from before the toggle existed.
       const ragEnabled = (await KVStore.getValue('rag.enabled')) ?? true
-      const trace = await this.ragPipelineService.buildPrompt(reqData.messages, reqData.model, {
-        collection: collectionFilter ?? undefined,
-        skipRetrieval: !ragEnabled,
-      })
+
+      // Survival mode: classify the scenario, place it and retrieve from the survival works first.
+      // Its passages enter through the oracle path, so the budget planner, history handling and
+      // streaming below are the same as for a regular turn. Retrieval is not optional here: the
+      // agent's whole contract is answering from the library, so rag.enabled does not apply.
+      const survival =
+        reqData.assistantMode === 'survival'
+          ? await this.survivalService.prepareTurn({
+              question: lastUserText(reqData.messages),
+              retrievalQuery: survivalRetrievalQuery(reqData.messages),
+              chatModel: reqData.model,
+              location: reqData.location,
+            })
+          : null
+      if (survival && reqData.stream) {
+        // Leading event (no `message` key): what the agent understood, shown above the answer
+        response.response.write(
+          `data: ${JSON.stringify({
+            survival: {
+              labels: survival.labels,
+              scenario: survival.scenario,
+              location: survival.location,
+              knowledge: survival.knowledge,
+            },
+          })}\n\n`
+        )
+      }
+      const trace = await this.ragPipelineService.buildPrompt(
+        survival
+          ? [
+              { role: 'system', content: survival.systemPrompt },
+              ...reqData.messages.filter((m) => m.role !== 'system'),
+            ]
+          : reqData.messages,
+        reqData.model,
+        survival
+          ? { oracleContext: survival.chunks, renderContext: survivalContextTemplate }
+          : { collection: collectionFilter ?? undefined, skipRetrieval: !ragEnabled }
+      )
       reqData.messages = trace.messages
       const numCtx = trace.numCtx
       const numPredict = trace.numPredict
@@ -207,8 +246,16 @@ export default class OllamaController {
 
       // Separate sessionId and the resolved thinking preference from the Ollama request payload —
       // Ollama rejects unknown fields, and `think` is re-derived above (not forwarded raw).
-      const { sessionId, think: discardedThink, ...ollamaRequest } = reqData
+      const {
+        sessionId,
+        think: discardedThink,
+        assistantMode: discardedMode,
+        location: discardedLocation,
+        ...ollamaRequest
+      } = reqData
       void discardedThink
+      void discardedMode
+      void discardedLocation
       const upstreamMessages = attachImagesToLatestUserMessage(
         ollamaRequest.messages,
         normalizedImages
@@ -256,6 +303,7 @@ export default class OllamaController {
             if (chunk.usage) {
               completionTokens = chunk.usage.completionTokens
               this._recordUsage(reqData.model, trace, chunk.usage)
+              recordInference(reqData.model, survival ? 'survival' : 'chat', chunk.usage)
             }
             if (chunk.done_reason) doneReason = chunk.done_reason
             response.response.write(`data: ${JSON.stringify(chunk)}\n\n`)
@@ -323,6 +371,7 @@ export default class OllamaController {
       }
       if (result?.usage) {
         this._recordUsage(reqData.model, trace, result.usage)
+        recordInference(reqData.model, survival ? 'survival' : 'chat', result.usage)
       }
       if (result?.done_reason === 'length') {
         this._logLengthStop(reqData.model, numCtx, numPredict, result.usage?.completionTokens)
@@ -572,4 +621,19 @@ export default class OllamaController {
     )
     return models.map((m, i) => ({ ...m, ...capabilities[i] }))
   }
+}
+
+/** The user's latest message, the question the survival agent classifies and places. */
+function lastUserText(messages: { role: string; content: string }[]): string {
+  return [...messages].reverse().find((m) => m.role === 'user')?.content ?? ''
+}
+
+/**
+ * Retrieval text for a survival turn: the latest question, plus the previous one when the latest is a
+ * short follow-up ("e se for à noite?") that means nothing on its own.
+ */
+function survivalRetrievalQuery(messages: { role: string; content: string }[]): string {
+  const users = messages.filter((m) => m.role === 'user').map((m) => m.content)
+  const last = users.at(-1) ?? ''
+  return last.length < 60 && users.length > 1 ? `${users.at(-2)} ${last}` : last
 }

@@ -23,7 +23,15 @@ import { OllamaService } from './ollama_service.js'
 import { SERVICE_NAMES } from '../../constants/service_names.js'
 import { removeStopwords } from 'stopword'
 import { randomUUID } from 'node:crypto'
-import { join, relative, resolve, sep } from 'node:path'
+import { basename, join, relative, resolve, sep } from 'node:path'
+import {
+  epubChapterSegments,
+  pdfPageWindows,
+  type DocumentChapter,
+  type DocumentPage,
+  type DocumentSegment,
+} from '../utils/document_segments.js'
+import { parseDocumentFilename } from '../utils/library.js'
 import KVStore from '#models/kv_store'
 import KbIngestState from '#models/kb_ingest_state'
 import { decideScanAction, type IngestPolicy } from '../utils/kb_ingest_decision.js'
@@ -55,7 +63,17 @@ import type { KbIngestStateValue } from '../../types/kb_ingest_state.js'
 import { ZIMExtractionService } from './zim_extraction_service.js'
 import { ZIM_BATCH_SIZE } from '../../constants/zim_extraction.js'
 import { hasMoreArticleBatches } from '../utils/zim_batch_decision.js'
-import { EMBEDDING_MODEL_NAME } from '../../constants/ollama.js'
+import {
+  DEFAULT_EMBEDDING_PROFILE,
+  EMBEDDING_PROFILES,
+  isEmbeddingProfileId,
+  LEGACY_EMBEDDING_PROFILE,
+  remapRelevanceFloor,
+  resolveEmbeddingProfile,
+  type EmbeddingProfile,
+  type EmbeddingProfileId,
+} from '../utils/embedding_profile.js'
+import { invalidateMinRelevanceCache } from '../utils/rag_relevance.js'
 import {
   ProcessAndEmbedFileResponse,
   ProcessZIMFileResponse,
@@ -79,6 +97,7 @@ export class RagService {
   private qdrantInitPromise: Promise<void> | null = null
   private embeddingModelVerified = false
   private resolvedEmbeddingModel: string | null = null
+  private embeddingProfile: EmbeddingProfile | null = null
   // Collections already verified this session (created + payload indexes in place).
   // Skips the getCollections/createPayloadIndex round-trips that otherwise run on
   // every embed call — ~45% of per-document Qdrant time on large ingestions (#1129)
@@ -101,9 +120,7 @@ export class RagService {
   public static CHAR_TO_TOKEN_RATIO = 2 // Conservative chars-per-token estimate; technical docs
   // (numbers, symbols, abbreviations) tokenize denser
   // than plain prose (~3), so 2 avoids context overflows
-  // Nomic Embed Text v1.5 uses task-specific prefixes for optimal performance
-  public static SEARCH_DOCUMENT_PREFIX = 'search_document: '
-  public static SEARCH_QUERY_PREFIX = 'search_query: '
+  // Task prefixes now come from the index's embedding profile (app/utils/embedding_profile.ts).
   public static EMBEDDING_BATCH_SIZE = 8 // Conservative batch size for low-end hardware
 
   constructor(
@@ -128,6 +145,91 @@ export class RagService {
       })
     }
     return this.qdrantInitPromise
+  }
+
+  /**
+   * Resolve the index's embedding profile and make sure its model is installed.
+   *
+   * The profile is a property of the index (see embedding_profile.ts): recorded in the KV store the
+   * first time the index is used, and derived from whether the collection already holds points when
+   * nothing is recorded, so an index built before profiles existed keeps its nomic vectors. The
+   * embedding path may pull a missing model; the search path never does (a search must not start a
+   * multi-hundred-MB download) and just reports the index unusable.
+   */
+  private async _ensureEmbeddingModel(allowDownload: boolean): Promise<boolean> {
+    if (this.embeddingModelVerified && this.embeddingProfile) return true
+    if (!this.embeddingProfile) {
+      this.embeddingProfile = await this._resolveProfile()
+    }
+    const profile = this.embeddingProfile
+    const allModels = await this.ollamaService.getModels(true)
+    const installed =
+      allModels.find((model) => model.name === profile.model) ??
+      allModels.find((model) => model.name.toLowerCase().includes(profile.matches))
+    if (!installed) {
+      if (!allowDownload) {
+        logger.warn(`[RAG] ${profile.model} not found. Cannot perform similarity search.`)
+        return false
+      }
+      try {
+        const downloadResult = await this.ollamaService.downloadModel(profile.model)
+        if (!downloadResult.success) {
+          throw new Error(downloadResult.message || 'Unknown error during model download')
+        }
+      } catch (modelError) {
+        logger.error(
+          `[RAG] Embedding model ${profile.model} not found locally and failed to download:`,
+          modelError
+        )
+        this.embeddingModelVerified = false
+        return false
+      }
+    }
+    this.resolvedEmbeddingModel = installed?.name ?? profile.model
+    this.embeddingModelVerified = true
+    return true
+  }
+
+  private async _resolveProfile(): Promise<EmbeddingProfile> {
+    const recorded = await KVStore.getValue('rag.embeddingProfile')
+    let hasPoints = false
+    if (!isEmbeddingProfileId(recorded)) {
+      try {
+        await this._ensureDependencies()
+        const info = await this.qdrant!.getCollection(RagService.CONTENT_COLLECTION_NAME)
+        hasPoints = (info.points_count ?? 0) > 0
+      } catch {
+        hasPoints = false // no collection yet
+      }
+    }
+    const { profile, persist } = resolveEmbeddingProfile(recorded, hasPoints)
+    if (persist) {
+      await KVStore.setValue('rag.embeddingProfile', profile.id)
+      invalidateMinRelevanceCache() // the default relevance floor follows the profile
+      logger.info(
+        `[RAG] Knowledge base index uses embedding profile "${profile.id}" (${profile.model})`
+      )
+    }
+    return profile
+  }
+
+  /** The index's embedding profile, the recommended one, and whether a rebuild would switch them. */
+  public async getEmbeddingStatus(): Promise<{
+    profile: EmbeddingProfileId
+    model: string
+    multilingual: boolean
+    recommended: EmbeddingProfileId
+    migrationAvailable: boolean
+  }> {
+    const profile = this.embeddingProfile ?? (await this._resolveProfile())
+    this.embeddingProfile = profile
+    return {
+      profile: profile.id,
+      model: profile.model,
+      multilingual: profile.multilingual,
+      recommended: DEFAULT_EMBEDDING_PROFILE,
+      migrationAvailable: profile.id !== DEFAULT_EMBEDDING_PROFILE,
+    }
   }
 
   public async checkQdrantHealth(): Promise<{ online: boolean; message?: string }> {
@@ -368,29 +470,8 @@ export class RagService {
         RagService.EMBEDDING_DIMENSION
       )
 
-      if (!this.embeddingModelVerified) {
-        const allModels = await this.ollamaService.getModels(true)
-        const embeddingModel =
-          allModels.find((model) => model.name === EMBEDDING_MODEL_NAME) ??
-          allModels.find((model) => model.name.toLowerCase().includes('nomic-embed-text'))
-
-        if (!embeddingModel) {
-          try {
-            const downloadResult = await this.ollamaService.downloadModel(EMBEDDING_MODEL_NAME)
-            if (!downloadResult.success) {
-              throw new Error(downloadResult.message || 'Unknown error during model download')
-            }
-          } catch (modelError) {
-            logger.error(
-              `[RAG] Embedding model ${EMBEDDING_MODEL_NAME} not found locally and failed to download:`,
-              modelError
-            )
-            this.embeddingModelVerified = false
-            return null
-          }
-        }
-        this.resolvedEmbeddingModel = embeddingModel?.name ?? EMBEDDING_MODEL_NAME
-        this.embeddingModelVerified = true
+      if (!(await this._ensureEmbeddingModel(true))) {
+        return null
       }
 
       // TokenChunker uses character-based tokenization (1 char = 1 token)
@@ -421,7 +502,7 @@ export class RagService {
       const prefixedChunks: string[] = []
       for (let [i, chunkText] of chunks.entries()) {
         // Final safety check: ensure chunk + prefix fits
-        const prefixText = RagService.SEARCH_DOCUMENT_PREFIX
+        const prefixText = this.embeddingProfile!.documentPrefix
         const withPrefix = prefixText + chunkText
         const estimatedTokens = this.estimateTokenCount(withPrefix)
 
@@ -434,7 +515,7 @@ export class RagService {
           chunkText = this.truncateToTokenLimit(chunkText, maxTokensForText)
         }
 
-        prefixedChunks.push(RagService.SEARCH_DOCUMENT_PREFIX + chunkText)
+        prefixedChunks.push(this.embeddingProfile!.documentPrefix + chunkText)
       }
 
       // Batch embed chunks for performance
@@ -451,7 +532,7 @@ export class RagService {
         )
 
         const response = await this.ollamaService.embed(
-          this.resolvedEmbeddingModel ?? EMBEDDING_MODEL_NAME,
+          this.resolvedEmbeddingModel ?? this.embeddingProfile!.model,
           batch
         )
 
@@ -564,11 +645,14 @@ export class RagService {
     return converted.filter((res) => res.buffer).map((res) => res.buffer!)
   }
 
-  private async extractPDFText(filebuffer: Buffer): Promise<string> {
+  private async extractPDFText(filebuffer: Buffer): Promise<DocumentPage[]> {
     const parser = new PDFParse({ data: filebuffer })
-    const data = await parser.getText()
-    await parser.destroy()
-    return data.text
+    try {
+      const data = await parser.getText()
+      return data.pages.map((page) => ({ num: page.num, text: page.text }))
+    } finally {
+      await parser.destroy()
+    }
   }
 
   private async extractTXTText(filebuffer: Buffer): Promise<string> {
@@ -591,24 +675,24 @@ export class RagService {
    * Will process the PDF and attempt to extract text.
    * If the extracted text is minimal, it will fallback to OCR on each page.
    */
-  private async processPDFFile(fileBuffer: Buffer): Promise<string> {
-    let extractedText = await this.extractPDFText(fileBuffer)
+  private async processPDFFile(fileBuffer: Buffer): Promise<DocumentPage[]> {
+    let pages = await this.extractPDFText(fileBuffer)
+    const total = pages.reduce((sum, page) => sum + page.text.trim().length, 0)
 
     // Check if there was no extracted text or it was very minimal
-    if (!extractedText || extractedText.trim().length < 100) {
+    if (total < 100) {
       logger.debug('[RAG] PDF text extraction minimal, attempting OCR on pages')
-      // Convert PDF pages to images for OCR if text extraction was poor
+      // Convert PDF pages to images for OCR if text extraction was poor. The image list is in page
+      // order, so its index is the page number.
       const imageBuffers = await this.convertPDFtoImages(fileBuffer)
-      extractedText = ''
-
-      for (const imgBuffer of imageBuffers) {
+      pages = []
+      for (const [index, imgBuffer] of imageBuffers.entries()) {
         const preprocessedImg = await this.preprocessImage(imgBuffer)
-        const pageText = await this.extractImageText(preprocessedImg)
-        extractedText += pageText + '\n'
+        pages.push({ num: index + 1, text: await this.extractImageText(preprocessedImg) })
       }
     }
 
-    return extractedText
+    return pages
   }
 
   /**
@@ -757,7 +841,7 @@ export class RagService {
    * Reads the OPF manifest to determine reading order, then extracts
    * text from each content document in sequence.
    */
-  private async processEPUBFile(fileBuffer: Buffer): Promise<string> {
+  private async processEPUBFile(fileBuffer: Buffer): Promise<DocumentChapter[]> {
     const zip = await JSZip.loadAsync(fileBuffer)
 
     // Read container.xml to find the OPF file path
@@ -808,8 +892,9 @@ export class RagService {
     // If no spine found, fall back to all manifest items
     const contentFiles = spineOrder.length > 0 ? spineOrder : Array.from(manifestItems.values())
 
-    // Extract text from each content file in order
-    const textParts: string[] = []
+    // Extract text from each content file in order, keeping where it came from: the chapter heading
+    // (or the document title) is what an answer cites, and the href is what the reader opens.
+    const chapters: DocumentChapter[] = []
     for (const href of contentFiles) {
       const fullPath = opfDir + href
       const content = await zip.file(fullPath)?.async('text')
@@ -819,16 +904,82 @@ export class RagService {
         $('script, style').remove()
         const text = $('body').text().trim()
         if (text) {
-          textParts.push(text)
+          const heading = $('h1, h2, h3').first().text().replace(/\s+/g, ' ').trim()
+          const title = heading || $('title').first().text().replace(/\s+/g, ' ').trim()
+          chapters.push({ href, title: title.slice(0, 200) || null, text })
         }
       }
     }
 
-    const fullText = textParts.join('\n\n')
     logger.debug(
-      `[RAG] EPUB extracted ${textParts.length} chapters, ${fullText.length} characters total`
+      `[RAG] EPUB extracted ${chapters.length} chapters, ${chapters.reduce((n, c) => n + c.text.length, 0)} characters total`
     )
-    return fullText
+    return chapters
+  }
+
+  /**
+   * Embed a structured document (PDF page windows, EPUB chapters) segment by segment, so every point
+   * carries the page range or chapter it came from. Library works also carry their catalogue title and
+   * year, which is what an answer cites instead of a file name.
+   */
+  private async embedSegmentsAndCleanup(
+    segments: DocumentSegment[],
+    filepath: string,
+    contentType: 'pdf' | 'epub',
+    deleteAfterEmbedding: boolean,
+    onProgress?: (percent: number) => Promise<void>,
+    collection?: string
+  ): Promise<{ success: boolean; message: string; chunks?: number }> {
+    const usable = segments.filter((segment) => segment.text.trim().length > 0)
+    if (usable.length === 0) {
+      return {
+        success: false,
+        message: 'Process completed succesfully, but no text was found to embed.',
+      }
+    }
+
+    const work = await this._libraryWorkFor(filepath)
+    const base: Record<string, any> = {
+      source: filepath,
+      content_type: contentType,
+      ...(collection ? { collection } : {}),
+      ...(work
+        ? { archive_title: work.title, archive_date: work.year, library_item: work.id }
+        : {}),
+    }
+
+    let chunks = 0
+    for (const [index, segment] of usable.entries()) {
+      const result = await this.embedAndStoreText(segment.text, { ...base, ...segment.meta })
+      if (!result) {
+        return { success: false, message: 'Failed to embed and store the extracted text.' }
+      }
+      chunks += result.chunks
+      if (onProgress) await onProgress(((index + 1) / usable.length) * 100)
+    }
+
+    if (deleteAfterEmbedding) {
+      logger.info(`[RAG] Embedding complete, deleting uploaded file: ${filepath}`)
+      await deleteFileIfExists(filepath)
+    }
+
+    return { success: true, message: 'File processed and embedded successfully.', chunks }
+  }
+
+  /** Catalogue entry of a library PDF/EPUB (storage/library), or null for any other file. */
+  private async _libraryWorkFor(
+    filepath: string
+  ): Promise<{ id: string; title: string; year: string } | null> {
+    const parsed = parseDocumentFilename(basename(filepath))
+    if (!parsed || !filepath.includes(LIBRARY_STORAGE_PATH)) return null
+    try {
+      const { LibraryService } = await import('#services/library_service')
+      const spec = await new LibraryService().getSpec()
+      const item = spec?.items.find((i) => i.id === parsed.itemId)
+      return item ? { id: item.id, title: item.title, year: item.year } : null
+    } catch {
+      return null
+    }
   }
 
   private async embedTextAndCleanup(
@@ -915,19 +1066,25 @@ export class RagService {
       // Extract text based on file type
       // Report ~10% when extraction begins; actual embedding progress follows via callback
       if (onProgress) await onProgress(10)
-      let extractedText: string
+      // PDFs and EPUBs keep their structure (pages, chapters) so answers can cite where a passage is;
+      // everything else is one text.
+      let extractedText = ''
+      let segments: DocumentSegment[] | null = null
       switch (fileType) {
         case 'image':
           extractedText = await this.processImageFile(fileBuffer!)
           break
         case 'pdf':
-          extractedText = await this.processPDFFile(fileBuffer!)
+          segments = pdfPageWindows(
+            await this.processPDFFile(fileBuffer!),
+            RagService.TARGET_TOKENS_PER_CHUNK * RagService.CHAR_TO_TOKEN_RATIO
+          )
           break
         case 'docx':
           extractedText = await this.processDocxFile(fileBuffer!)
           break
         case 'epub':
-          extractedText = await this.processEPUBFile(fileBuffer!)
+          segments = epubChapterSegments(await this.processEPUBFile(fileBuffer!))
           break
         case 'text':
         default:
@@ -938,6 +1095,17 @@ export class RagService {
       // Extraction done — scale remaining embedding progress from 15% to 100%
       if (onProgress) await onProgress(15)
       const scaledProgress = onProgress ? (p: number) => onProgress(15 + p * 0.85) : undefined
+
+      if (segments) {
+        return await this.embedSegmentsAndCleanup(
+          segments,
+          filepath,
+          fileType === 'epub' ? 'epub' : 'pdf',
+          deleteAfterEmbedding,
+          scaledProgress,
+          collection
+        )
+      }
 
       // Embed extracted text and cleanup
       return await this.embedTextAndCleanup(
@@ -985,7 +1153,9 @@ export class RagService {
      */
     minFinalScore: number = 0,
     /** Optional sink for the floor's counts; see RetrievalFloorStats. */
-    floorOut?: RetrievalFloorStats
+    floorOut?: RetrievalFloorStats,
+    /** Only search points whose `source` is one of these paths (exact match). */
+    sources?: string[]
   ): Promise<Array<{ text: string; score: number; metadata?: Record<string, any> }>> {
     try {
       logger.debug(`[RAG] Starting similarity search for query: "${query}"`)
@@ -1005,19 +1175,8 @@ export class RagService {
         return []
       }
 
-      if (!this.embeddingModelVerified) {
-        const allModels = await this.ollamaService.getModels(true)
-        const embeddingModel =
-          allModels.find((model) => model.name === EMBEDDING_MODEL_NAME) ??
-          allModels.find((model) => model.name.toLowerCase().includes('nomic-embed-text'))
-
-        if (!embeddingModel) {
-          logger.warn(`[RAG] ${EMBEDDING_MODEL_NAME} not found. Cannot perform similarity search.`)
-          this.embeddingModelVerified = false
-          return []
-        }
-        this.resolvedEmbeddingModel = embeddingModel.name
-        this.embeddingModelVerified = true
+      if (!(await this._ensureEmbeddingModel(false))) {
+        return []
       }
 
       // Preprocess query for better matching
@@ -1027,12 +1186,13 @@ export class RagService {
 
       // Generate embedding for the query with search_query prefix
       // Ensure query doesn't exceed token limit
-      const prefixTokens = this.estimateTokenCount(RagService.SEARCH_QUERY_PREFIX)
+      const queryPrefix = this.embeddingProfile!.queryPrefix
+      const prefixTokens = this.estimateTokenCount(queryPrefix)
       const maxQueryTokens = RagService.MAX_SAFE_TOKENS - prefixTokens
       const truncatedQuery = this.truncateToTokenLimit(processedQuery, maxQueryTokens)
 
-      const prefixedQuery = RagService.SEARCH_QUERY_PREFIX + truncatedQuery
-      logger.debug(`[RAG] Generating embedding with prefix: "${RagService.SEARCH_QUERY_PREFIX}"`)
+      const prefixedQuery = queryPrefix + truncatedQuery
+      logger.debug(`[RAG] Generating embedding with prefix: "${queryPrefix}"`)
 
       // Validate final token count
       const queryTokenCount = this.estimateTokenCount(prefixedQuery)
@@ -1044,7 +1204,7 @@ export class RagService {
       }
 
       const response = await this.ollamaService.embed(
-        this.resolvedEmbeddingModel ?? EMBEDDING_MODEL_NAME,
+        this.resolvedEmbeddingModel ?? this.embeddingProfile!.model,
         [prefixedQuery]
       )
 
@@ -1064,7 +1224,15 @@ export class RagService {
           // (not yet backfilled) must still be found by default. Search
           // correctness must never depend on the backfill's timing.
           must_not: [{ key: 'active', match: { value: false } }],
-          ...(collection ? { must: [{ key: 'collection', match: { value: collection } }] } : {}),
+          ...(collection || sources?.length
+            ? {
+                must: [
+                  ...(collection ? [{ key: 'collection', match: { value: collection } }] : []),
+                  // Restrict to given files (e.g. the book open in the reader)
+                  ...(sources?.length ? [{ key: 'source', match: { any: sources } }] : []),
+                ],
+              }
+            : {}),
         },
       })
 
@@ -1090,6 +1258,11 @@ export class RagService {
         // carries no equivalent embedded metadata.
         archive_title: result.payload?.archive_title as string | undefined,
         archive_date: result.payload?.archive_date as string | undefined,
+        page_start: result.payload?.page_start as number | undefined,
+        page_end: result.payload?.page_end as number | undefined,
+        chapter: result.payload?.chapter as string | undefined,
+        chapter_href: result.payload?.chapter_href as string | undefined,
+        library_item: result.payload?.library_item as string | undefined,
       }))
 
       const rerankedResults = this.rerankResults(resultsWithMetadata, keywords, query)
@@ -1178,6 +1351,12 @@ export class RagService {
           // Citation metadata (#1179)
           archive_title: result.archive_title,
           archive_date: result.archive_date,
+          // Where the chunk sits in a PDF/EPUB, for "p. 12" / chapter citations
+          page_start: result.page_start,
+          page_end: result.page_end,
+          chapter: result.chapter,
+          chapter_href: result.chapter_href,
+          library_item: result.library_item,
         },
       }))
     } catch (error) {
@@ -2730,7 +2909,7 @@ export class RagService {
    *
    * Refuses to run if the embeddings queue already has in-flight work.
    */
-  public async resetAndRebuild(): Promise<{
+  public async resetAndRebuild(targetProfile?: EmbeddingProfileId): Promise<{
     success: boolean
     message: string
     filesScanned?: number
@@ -2756,6 +2935,28 @@ export class RagService {
         // Collection may not exist yet on a fresh install — log and continue.
         logger.warn(`[RAG] deleteCollection failed (may not exist): ${(err as Error).message}`)
       }
+
+      // A rebuild is the only way the index changes embedding model: record the new profile now,
+      // while the collection is empty, so every point written from here on uses it.
+      if (targetProfile && EMBEDDING_PROFILES[targetProfile]) {
+        const previous = await KVStore.getValue('rag.embeddingProfile')
+        await KVStore.setValue('rag.embeddingProfile', targetProfile)
+        // A floor picked from the presets is on the old model's score scale: move it to the same
+        // preset of the new one. Off and custom values are left alone.
+        const stored = await KVStore.getValue('rag.minRelevance')
+        const fromProfile =
+          EMBEDDING_PROFILES[isEmbeddingProfileId(previous) ? previous : LEGACY_EMBEDDING_PROFILE]
+        const remapped =
+          stored !== null && stored !== undefined && String(stored).trim() !== ''
+            ? remapRelevanceFloor(Number(stored), fromProfile, EMBEDDING_PROFILES[targetProfile])
+            : null
+        if (remapped !== null) await KVStore.setValue('rag.minRelevance', String(remapped))
+        invalidateMinRelevanceCache()
+        logger.info(`[RAG] Rebuilding the index with embedding profile "${targetProfile}"`)
+      }
+      this.embeddingProfile = null
+      this.embeddingModelVerified = false
+      this.resolvedEmbeddingModel = null
 
       // The collection is gone — drop it from the ensured cache so the
       // _ensureCollection call below actually recreates it

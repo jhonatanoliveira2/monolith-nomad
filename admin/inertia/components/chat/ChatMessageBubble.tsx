@@ -4,6 +4,8 @@ import remarkGfm from 'remark-gfm'
 import { ChatMessage } from '../../../types/chat'
 import { useTranslation } from 'react-i18next'
 import { formatTime } from '~/lib/format'
+import SurvivalScenarioCard from './SurvivalScenarioCard'
+import SourceList from './SourceList'
 
 export interface ChatMessageBubbleProps {
   message: ChatMessage
@@ -22,6 +24,9 @@ export default function ChatMessageBubble({ message, onContinue }: ChatMessageBu
           : 'bg-surface-secondary text-text-primary'
       )}
     >
+      {message.role === 'assistant' && message.survival && (
+        <SurvivalScenarioCard meta={message.survival} />
+      )}
       {message.images && message.images.length > 0 && (
         <div className="mb-3 grid grid-cols-2 gap-2">
           {message.images.map((image) => (
@@ -136,17 +141,7 @@ export default function ChatMessageBubble({ message, onContinue }: ChatMessageBu
         </div>
       )}
       {message.role === 'assistant' && message.sources && message.sources.length > 0 && (
-        <div className="mt-3 border-t border-border-subtle pt-2 text-xs text-text-primary">
-          <div className="mb-1 font-medium">{t('Sources')}</div>
-          <ul className="space-y-0.5">
-            {message.sources.map((src, idx) => (
-              <li key={idx}>
-                {src.title}
-                {src.date && <span className="text-text-secondary"> ({src.date})</span>}
-              </li>
-            ))}
-          </ul>
-        </div>
+        <SourceList sources={message.sources} className="mt-3 border-t border-border-subtle pt-2" />
       )}
       <div
         className={classNames(

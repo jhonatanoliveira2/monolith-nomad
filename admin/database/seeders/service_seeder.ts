@@ -99,7 +99,8 @@ export default class ServiceSeeder extends BaseSeeder {
       display_order: 3,
       description: 'Local AI chat that runs entirely on your hardware - no internet required',
       icon: 'IconWand',
-      container_image: 'ollama/ollama:0.33.3',
+      // 0.40.18: version measured on an RX 9060 XT with both AMD backends (app/utils/amd_backend.ts)
+      container_image: 'ollama/ollama:0.40.18',
       source_repo: 'https://github.com/ollama/ollama',
       container_command: 'serve',
       container_config: JSON.stringify({
@@ -553,7 +554,9 @@ export default class ServiceSeeder extends BaseSeeder {
       description:
         'Read the Information Library in another language. Machine translation that works offline, on CPU',
       icon: 'IconWorld',
-      container_image: `${NOMAD_TRANSLATE_IMAGE}:0.1.2`,
+      // 0.2.0: adds the plain-text API (GET /api/translate/languages, POST /api/translate) the local
+      // assistant uses; an older image is detected and the assistant falls back to the local model
+      container_image: `${NOMAD_TRANSLATE_IMAGE}:0.2.0`,
       source_repo: 'https://github.com/browsermt/bergamot-translator',
       container_command: null,
       container_config: JSON.stringify({

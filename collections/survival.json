@@ -1,0 +1,2234 @@
+{
+  "spec_version": "2026-11-24",
+  "comment": "Mapa de conhecimento de sobrevivência: níveis de gravidade, fases, temas, ameaças, regiões e o vínculo de cada obra com eles. É metadado de organização, não fonte de fatos: o agente responde a partir das obras, e as características regionais abaixo vêm do pedido de 24/11/2026 (campo source).",
+  "levels": [
+    {
+      "level": 1,
+      "name": "Emergência individual ou doméstica",
+      "scope": "Uma pessoa, família ou residência",
+      "duration": "Horas a poucos dias",
+      "infrastructure": "Serviços públicos funcionando ao redor",
+      "recovery": "Rápida, com recursos próprios ou da vizinhança",
+      "examples": [
+        "Falta temporária de energia, água ou alimentos",
+        "Incêndio residencial ou vazamento",
+        "Acidente doméstico",
+        "Isolamento temporário",
+        "Ondas de calor e frio",
+        "Falhas de comunicação e transporte"
+      ]
+    },
+    {
+      "level": 2,
+      "name": "Emergência local ou municipal",
+      "scope": "Bairro, comunidade ou município",
+      "duration": "Dias a semanas",
+      "infrastructure": "Serviços locais afetados; ajuda externa disponível",
+      "recovery": "Semanas, com Defesa Civil municipal e estadual",
+      "examples": [
+        "Enchentes e inundações urbanas",
+        "Deslizamentos",
+        "Tempestades severas",
+        "Incêndios urbanos ou florestais",
+        "Apagão municipal",
+        "Contaminação da água",
+        "Acidente químico ou industrial",
+        "Epidemia localizada",
+        "Evacuação de bairros e comunidades"
+      ]
+    },
+    {
+      "level": 3,
+      "name": "Catástrofe regional ou estadual",
+      "scope": "Vários municípios, um estado ou uma bacia hidrográfica",
+      "duration": "Semanas a meses",
+      "infrastructure": "Energia, estradas, abastecimento e saúde comprometidos na região",
+      "recovery": "Meses a anos, com apoio federal",
+      "examples": [
+        "Inundação de grandes bacias hidrográficas",
+        "Seca prolongada",
+        "Incêndios florestais extensos",
+        "Colapso regional de energia",
+        "Falta de combustível e alimentos",
+        "Contaminação regional de recursos hídricos",
+        "Rompimento de barragem",
+        "Epidemia regional",
+        "Deslocamento populacional em massa"
+      ]
+    },
+    {
+      "level": 4,
+      "name": "Catástrofe nacional",
+      "scope": "O país inteiro ou grande parte dele",
+      "duration": "Meses a anos",
+      "infrastructure": "Sistemas nacionais (energia, abastecimento, telecomunicações) falhando",
+      "recovery": "Anos; depende de ajuda internacional",
+      "examples": [
+        "Apagão nacional prolongado",
+        "Colapso do abastecimento",
+        "Crise hídrica",
+        "Quebra generalizada da produção agrícola",
+        "Pandemia de grande impacto",
+        "Ataque cibernético a infraestrutura crítica",
+        "Interrupção de telecomunicações",
+        "Crise econômica e humanitária",
+        "Conflito armado em território nacional"
+      ]
+    },
+    {
+      "level": 5,
+      "name": "Catástrofe continental ou global",
+      "scope": "Vários países, um continente ou o mundo",
+      "duration": "Anos",
+      "infrastructure": "Cadeias internacionais de suprimento e comunicação rompidas",
+      "recovery": "Anos a décadas; ajuda externa escassa",
+      "examples": [
+        "Pandemia global de alta gravidade",
+        "Guerra entre grandes potências",
+        "Conflito nuclear",
+        "Crise alimentar mundial",
+        "Colapso de cadeias internacionais de suprimentos",
+        "Grande crise energética",
+        "Tempestade solar severa",
+        "Erupção vulcânica de grande magnitude",
+        "Interrupção de redes internacionais de comunicação"
+      ]
+    },
+    {
+      "level": 6,
+      "name": "Catástrofe civilizacional ou existencial",
+      "scope": "A civilização ou a humanidade",
+      "duration": "Décadas ou mais",
+      "infrastructure": "Ruptura simultânea de sistemas essenciais",
+      "recovery": "Incerta; reconstrução a partir de conhecimento local",
+      "examples": [
+        "Guerra nuclear global e inverno nuclear",
+        "Impacto de grande asteroide",
+        "Supererupção vulcânica",
+        "Pandemia de mortalidade extremamente elevada",
+        "Colapso prolongado da produção mundial de alimentos",
+        "Ruptura simultânea de sistemas essenciais à civilização"
+      ]
+    }
+  ],
+  "phases": [
+    {
+      "id": "riscos",
+      "name": "Identificação dos riscos e sinais de alerta",
+      "keywords": [
+        "sinal",
+        "sinais",
+        "alerta",
+        "risco",
+        "como saber",
+        "como identificar",
+        "perigo",
+        "aviso"
+      ]
+    },
+    {
+      "id": "preparacao",
+      "name": "Preparação antes do acontecimento",
+      "keywords": [
+        "preparar",
+        "preparação",
+        "prevenir",
+        "prevenção",
+        "antes",
+        "estoque",
+        "kit",
+        "mochila",
+        "plano",
+        "planejar",
+        "se preparar"
+      ]
+    },
+    {
+      "id": "primeiras-horas",
+      "name": "Primeiras horas de emergência",
+      "keywords": [
+        "agora",
+        "neste momento",
+        "está acontecendo",
+        "começou",
+        "urgente",
+        "socorro",
+        "imediatamente",
+        "primeiras horas"
+      ]
+    },
+    {
+      "id": "24-72h",
+      "name": "Primeiras 24 a 72 horas",
+      "keywords": [
+        "24 horas",
+        "48 horas",
+        "72 horas",
+        "primeiro dia",
+        "primeiros dias",
+        "três dias",
+        "fim de semana"
+      ]
+    },
+    {
+      "id": "semanas-meses",
+      "name": "Sobrevivência durante semanas ou meses",
+      "keywords": [
+        "semanas",
+        "meses",
+        "longo prazo",
+        "até o fim do ano",
+        "prolongad",
+        "meses sem",
+        "durante a seca",
+        "durar"
+      ]
+    },
+    {
+      "id": "recuperacao",
+      "name": "Recuperação e reconstrução",
+      "keywords": [
+        "depois",
+        "reconstruir",
+        "reconstrução",
+        "voltar para casa",
+        "limpeza",
+        "limpar a casa",
+        "recuperar",
+        "recuperação",
+        "pós"
+      ]
+    }
+  ],
+  "topics": [
+    {
+      "id": "agua",
+      "name": "Água: obtenção, purificação e armazenamento",
+      "keywords": [
+        "água",
+        "potável",
+        "ferver",
+        "fervura",
+        "hipoclorito",
+        "água sanitária",
+        "filtro",
+        "cisterna",
+        "poço",
+        "beber"
+      ],
+      "keywords_en": [
+        "water",
+        "purification",
+        "boil",
+        "chlorine",
+        "filter",
+        "cistern",
+        "well"
+      ]
+    },
+    {
+      "id": "alimentos",
+      "name": "Alimentos: obtenção e conservação",
+      "keywords": [
+        "comida",
+        "alimento",
+        "conservar",
+        "estoque",
+        "enlatado",
+        "fome",
+        "receita",
+        "desidratar"
+      ],
+      "keywords_en": [
+        "food",
+        "storage",
+        "canning",
+        "preserving",
+        "rations"
+      ]
+    },
+    {
+      "id": "abrigo-fogo-higiene",
+      "name": "Abrigo, fogo, higiene e saneamento",
+      "keywords": [
+        "abrigo",
+        "fogo",
+        "fogueira",
+        "higiene",
+        "banheiro",
+        "esgoto",
+        "lixo",
+        "saneamento",
+        "barraca",
+        "desabrigado"
+      ],
+      "keywords_en": [
+        "shelter",
+        "fire",
+        "hygiene",
+        "sanitation",
+        "latrine",
+        "waste"
+      ]
+    },
+    {
+      "id": "primeiros-socorros",
+      "name": "Primeiros socorros e cuidados médicos básicos",
+      "keywords": [
+        "primeiros socorros",
+        "ferimento",
+        "sangramento",
+        "queimadura",
+        "fratura",
+        "desmaio",
+        "engasgo",
+        "reanimação",
+        "remédio",
+        "febre",
+        "picada"
+      ],
+      "keywords_en": [
+        "first aid",
+        "wound",
+        "bleeding",
+        "burn",
+        "fracture",
+        "CPR",
+        "fever"
+      ]
+    },
+    {
+      "id": "orientacao",
+      "name": "Orientação, navegação e deslocamento",
+      "keywords": [
+        "mapa",
+        "bússola",
+        "orientação",
+        "rota",
+        "caminho",
+        "evacuar",
+        "evacuação",
+        "rota de fuga",
+        "perdido"
+      ],
+      "keywords_en": [
+        "navigation",
+        "map",
+        "compass",
+        "evacuation",
+        "route"
+      ]
+    },
+    {
+      "id": "ferramentas-recursos",
+      "name": "Ferramentas, equipamentos e obtenção de recursos",
+      "keywords": [
+        "ferramenta",
+        "equipamento",
+        "faca",
+        "corda",
+        "nó",
+        "lanterna",
+        "reparo",
+        "conserto"
+      ],
+      "keywords_en": [
+        "tools",
+        "equipment",
+        "knife",
+        "rope",
+        "knots",
+        "repair"
+      ]
+    },
+    {
+      "id": "agricultura-pesca",
+      "name": "Agricultura, pesca e produção de alimentos",
+      "keywords": [
+        "plantar",
+        "horta",
+        "agricultura",
+        "pesca",
+        "pescar",
+        "criação",
+        "galinha",
+        "semente",
+        "colheita",
+        "roça"
+      ],
+      "keywords_en": [
+        "gardening",
+        "farming",
+        "fishing",
+        "seeds",
+        "harvest",
+        "livestock"
+      ]
+    },
+    {
+      "id": "energia-comunicacao",
+      "name": "Energia, iluminação e comunicação",
+      "keywords": [
+        "energia",
+        "luz",
+        "gerador",
+        "bateria",
+        "solar",
+        "rádio",
+        "radioamador",
+        "sinal",
+        "celular",
+        "comunicação"
+      ],
+      "keywords_en": [
+        "power",
+        "generator",
+        "battery",
+        "solar",
+        "radio",
+        "ham radio",
+        "communication"
+      ]
+    },
+    {
+      "id": "seguranca",
+      "name": "Segurança pessoal e proteção de grupos",
+      "keywords": [
+        "segurança",
+        "proteger",
+        "violência",
+        "saque",
+        "roubo",
+        "defesa",
+        "criança",
+        "idoso",
+        "mulher"
+      ],
+      "keywords_en": [
+        "security",
+        "safety",
+        "protection",
+        "violence"
+      ]
+    },
+    {
+      "id": "psicologia-lideranca",
+      "name": "Psicologia, comportamento humano, liderança e conflitos",
+      "keywords": [
+        "medo",
+        "ansiedade",
+        "pânico",
+        "estresse",
+        "luto",
+        "saúde mental",
+        "liderança",
+        "conflito",
+        "briga",
+        "cooperação",
+        "calma"
+      ],
+      "keywords_en": [
+        "psychological first aid",
+        "stress",
+        "panic",
+        "grief",
+        "leadership",
+        "conflict"
+      ]
+    },
+    {
+      "id": "organizacao-decisao",
+      "name": "Organização, planejamento e decisões em crises",
+      "keywords": [
+        "organizar",
+        "planejar",
+        "decidir",
+        "prioridade",
+        "comunidade",
+        "grupo",
+        "vizinhos",
+        "plano familiar",
+        "checklist"
+      ],
+      "keywords_en": [
+        "planning",
+        "decision",
+        "priorities",
+        "community",
+        "checklist"
+      ]
+    },
+    {
+      "id": "recursos-prolongado",
+      "name": "Administração de recursos em emergências prolongadas",
+      "keywords": [
+        "racionar",
+        "racionamento",
+        "durar",
+        "quanto estocar",
+        "estoque",
+        "prolongada",
+        "meses",
+        "economizar"
+      ],
+      "keywords_en": [
+        "rationing",
+        "stockpile",
+        "long-term",
+        "supplies"
+      ]
+    }
+  ],
+  "hazards": [
+    {
+      "id": "inundacao",
+      "name": "Inundações, enchentes e alagamentos",
+      "keywords": [
+        "inundação",
+        "inundações",
+        "enchente",
+        "enchentes",
+        "alagamento",
+        "alagado",
+        "cheia",
+        "cheias",
+        "transbord",
+        "enxurrada",
+        "rio subindo",
+        "chuva forte",
+        "chuvas intensas"
+      ],
+      "keywords_en": [
+        "flood",
+        "flooding",
+        "flash flood"
+      ],
+      "levels": [
+        1,
+        4
+      ]
+    },
+    {
+      "id": "deslizamento",
+      "name": "Deslizamentos e movimentos de massa",
+      "keywords": [
+        "deslizamento",
+        "desmoronamento",
+        "encosta",
+        "barranco",
+        "soterr",
+        "morro",
+        "movimento de massa"
+      ],
+      "keywords_en": [
+        "landslide",
+        "mudslide"
+      ],
+      "levels": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "seca",
+      "name": "Seca e estiagem",
+      "keywords": [
+        "seca",
+        "estiagem",
+        "sem chover",
+        "não chove",
+        "açude",
+        "carro-pipa",
+        "caminhão-pipa",
+        "semiárido",
+        "sertão",
+        "crise hídrica",
+        "racionamento de água"
+      ],
+      "keywords_en": [
+        "drought",
+        "water shortage"
+      ],
+      "levels": [
+        2,
+        4
+      ]
+    },
+    {
+      "id": "incendio-florestal",
+      "name": "Incêndios florestais e queimadas",
+      "keywords": [
+        "queimada",
+        "queimadas",
+        "incêndio florestal",
+        "incêndios florestais",
+        "fogo no mato",
+        "fumaça",
+        "incêndio no cerrado",
+        "incêndio na mata"
+      ],
+      "keywords_en": [
+        "wildfire",
+        "forest fire",
+        "smoke"
+      ],
+      "levels": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "incendio-urbano",
+      "name": "Incêndios residenciais e urbanos",
+      "keywords": [
+        "incêndio em casa",
+        "pegou fogo",
+        "incêndio residencial",
+        "curto-circuito",
+        "botijão",
+        "vazamento de gás",
+        "fogo na cozinha"
+      ],
+      "keywords_en": [
+        "house fire",
+        "gas leak"
+      ],
+      "levels": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "calor-extremo",
+      "name": "Ondas de calor",
+      "keywords": [
+        "onda de calor",
+        "ondas de calor",
+        "calor extremo",
+        "calorão",
+        "insolação",
+        "desidratação",
+        "temperatura alta"
+      ],
+      "keywords_en": [
+        "heat wave",
+        "heatstroke",
+        "dehydration"
+      ],
+      "levels": [
+        1,
+        3
+      ]
+    },
+    {
+      "id": "frio-extremo",
+      "name": "Frio intenso e geadas",
+      "keywords": [
+        "frio",
+        "geada",
+        "onda de frio",
+        "hipotermia",
+        "neve",
+        "temperatura negativa"
+      ],
+      "keywords_en": [
+        "cold",
+        "hypothermia",
+        "frost"
+      ],
+      "levels": [
+        1,
+        3
+      ]
+    },
+    {
+      "id": "tempestade",
+      "name": "Tempestades, ciclones, vendavais e granizo",
+      "keywords": [
+        "tempestade",
+        "ciclone",
+        "vendaval",
+        "granizo",
+        "raio",
+        "raios",
+        "tornado",
+        "ventania",
+        "furacão"
+      ],
+      "keywords_en": [
+        "storm",
+        "cyclone",
+        "hail",
+        "lightning",
+        "tornado"
+      ],
+      "levels": [
+        1,
+        3
+      ]
+    },
+    {
+      "id": "barragem",
+      "name": "Rompimento de barragens",
+      "keywords": [
+        "barragem",
+        "barragens",
+        "rejeito",
+        "rompimento",
+        "lama de mineração"
+      ],
+      "keywords_en": [
+        "dam failure",
+        "tailings"
+      ],
+      "levels": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "contaminacao-agua",
+      "name": "Contaminação da água",
+      "keywords": [
+        "água contaminada",
+        "contaminação da água",
+        "água suja",
+        "água turva",
+        "cólera",
+        "diarreia"
+      ],
+      "keywords_en": [
+        "contaminated water",
+        "waterborne"
+      ],
+      "levels": [
+        1,
+        3
+      ]
+    },
+    {
+      "id": "acidente-quimico",
+      "name": "Acidentes químicos e industriais",
+      "keywords": [
+        "vazamento químico",
+        "produto químico",
+        "acidente químico",
+        "indústria",
+        "explosão",
+        "gás tóxico",
+        "contaminação química"
+      ],
+      "keywords_en": [
+        "chemical spill",
+        "hazmat",
+        "industrial accident"
+      ],
+      "levels": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "apagao",
+      "name": "Falta de energia e apagões",
+      "keywords": [
+        "apagão",
+        "sem luz",
+        "sem energia",
+        "falta de energia",
+        "blecaute",
+        "queda de energia"
+      ],
+      "keywords_en": [
+        "power outage",
+        "blackout",
+        "grid failure"
+      ],
+      "levels": [
+        1,
+        4
+      ]
+    },
+    {
+      "id": "desabastecimento",
+      "name": "Desabastecimento de alimentos e combustível",
+      "keywords": [
+        "desabastecimento",
+        "falta de comida",
+        "falta de alimentos",
+        "combustível",
+        "gasolina",
+        "mercado vazio",
+        "greve de caminhoneiros",
+        "sem estoque"
+      ],
+      "keywords_en": [
+        "food shortage",
+        "fuel shortage",
+        "supply chain"
+      ],
+      "levels": [
+        2,
+        5
+      ]
+    },
+    {
+      "id": "epidemia",
+      "name": "Epidemias e pandemias",
+      "keywords": [
+        "epidemia",
+        "pandemia",
+        "surto",
+        "dengue",
+        "leptospirose",
+        "cólera",
+        "covid",
+        "gripe",
+        "vírus",
+        "contágio",
+        "quarentena",
+        "doença"
+      ],
+      "keywords_en": [
+        "epidemic",
+        "pandemic",
+        "outbreak",
+        "quarantine"
+      ],
+      "levels": [
+        2,
+        6
+      ]
+    },
+    {
+      "id": "animais-peconhentos",
+      "name": "Acidentes com animais peçonhentos",
+      "keywords": [
+        "cobra",
+        "serpente",
+        "jararaca",
+        "cascavel",
+        "escorpião",
+        "aranha",
+        "picada",
+        "picado",
+        "lagarta",
+        "taturana"
+      ],
+      "keywords_en": [
+        "snakebite",
+        "scorpion",
+        "spider",
+        "venom"
+      ],
+      "levels": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "acidente-domestico",
+      "name": "Acidentes domésticos",
+      "keywords": [
+        "queimadura",
+        "corte",
+        "engasgo",
+        "engasgou",
+        "afogamento",
+        "choque elétrico",
+        "queda",
+        "intoxicação",
+        "envenenamento"
+      ],
+      "keywords_en": [
+        "burn",
+        "choking",
+        "drowning",
+        "poisoning"
+      ],
+      "levels": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "isolamento",
+      "name": "Isolamento e interrupção de transporte ou comunicação",
+      "keywords": [
+        "ilhado",
+        "isolado",
+        "isolamento",
+        "estrada bloqueada",
+        "sem acesso",
+        "sem sinal",
+        "sem internet",
+        "barco",
+        "transporte fluvial"
+      ],
+      "keywords_en": [
+        "stranded",
+        "isolated",
+        "cut off"
+      ],
+      "levels": [
+        1,
+        3
+      ]
+    },
+    {
+      "id": "ciberataque",
+      "name": "Ataques cibernéticos a infraestrutura",
+      "keywords": [
+        "ataque hacker",
+        "ciberataque",
+        "ataque cibernético",
+        "sistema bancário",
+        "pix fora",
+        "sem sistema"
+      ],
+      "keywords_en": [
+        "cyberattack",
+        "critical infrastructure"
+      ],
+      "levels": [
+        3,
+        4
+      ]
+    },
+    {
+      "id": "conflito-armado",
+      "name": "Conflitos armados e guerra",
+      "keywords": [
+        "guerra",
+        "conflito armado",
+        "tiroteio",
+        "bombardeio",
+        "invasão",
+        "toque de recolher"
+      ],
+      "keywords_en": [
+        "war",
+        "armed conflict"
+      ],
+      "levels": [
+        4,
+        5
+      ]
+    },
+    {
+      "id": "nuclear",
+      "name": "Acidentes nucleares, guerra nuclear e inverno nuclear",
+      "keywords": [
+        "nuclear",
+        "radiação",
+        "radioativ",
+        "bomba atômica",
+        "precipitação radioativa",
+        "inverno nuclear",
+        "usina nuclear"
+      ],
+      "keywords_en": [
+        "nuclear",
+        "fallout",
+        "radiation",
+        "nuclear winter"
+      ],
+      "levels": [
+        3,
+        6
+      ]
+    },
+    {
+      "id": "tempestade-solar",
+      "name": "Tempestades solares",
+      "keywords": [
+        "tempestade solar",
+        "tempestade geomagnética",
+        "ejeção de massa coronal",
+        "pulso eletromagnético"
+      ],
+      "keywords_en": [
+        "solar storm",
+        "geomagnetic storm",
+        "EMP"
+      ],
+      "levels": [
+        4,
+        5
+      ]
+    },
+    {
+      "id": "vulcao",
+      "name": "Erupções vulcânicas e supererupções",
+      "keywords": [
+        "vulcão",
+        "erupção",
+        "cinzas vulcânicas",
+        "supererupção"
+      ],
+      "keywords_en": [
+        "volcano",
+        "eruption",
+        "volcanic winter"
+      ],
+      "levels": [
+        5,
+        6
+      ]
+    },
+    {
+      "id": "asteroide",
+      "name": "Impacto de asteroide",
+      "keywords": [
+        "asteroide",
+        "meteoro",
+        "meteorito",
+        "cometa"
+      ],
+      "keywords_en": [
+        "asteroid impact"
+      ],
+      "levels": [
+        5,
+        6
+      ]
+    },
+    {
+      "id": "crise-economica",
+      "name": "Crise econômica e humanitária",
+      "keywords": [
+        "crise econômica",
+        "hiperinflação",
+        "desemprego",
+        "colapso econômico",
+        "crise humanitária"
+      ],
+      "keywords_en": [
+        "economic collapse",
+        "hyperinflation"
+      ],
+      "levels": [
+        4,
+        5
+      ]
+    },
+    {
+      "id": "colapso-alimentar",
+      "name": "Colapso da produção de alimentos",
+      "keywords": [
+        "quebra de safra",
+        "colapso agrícola",
+        "fome generalizada",
+        "crise alimentar"
+      ],
+      "keywords_en": [
+        "famine",
+        "crop failure"
+      ],
+      "levels": [
+        4,
+        6
+      ]
+    }
+  ],
+  "scope_words": [
+    {
+      "level": 1,
+      "keywords": [
+        "minha casa",
+        "em casa",
+        "apartamento",
+        "família",
+        "sozinho",
+        "meu filho",
+        "minha filha",
+        "residência"
+      ]
+    },
+    {
+      "level": 2,
+      "keywords": [
+        "bairro",
+        "comunidade",
+        "cidade",
+        "município",
+        "rua",
+        "vila",
+        "prefeitura"
+      ]
+    },
+    {
+      "level": 3,
+      "keywords": [
+        "estado",
+        "região",
+        "bacia",
+        "vários municípios",
+        "estadual",
+        "sertão",
+        "semiárido"
+      ]
+    },
+    {
+      "level": 4,
+      "keywords": [
+        "país",
+        "nacional",
+        "brasil inteiro",
+        "todo o brasil",
+        "governo federal"
+      ]
+    },
+    {
+      "level": 5,
+      "keywords": [
+        "mundo",
+        "global",
+        "mundial",
+        "continente",
+        "grandes potências",
+        "internacional"
+      ]
+    },
+    {
+      "level": 6,
+      "keywords": [
+        "civilização",
+        "humanidade",
+        "extinção",
+        "fim do mundo",
+        "inverno nuclear",
+        "apocalipse"
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "id": "norte",
+      "name": "Norte",
+      "features": "Amazônia, rios, cheias, secas, floresta, isolamento e transporte fluvial",
+      "hazards": [
+        "inundacao",
+        "seca",
+        "isolamento",
+        "incendio-florestal"
+      ],
+      "biomes": [
+        "amazônia",
+        "floresta amazônica"
+      ],
+      "source": "Caracterização regional do pedido de 24/11/2026"
+    },
+    {
+      "id": "nordeste",
+      "name": "Nordeste",
+      "features": "Semiárido, Caatinga, escassez hídrica, calor, desertificação e chuvas intensas",
+      "hazards": [
+        "seca",
+        "calor-extremo",
+        "inundacao"
+      ],
+      "biomes": [
+        "caatinga",
+        "semiárido",
+        "sertão",
+        "agreste"
+      ],
+      "source": "Caracterização regional do pedido de 24/11/2026"
+    },
+    {
+      "id": "sudeste",
+      "name": "Sudeste",
+      "features": "Enchentes urbanas, deslizamentos, calor, crise hídrica e riscos industriais",
+      "hazards": [
+        "inundacao",
+        "deslizamento",
+        "calor-extremo",
+        "seca",
+        "acidente-quimico"
+      ],
+      "biomes": [
+        "mata atlântica"
+      ],
+      "source": "Caracterização regional do pedido de 24/11/2026"
+    },
+    {
+      "id": "sul",
+      "name": "Sul",
+      "features": "Inundações, ciclones, granizo, geadas e frio extremo",
+      "hazards": [
+        "inundacao",
+        "tempestade",
+        "frio-extremo"
+      ],
+      "biomes": [
+        "pampa"
+      ],
+      "source": "Caracterização regional do pedido de 24/11/2026"
+    },
+    {
+      "id": "centro-oeste",
+      "name": "Centro-Oeste",
+      "features": "Cerrado, Pantanal, incêndios, secas e produção agropecuária",
+      "hazards": [
+        "incendio-florestal",
+        "seca"
+      ],
+      "biomes": [
+        "cerrado",
+        "pantanal"
+      ],
+      "source": "Caracterização regional do pedido de 24/11/2026"
+    }
+  ],
+  "works": [
+    {
+      "match": "ms-agua-tratada-em-casa",
+      "kind": "library",
+      "hazards": [
+        "inundacao",
+        "seca",
+        "contaminacao-agua"
+      ],
+      "topics": [
+        "agua"
+      ],
+      "phases": [
+        "preparacao",
+        "24-72h",
+        "semanas-meses"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        1,
+        4
+      ]
+    },
+    {
+      "match": "ms-qualidade-da-agua",
+      "kind": "library",
+      "hazards": [
+        "contaminacao-agua",
+        "seca"
+      ],
+      "topics": [
+        "agua",
+        "abrigo-fogo-higiene"
+      ],
+      "phases": [
+        "preparacao",
+        "semanas-meses"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        1,
+        3
+      ]
+    },
+    {
+      "match": "ms-guia-inundacao",
+      "kind": "library",
+      "hazards": [
+        "inundacao"
+      ],
+      "topics": [
+        "primeiros-socorros",
+        "organizacao-decisao"
+      ],
+      "phases": [
+        "preparacao",
+        "primeiras-horas",
+        "24-72h",
+        "recuperacao"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        2,
+        3
+      ]
+    },
+    {
+      "match": "ms-inundacoes-abrigos",
+      "kind": "library",
+      "hazards": [
+        "inundacao"
+      ],
+      "topics": [
+        "abrigo-fogo-higiene",
+        "primeiros-socorros",
+        "seguranca"
+      ],
+      "phases": [
+        "24-72h",
+        "semanas-meses"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        2,
+        3
+      ]
+    },
+    {
+      "match": "ms-inundacoes-ubs",
+      "kind": "library",
+      "hazards": [
+        "inundacao",
+        "epidemia"
+      ],
+      "topics": [
+        "primeiros-socorros"
+      ],
+      "phases": [
+        "24-72h",
+        "semanas-meses",
+        "recuperacao"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        2,
+        3
+      ]
+    },
+    {
+      "match": "ms-plano-chuvas-intensas",
+      "kind": "library",
+      "hazards": [
+        "inundacao",
+        "deslizamento",
+        "tempestade"
+      ],
+      "topics": [
+        "organizacao-decisao",
+        "primeiros-socorros"
+      ],
+      "phases": [
+        "riscos",
+        "preparacao",
+        "primeiras-horas",
+        "24-72h",
+        "recuperacao"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        2,
+        4
+      ]
+    },
+    {
+      "match": "ms-plano-seca-estiagem",
+      "kind": "library",
+      "hazards": [
+        "seca",
+        "contaminacao-agua"
+      ],
+      "topics": [
+        "agua",
+        "organizacao-decisao",
+        "recursos-prolongado"
+      ],
+      "phases": [
+        "riscos",
+        "preparacao",
+        "semanas-meses"
+      ],
+      "regions": [
+        "nordeste",
+        "brasil"
+      ],
+      "levels": [
+        2,
+        4
+      ]
+    },
+    {
+      "match": "ms-plano-barragens",
+      "kind": "library",
+      "hazards": [
+        "barragem",
+        "inundacao"
+      ],
+      "topics": [
+        "organizacao-decisao",
+        "primeiros-socorros"
+      ],
+      "phases": [
+        "riscos",
+        "primeiras-horas",
+        "24-72h",
+        "recuperacao"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        2,
+        3
+      ]
+    },
+    {
+      "match": "ms-queimadas-incendios",
+      "kind": "library",
+      "hazards": [
+        "incendio-florestal"
+      ],
+      "topics": [
+        "primeiros-socorros"
+      ],
+      "phases": [
+        "riscos",
+        "preparacao",
+        "24-72h"
+      ],
+      "regions": [
+        "centro-oeste",
+        "norte",
+        "brasil"
+      ],
+      "levels": [
+        1,
+        3
+      ]
+    },
+    {
+      "match": "ms-violencias-emergencias-climaticas",
+      "kind": "library",
+      "hazards": [
+        "inundacao",
+        "seca",
+        "calor-extremo",
+        "tempestade"
+      ],
+      "topics": [
+        "seguranca",
+        "psicologia-lideranca",
+        "abrigo-fogo-higiene"
+      ],
+      "phases": [
+        "24-72h",
+        "semanas-meses"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        2,
+        4
+      ]
+    },
+    {
+      "match": "ms-guia-animais-peconhentos",
+      "kind": "library",
+      "hazards": [
+        "animais-peconhentos",
+        "inundacao"
+      ],
+      "topics": [
+        "primeiros-socorros"
+      ],
+      "phases": [
+        "riscos",
+        "preparacao",
+        "primeiras-horas"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        1,
+        1
+      ]
+    },
+    {
+      "match": "ms-pcdt-acidentes-ofidicos",
+      "kind": "library",
+      "hazards": [
+        "animais-peconhentos"
+      ],
+      "topics": [
+        "primeiros-socorros"
+      ],
+      "phases": [
+        "primeiras-horas"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        1,
+        1
+      ]
+    },
+    {
+      "match": "ms-pcdt-acidentes-escorpionicos",
+      "kind": "library",
+      "hazards": [
+        "animais-peconhentos"
+      ],
+      "topics": [
+        "primeiros-socorros"
+      ],
+      "phases": [
+        "primeiras-horas"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        1,
+        1
+      ]
+    },
+    {
+      "match": "ms-guia-vigilancia-saude-vol-1",
+      "kind": "library",
+      "hazards": [
+        "epidemia"
+      ],
+      "topics": [
+        "primeiros-socorros"
+      ],
+      "phases": [
+        "riscos",
+        "semanas-meses"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        2,
+        5
+      ]
+    },
+    {
+      "match": "ms-guia-vigilancia-saude-vol-2",
+      "kind": "library",
+      "hazards": [
+        "epidemia"
+      ],
+      "topics": [
+        "primeiros-socorros"
+      ],
+      "phases": [
+        "riscos",
+        "semanas-meses"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        2,
+        5
+      ]
+    },
+    {
+      "match": "ms-guia-vigilancia-saude-vol-3",
+      "kind": "library",
+      "hazards": [
+        "epidemia"
+      ],
+      "topics": [
+        "primeiros-socorros"
+      ],
+      "phases": [
+        "riscos",
+        "semanas-meses"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        2,
+        5
+      ]
+    },
+    {
+      "match": "ms-alimentos-regionais",
+      "kind": "library",
+      "hazards": [
+        "desabastecimento",
+        "colapso-alimentar"
+      ],
+      "topics": [
+        "alimentos",
+        "agricultura-pesca"
+      ],
+      "phases": [
+        "semanas-meses",
+        "recuperacao"
+      ],
+      "regions": [
+        "norte",
+        "nordeste",
+        "centro-oeste",
+        "sudeste",
+        "sul"
+      ],
+      "levels": [
+        1,
+        6
+      ]
+    },
+    {
+      "match": "mdr-caderno-gird",
+      "kind": "library",
+      "hazards": [
+        "inundacao",
+        "deslizamento",
+        "seca"
+      ],
+      "topics": [
+        "organizacao-decisao"
+      ],
+      "phases": [
+        "riscos",
+        "preparacao"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        2,
+        4
+      ]
+    },
+    {
+      "match": "mdr-guia-alertas",
+      "kind": "library",
+      "hazards": [
+        "inundacao",
+        "deslizamento",
+        "tempestade"
+      ],
+      "topics": [
+        "energia-comunicacao",
+        "organizacao-decisao"
+      ],
+      "phases": [
+        "riscos",
+        "preparacao"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        1,
+        3
+      ]
+    },
+    {
+      "match": "mma-guia-dialogos-eventos-extremos",
+      "kind": "library",
+      "hazards": [
+        "inundacao",
+        "deslizamento",
+        "seca",
+        "incendio-florestal",
+        "calor-extremo"
+      ],
+      "topics": [
+        "organizacao-decisao",
+        "psicologia-lideranca"
+      ],
+      "phases": [
+        "riscos",
+        "preparacao"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        1,
+        3
+      ]
+    },
+    {
+      "match": "mma-caderno-inundacoes",
+      "kind": "library",
+      "hazards": [
+        "inundacao"
+      ],
+      "topics": [
+        "organizacao-decisao",
+        "orientacao"
+      ],
+      "phases": [
+        "riscos",
+        "preparacao",
+        "primeiras-horas",
+        "recuperacao"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        1,
+        3
+      ]
+    },
+    {
+      "match": "mma-caderno-deslizamentos",
+      "kind": "library",
+      "hazards": [
+        "deslizamento"
+      ],
+      "topics": [
+        "organizacao-decisao",
+        "orientacao"
+      ],
+      "phases": [
+        "riscos",
+        "preparacao",
+        "primeiras-horas"
+      ],
+      "regions": [
+        "sudeste",
+        "brasil"
+      ],
+      "levels": [
+        1,
+        3
+      ]
+    },
+    {
+      "match": "mma-caderno-secas",
+      "kind": "library",
+      "hazards": [
+        "seca"
+      ],
+      "topics": [
+        "agua",
+        "recursos-prolongado"
+      ],
+      "phases": [
+        "riscos",
+        "preparacao",
+        "semanas-meses"
+      ],
+      "regions": [
+        "nordeste",
+        "centro-oeste",
+        "brasil"
+      ],
+      "levels": [
+        1,
+        3
+      ]
+    },
+    {
+      "match": "mma-caderno-incendios",
+      "kind": "library",
+      "hazards": [
+        "incendio-florestal",
+        "incendio-urbano"
+      ],
+      "topics": [
+        "organizacao-decisao"
+      ],
+      "phases": [
+        "riscos",
+        "preparacao",
+        "primeiras-horas"
+      ],
+      "regions": [
+        "centro-oeste",
+        "norte",
+        "brasil"
+      ],
+      "levels": [
+        1,
+        3
+      ]
+    },
+    {
+      "match": "mma-caderno-ondas-de-calor",
+      "kind": "library",
+      "hazards": [
+        "calor-extremo"
+      ],
+      "topics": [
+        "primeiros-socorros",
+        "organizacao-decisao"
+      ],
+      "phases": [
+        "riscos",
+        "preparacao",
+        "24-72h"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        1,
+        3
+      ]
+    },
+    {
+      "match": "guia-alimentar-populacao-brasileira",
+      "kind": "library",
+      "hazards": [
+        "desabastecimento"
+      ],
+      "topics": [
+        "alimentos"
+      ],
+      "phases": [
+        "preparacao",
+        "semanas-meses"
+      ],
+      "regions": [
+        "brasil"
+      ],
+      "levels": [
+        1,
+        4
+      ]
+    },
+    {
+      "match": "zimgit-water_en",
+      "kind": "zim",
+      "hazards": [
+        "contaminacao-agua",
+        "seca",
+        "inundacao"
+      ],
+      "topics": [
+        "agua"
+      ],
+      "phases": [
+        "preparacao",
+        "semanas-meses"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        1,
+        6
+      ]
+    },
+    {
+      "match": "zimgit-food-preparation_en",
+      "kind": "zim",
+      "hazards": [
+        "desabastecimento",
+        "colapso-alimentar"
+      ],
+      "topics": [
+        "alimentos",
+        "recursos-prolongado"
+      ],
+      "phases": [
+        "preparacao",
+        "semanas-meses"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        1,
+        6
+      ]
+    },
+    {
+      "match": "usda-2015_en",
+      "kind": "zim",
+      "hazards": [
+        "desabastecimento",
+        "colapso-alimentar"
+      ],
+      "topics": [
+        "alimentos"
+      ],
+      "phases": [
+        "preparacao",
+        "semanas-meses"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        1,
+        6
+      ]
+    },
+    {
+      "match": "zimgit-knots_en",
+      "kind": "zim",
+      "hazards": [],
+      "topics": [
+        "ferramentas-recursos"
+      ],
+      "phases": [
+        "preparacao"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        1,
+        6
+      ]
+    },
+    {
+      "match": "zimgit-medicine_en",
+      "kind": "zim",
+      "hazards": [
+        "acidente-domestico",
+        "epidemia"
+      ],
+      "topics": [
+        "primeiros-socorros"
+      ],
+      "phases": [
+        "primeiras-horas",
+        "24-72h",
+        "semanas-meses"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        1,
+        6
+      ]
+    },
+    {
+      "match": "zimgit-post-disaster_en",
+      "kind": "zim",
+      "hazards": [
+        "inundacao",
+        "tempestade",
+        "desabastecimento"
+      ],
+      "topics": [
+        "abrigo-fogo-higiene",
+        "organizacao-decisao",
+        "recursos-prolongado"
+      ],
+      "phases": [
+        "24-72h",
+        "semanas-meses",
+        "recuperacao"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        2,
+        6
+      ]
+    },
+    {
+      "match": "irp.fas.org_en_military-medicine",
+      "kind": "zim",
+      "hazards": [
+        "conflito-armado",
+        "nuclear"
+      ],
+      "topics": [
+        "primeiros-socorros"
+      ],
+      "phases": [
+        "primeiras-horas",
+        "24-72h"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        3,
+        6
+      ]
+    },
+    {
+      "match": "ready.gov_en",
+      "kind": "zim",
+      "hazards": [
+        "inundacao",
+        "tempestade",
+        "apagao",
+        "incendio-urbano",
+        "epidemia",
+        "nuclear"
+      ],
+      "topics": [
+        "organizacao-decisao",
+        "alimentos",
+        "agua"
+      ],
+      "phases": [
+        "preparacao",
+        "primeiras-horas",
+        "24-72h"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        1,
+        5
+      ]
+    },
+    {
+      "match": "www.ready.gov_en",
+      "kind": "zim",
+      "hazards": [
+        "inundacao",
+        "tempestade",
+        "apagao",
+        "incendio-urbano",
+        "epidemia",
+        "nuclear"
+      ],
+      "topics": [
+        "organizacao-decisao",
+        "alimentos",
+        "agua"
+      ],
+      "phases": [
+        "preparacao",
+        "primeiras-horas",
+        "24-72h"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        1,
+        5
+      ]
+    },
+    {
+      "match": "appropedia_en",
+      "kind": "zim",
+      "hazards": [
+        "apagao",
+        "desabastecimento",
+        "contaminacao-agua"
+      ],
+      "topics": [
+        "agua",
+        "energia-comunicacao",
+        "abrigo-fogo-higiene",
+        "agricultura-pesca"
+      ],
+      "phases": [
+        "semanas-meses",
+        "recuperacao"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        3,
+        6
+      ]
+    },
+    {
+      "match": "energypedia_en",
+      "kind": "zim",
+      "hazards": [
+        "apagao"
+      ],
+      "topics": [
+        "energia-comunicacao"
+      ],
+      "phases": [
+        "semanas-meses",
+        "recuperacao"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        3,
+        6
+      ]
+    },
+    {
+      "match": "ham.stackexchange.com_en",
+      "kind": "zim",
+      "hazards": [
+        "apagao",
+        "isolamento",
+        "tempestade-solar"
+      ],
+      "topics": [
+        "energia-comunicacao"
+      ],
+      "phases": [
+        "preparacao",
+        "semanas-meses"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        2,
+        6
+      ]
+    },
+    {
+      "match": "outdoors.stackexchange.com_en",
+      "kind": "zim",
+      "hazards": [
+        "isolamento"
+      ],
+      "topics": [
+        "orientacao",
+        "abrigo-fogo-higiene",
+        "ferramentas-recursos"
+      ],
+      "phases": [
+        "preparacao",
+        "24-72h"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        1,
+        6
+      ]
+    },
+    {
+      "match": "psychology.stackexchange.com_en",
+      "kind": "zim",
+      "hazards": [],
+      "topics": [
+        "psicologia-lideranca"
+      ],
+      "phases": [
+        "semanas-meses",
+        "recuperacao"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        1,
+        6
+      ]
+    },
+    {
+      "match": "cd3wdproject.org_en",
+      "kind": "zim",
+      "hazards": [
+        "colapso-alimentar",
+        "desabastecimento"
+      ],
+      "topics": [
+        "agricultura-pesca",
+        "ferramentas-recursos",
+        "energia-comunicacao"
+      ],
+      "phases": [
+        "semanas-meses",
+        "recuperacao"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        4,
+        6
+      ]
+    },
+    {
+      "match": "gutenberg_en_lcc-s",
+      "kind": "zim",
+      "hazards": [
+        "colapso-alimentar"
+      ],
+      "topics": [
+        "agricultura-pesca"
+      ],
+      "phases": [
+        "semanas-meses",
+        "recuperacao"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        4,
+        6
+      ]
+    },
+    {
+      "match": "wikivet",
+      "kind": "zim",
+      "hazards": [],
+      "topics": [
+        "agricultura-pesca"
+      ],
+      "phases": [
+        "semanas-meses"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        1,
+        6
+      ]
+    },
+    {
+      "match": "wikipedia_pt_medicine",
+      "kind": "zim",
+      "hazards": [
+        "epidemia",
+        "acidente-domestico",
+        "animais-peconhentos"
+      ],
+      "topics": [
+        "primeiros-socorros"
+      ],
+      "phases": [
+        "riscos",
+        "24-72h"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        1,
+        6
+      ]
+    },
+    {
+      "match": "solar.lowtechmagazine.com_mul",
+      "kind": "zim",
+      "hazards": [
+        "apagao"
+      ],
+      "topics": [
+        "energia-comunicacao",
+        "ferramentas-recursos"
+      ],
+      "phases": [
+        "semanas-meses",
+        "recuperacao"
+      ],
+      "regions": [
+        "global"
+      ],
+      "levels": [
+        3,
+        6
+      ]
+    }
+  ]
+}

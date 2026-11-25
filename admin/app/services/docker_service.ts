@@ -5,6 +5,13 @@ import { inject } from '@adonisjs/core'
 import transmit from '@adonisjs/transmit/services/main'
 import { doResumableDownloadWithRetry } from '../utils/downloads.js'
 import { pickAmdHsaOverride } from '../utils/amd_hsa_override.js'
+import {
+  amdBackendEnv,
+  pickAmdBackend,
+  stripAmdBackendEnv,
+  type AmdBackendResolution,
+} from '../utils/amd_backend.js'
+import { readDrmGpus } from '../utils/gpu_sysfs.js'
 import { join } from 'node:path'
 import os from 'node:os'
 import env from '#start/env'
@@ -762,6 +769,7 @@ export class DockerService {
       let finalImage = service.container_image
       let gpuHostConfig = containerConfig?.HostConfig || {}
       let amdGpuConfigured = false
+      let amdVulkan = false
 
       if (service.service_name === SERVICE_NAMES.OLLAMA) {
         const gpuResult = await this._detectGPUType()
@@ -790,7 +798,28 @@ export class DockerService {
           const amdEnabledRaw = await KVStore.getValue('ai.amdGpuAcceleration')
           const amdAccelerationEnabled = String(amdEnabledRaw) !== 'false'
 
-          if (amdAccelerationEnabled) {
+          const amdBackend = amdAccelerationEnabled ? await this._resolveAmdBackend() : null
+          if (amdBackend?.backend === 'vulkan') {
+            // RDNA 4 (or forced): the standard image's Vulkan backend on /dev/dri, measured faster
+            // than ROCm on this generation (see app/utils/amd_backend.ts). service.container_image
+            // is the standard tag and was already pulled above.
+            this._broadcast(
+              service.service_name,
+              'gpu-config',
+              `AMD GPU detected. Using the Vulkan backend (RADV) with /dev/dri passthrough...`
+            )
+            gpuHostConfig = {
+              ...gpuHostConfig,
+              Devices: [
+                { PathOnHost: '/dev/dri', PathInContainer: '/dev/dri', CgroupPermissions: 'rwm' },
+              ],
+            }
+            amdGpuConfigured = true
+            amdVulkan = true
+            logger.info(
+              `[DockerService] Configured Vulkan backend for Ollama on AMD (${amdBackend.source})`
+            )
+          } else if (amdAccelerationEnabled) {
             this._broadcast(
               service.service_name,
               'gpu-config',
@@ -864,7 +893,9 @@ export class DockerService {
         // VRAM, and anything past the window is silently truncated with no error — so a
         // conversation that outgrows it just quietly loses its early turns.
         ollamaEnv.push(`OLLAMA_CONTEXT_LENGTH=${DEFAULT_OLLAMA_CONTEXT_LENGTH}`)
-        if (amdGpuConfigured) {
+        if (amdVulkan) {
+          ollamaEnv.push(...amdBackendEnv('vulkan'))
+        } else if (amdGpuConfigured) {
           // gfx-aware HSA override — only set for cards that actually need it. See
           // _resolveAmdHsaOverride() for the resolution order and gfx → version mapping.
           const hsaOverride = await this._resolveAmdHsaOverride()
@@ -958,9 +989,12 @@ export class DockerService {
         this._broadcast(
           service.service_name,
           'gpu-config',
-          `AMD GPU detected, but this system has no usable ROCm device (/dev/kfd is missing, ` +
-            `which means the amdgpu/ROCm kernel driver is not loaded or does not support this GPU). ` +
-            `Installing CPU-only instead so the AI Assistant still works.`
+          amdVulkan
+            ? `AMD GPU detected, but /dev/dri could not be passed to the container. ` +
+                `Installing CPU-only instead so the AI Assistant still works.`
+            : `AMD GPU detected, but this system has no usable ROCm device (/dev/kfd is missing, ` +
+                `which means the amdgpu/ROCm kernel driver is not loaded or does not support this GPU). ` +
+                `Installing CPU-only instead so the AI Assistant still works.`
         )
 
         // The created container carries the rejected device config, so it cannot be
@@ -975,9 +1009,7 @@ export class DockerService {
         // Drop the ROCm-only env along with the devices. HSA_OVERRIDE_GFX_VERSION and
         // OLLAMA_IGPU_ENABLE mean nothing to the CPU build, and leaving them behind is
         // misleading to anyone who later reads `docker inspect`.
-        const cpuOllamaEnv = ollamaEnv.filter(
-          (e) => !e.startsWith('HSA_OVERRIDE_GFX_VERSION=') && !e.startsWith('OLLAMA_IGPU_ENABLE=')
-        )
+        const cpuOllamaEnv = stripAmdBackendEnv(ollamaEnv)
         amdGpuConfigured = false
         // service.container_image is the CPU tag, already pulled earlier in this
         // function before the AMD branch overrode finalImage to :rocm.
@@ -1772,6 +1804,27 @@ export class DockerService {
    * fallback (card0/renderD128) the prior implementation used, which was wrong on
    * systems where the AMD GPU enumerates as card1+ (e.g. UM890 Pro 780M iGPU).
    */
+  /**
+   * ROCm or Vulkan for this AMD card: KV `ai.amdBackend` first, then RDNA 4 detection from the
+   * install-time gfx marker or the PCI device id in sysfs (app/utils/amd_backend.ts).
+   */
+  /** The AMD backend an install or reinstall of Ollama would use right now. */
+  async getAmdBackend(): Promise<AmdBackendResolution> {
+    return this._resolveAmdBackend()
+  }
+
+  private async _resolveAmdBackend(): Promise<AmdBackendResolution> {
+    const manual = await KVStore.getValue('ai.amdBackend')
+    const gfx = await this._readAmdGfxMarker()
+    const drmGpus = await readDrmGpus()
+    const pciDeviceIds = drmGpus.filter((g) => g.vendorId === '1002').map((g) => g.deviceId)
+    const resolution = pickAmdBackend({ manual, gfx, pciDeviceIds })
+    logger.info(
+      `[DockerService] AMD backend: ${resolution.backend} (${resolution.source}; gfx=${gfx ?? 'unknown'}, pci=${pciDeviceIds.join(',') || 'none'})`
+    )
+    return resolution
+  }
+
   private async _discoverAMDDevices(): Promise<
     Array<{ PathOnHost: string; PathInContainer: string; CgroupPermissions: string }>
   > {
@@ -1860,6 +1913,7 @@ export class DockerService {
       let updatedDeviceRequests: any[] | undefined
       let updatedAmdDevices: any[] | undefined
       let updatedAmdGpuConfigured = false
+      let updatedAmdVulkan = false
       if (serviceName === SERVICE_NAMES.OLLAMA) {
         const gpuResult = await this._detectGPUType()
         if (gpuResult.type === 'nvidia') {
@@ -1872,7 +1926,20 @@ export class DockerService {
         } else if (gpuResult.type === 'amd') {
           const amdEnabledRaw = await KVStore.getValue('ai.amdGpuAcceleration')
           const amdAccelerationEnabled = String(amdEnabledRaw) !== 'false'
-          if (amdAccelerationEnabled) {
+          const amdBackend = amdAccelerationEnabled ? await this._resolveAmdBackend() : null
+          if (amdBackend?.backend === 'vulkan') {
+            this._broadcast(
+              serviceName,
+              'update-gpu-config',
+              `AMD GPU detected. Using the Vulkan backend (RADV) with /dev/dri passthrough...`
+            )
+            // runtimeImage stays the standard semver tag: its Vulkan backend serves the card
+            updatedAmdDevices = [
+              { PathOnHost: '/dev/dri', PathInContainer: '/dev/dri', CgroupPermissions: 'rwm' },
+            ]
+            updatedAmdGpuConfigured = true
+            updatedAmdVulkan = true
+          } else if (amdAccelerationEnabled) {
             this._broadcast(
               serviceName,
               'update-gpu-config',
@@ -1967,12 +2034,12 @@ export class DockerService {
       // the inspect-captured env so updates from older containers pick up the current value.
       const baseEnv = inspectData.Config?.Env || []
       let finalEnv = baseEnv
-      if (updatedAmdGpuConfigured) {
+      if (updatedAmdVulkan) {
+        // Switching from ROCm (or updating a Vulkan container): drop ROCm-only env, assert Vulkan
+        finalEnv = [...stripAmdBackendEnv(baseEnv), ...amdBackendEnv('vulkan')]
+      } else if (updatedAmdGpuConfigured) {
         const hsaOverride = await this._resolveAmdHsaOverride({ containerEnv: baseEnv })
-        finalEnv = baseEnv.filter(
-          (e: string) =>
-            !e.startsWith('HSA_OVERRIDE_GFX_VERSION=') && !e.startsWith('OLLAMA_IGPU_ENABLE=')
-        )
+        finalEnv = stripAmdBackendEnv(baseEnv)
         if (hsaOverride) {
           finalEnv.push(`HSA_OVERRIDE_GFX_VERSION=${hsaOverride}`)
         }

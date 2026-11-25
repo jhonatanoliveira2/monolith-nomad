@@ -129,6 +129,67 @@ export type DownloadPreflight = {
   supportsRangeRequests: boolean
 }
 
+type ProbeOptions = {
+  signal?: AbortSignal
+  timeout: number
+  headers: Record<string, string>
+  lookup?: DoResumableDownloadParams['lookup']
+  beforeRedirect?: DoResumableDownloadParams['beforeRedirect']
+}
+
+function hasCredentials(headers: Record<string, string>): boolean {
+  return Object.keys(headers).some((h) => h.toLowerCase() === 'authorization')
+}
+
+/**
+ * A one-byte GET standing in for HEAD, shaped like a HEAD response: content-length is the full size
+ * (from Content-Range on a 206), accept-ranges is "bytes" when the range was honoured. The body is
+ * discarded unread. Null when the probe fails too.
+ */
+export async function rangeProbe(url: string, opts: ProbeOptions) {
+  try {
+    const res = await axios.get(url, {
+      signal: opts.signal,
+      timeout: opts.timeout,
+      headers: { ...opts.headers, Range: 'bytes=0-0' },
+      responseType: 'stream',
+      ...(opts.lookup && { lookup: opts.lookup }),
+      ...(opts.beforeRedirect && { beforeRedirect: opts.beforeRedirect }),
+    })
+    res.data?.destroy?.()
+    return { headers: probeHeaders(res.status, res.headers as Record<string, unknown>) }
+  } catch {
+    return null
+  }
+}
+
+/** HEAD-equivalent headers from a ranged GET's status and headers (pure, unit-tested). */
+export function probeHeaders(status: number, headers: Record<string, unknown>) {
+  const range = /\/(\d+)\s*$/.exec(String(headers['content-range'] ?? ''))
+  const partial = status === 206 && range
+  return {
+    'content-type': headers['content-type'],
+    'content-length': partial ? range[1] : headers['content-length'],
+    'accept-ranges': partial ? 'bytes' : headers['accept-ranges'],
+  } as Record<string, unknown>
+}
+
+/**
+ * The error to raise when the probe failed: a 401/403 from a gated source is translated, because the
+ * raw axios message ("Request failed with status code 401") reads like our server is broken and the
+ * cause is almost always a build without the entitlement key. failedReason is shown verbatim.
+ */
+function translateHeadError(error: any): Error {
+  const status = error?.response?.status
+  if (status === 401 || status === 403) {
+    return new GatedContentAuthError(
+      'This content requires credentials that this install does not have. ' +
+        `The download server rejected this install's credentials (HTTP ${status}).`
+    )
+  }
+  return error
+}
+
 /**
  * HEAD probe shared by both download engines: size, range support and the MIME allowlist, with a gated
  * source's 401/403 translated to GatedContentAuthError.
@@ -153,6 +214,7 @@ export async function preflightDownload({
   // Get file info with HEAD request first. Gated sources (Creator Packs) require
   // the auth header on the HEAD too, or the probe 401s before the GET is reached.
   let headResponse
+  let headError: any = null
   try {
     headResponse = await axios.head(url, {
       signal,
@@ -162,20 +224,17 @@ export async function preflightDownload({
       ...(beforeRedirect && { beforeRedirect }),
     })
   } catch (error: any) {
-    // A 401/403 from a gated source is not a network problem and the raw axios
-    // message ("Request failed with status code 401") reads like our server is
-    // broken. Translate it, because the actual cause is almost always a build
-    // without the entitlement key baked in.
-    // failedReason is surfaced verbatim on the downloads UI.
-    const status = error?.response?.status
-    if (status === 401 || status === 403) {
-      throw new GatedContentAuthError(
-        'This content requires credentials that this install does not have. ' +
-          `The download server rejected this install's credentials (HTTP ${status}).`
-      )
+    headError = error
+    // Some publishers refuse HEAD but serve GET: gov.br answers 403 to every HEAD
+    // (measured 2026-11-24 on the Ministério da Saúde and MMA PDFs) and 206 to a
+    // ranged GET. Without credentials in play, ask for the first byte instead.
+    const refused = [403, 405, 501].includes(error?.response?.status)
+    if (refused && !hasCredentials(headers)) {
+      const probe = await rangeProbe(url, { signal, timeout, headers, lookup, beforeRedirect })
+      if (probe) headResponse = probe
     }
-    throw error
   }
+  if (!headResponse) throw translateHeadError(headError)
 
   // Some upstream hosts (notably download.kiwix.org for .zim files) don't set a
   // Content-Type header at all. Per RFC 7231 §3.1.1.5, "if no Content-Type is

@@ -18,6 +18,7 @@ so links inside the ZIM need no rewriting either.
 """
 
 import http.cookies
+import json
 import os
 import re
 import sys
@@ -140,6 +141,43 @@ def translate_blocks(pair: str, jobs: list[str]) -> list[str]:
     return [r.target.text for r in responses]
 
 
+# JSON API used by the admin's reader assistant: translate a few passages on demand. Bounded so a
+# single request cannot hold every worker (a reader page is a few thousand characters).
+API_MAX_TEXTS = 64
+API_MAX_CHARS = 20_000
+
+
+def available_pairs() -> set[str]:
+    """Every model directory on disk (``enpt``, ``pten``...), both directions."""
+    if not MODELS.is_dir():
+        return set()
+    return {e.name for e in MODELS.iterdir() if len(e.name) == 4 and (e / "config.yml").is_file()}
+
+
+def plan_route(src: str, tgt: str, pairs: set[str]) -> list[str] | None:
+    """Model pairs to chain for src->tgt: direct when a model exists, else pivot through English
+    (Firefox's models are all paired with English), else None."""
+    if src == tgt:
+        return []
+    if src + tgt in pairs:
+        return [src + tgt]
+    if src != "en" and tgt != "en" and src + "en" in pairs and "en" + tgt in pairs:
+        return [src + "en", "en" + tgt]
+    return None
+
+
+def translate_texts(route: list[str], texts: list[str]) -> list[str]:
+    """Plain-text translation along a route (no HTML handling: the admin sends reader text)."""
+    from bergamot import ResponseOptions, VectorString
+
+    options = ResponseOptions(HTML=False)
+    current = texts
+    for pair in route:
+        responses = _bergamot().translate(model(pair), VectorString(current), options)
+        current = [r.target.text for r in responses]
+    return current
+
+
 BAR_CSS = """
 #nomad-tr{position:sticky;top:0;z-index:2147483000;display:flex;align-items:center;
  flex-wrap:wrap;gap:9px;padding:7px 14px;background:#36361A;color:#F1E6C8;
@@ -231,7 +269,49 @@ class Handler(BaseHTTPRequestHandler):
         value = jar[COOKIE].value if COOKIE in jar else ""
         return value if value in LANGS else ""
 
+    def _json(self, status: int, payload: dict) -> None:
+        data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_POST(self):
+        if urllib.parse.urlparse(self.path).path != "/api/translate":
+            return self._json(404, {"error": "not found"})
+        if UNAVAILABLE:
+            return self._json(503, {"error": f"translation unavailable: {UNAVAILABLE}"})
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            if length <= 0 or length > API_MAX_CHARS * 4 + 4096:
+                return self._json(413, {"error": "request too large"})
+            body = json.loads(self.rfile.read(length).decode("utf-8"))
+            src, tgt, texts = body.get("from"), body.get("to"), body.get("texts")
+            if not (isinstance(src, str) and isinstance(tgt, str) and isinstance(texts, list)):
+                raise ValueError("from, to and texts are required")
+            if not all(isinstance(t, str) for t in texts) or len(texts) > API_MAX_TEXTS:
+                raise ValueError(f"texts must be at most {API_MAX_TEXTS} strings")
+            if sum(len(t) for t in texts) > API_MAX_CHARS:
+                return self._json(413, {"error": f"at most {API_MAX_CHARS} characters per request"})
+        except (ValueError, json.JSONDecodeError) as exc:
+            return self._json(400, {"error": str(exc)})
+        route = plan_route(src.lower(), tgt.lower(), available_pairs())
+        if route is None:
+            return self._json(422, {"error": f"no model for {src}->{tgt}"})
+        started = time.time()
+        out = translate_texts(route, texts) if route else list(texts)
+        return self._json(
+            200,
+            {"translations": out, "route": route, "ms": round((time.time() - started) * 1000)},
+        )
+
     def do_GET(self, body_only: bool = False):
+        if self.path == "/api/translate/languages":
+            return self._json(
+                200, {"pairs": sorted(available_pairs()), "available": UNAVAILABLE is None}
+            )
         # Setting the language via a URL makes a given language linkable and
         # bookmarkable rather than only reachable by clicking the control.
         if self.path.startswith("/nomad-lang"):

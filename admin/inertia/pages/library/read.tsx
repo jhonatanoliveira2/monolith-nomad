@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   IconArrowLeft,
   IconDownload,
@@ -7,6 +7,7 @@ import {
   IconList,
   IconMoon,
   IconSearch,
+  IconSparkles,
 } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 import AppShell from '~/layouts/AppShell'
@@ -14,7 +15,8 @@ import Badge from '~/components/nd/Badge'
 import IconButton from '~/components/nd/IconButton'
 import PdfReader from '~/components/reader/PdfReader'
 import EpubReader from '~/components/reader/EpubReader'
-import type { ReaderPanel } from '~/components/reader/types'
+import type { ReaderApi, ReaderPanel } from '~/components/reader/types'
+import ReaderAssistantPanel from '~/components/reader/ReaderAssistantPanel'
 import { useThemeContext } from '~/providers/ThemeProvider'
 import { pushRecent, RECENT_KEY, type RecentDocument } from '~/lib/library_filters'
 import type { LibraryLicense } from '../../../types/library'
@@ -43,6 +45,17 @@ export default function LibraryReader(props: Props) {
       : null
   )
   const [darkPages, setDarkPages] = useState(false)
+  const readerApi = useRef<ReaderApi | null>(null)
+  // A cited page or chapter from an answer (?page=12 / ?href=chapter.xhtml) opens directly
+  const initial = useMemo(() => {
+    if (typeof window === 'undefined') return { page: undefined, href: undefined }
+    const q = new URLSearchParams(window.location.search)
+    const page = Number(q.get('page'))
+    return {
+      page: Number.isInteger(page) && page > 0 ? page : undefined,
+      href: q.get('href') || undefined,
+    }
+  }, [])
 
   // "Continue reading" on the library page
   useEffect(() => {
@@ -144,6 +157,14 @@ export default function LibraryReader(props: Props) {
               <IconList size={18} />
             </IconButton>
             <IconButton
+              label={t('Local assistant')}
+              active={panel === 'assistant'}
+              aria-pressed={panel === 'assistant'}
+              onClick={() => toggle('assistant')}
+            >
+              <IconSparkles size={18} />
+            </IconButton>
+            <IconButton
               label={t('Search in this document')}
               active={panel === 'search'}
               aria-pressed={panel === 'search'}
@@ -191,6 +212,9 @@ export default function LibraryReader(props: Props) {
             setPanel={setPanel}
             info={info}
             darkPages={darkPages}
+            apiRef={readerApi}
+            initialPage={initial.page}
+            assistant={<ReaderAssistantPanel filename={props.filename} apiRef={readerApi} />}
           />
         ) : props.format === 'epub' ? (
           <EpubReader
@@ -201,6 +225,9 @@ export default function LibraryReader(props: Props) {
             setPanel={setPanel}
             info={info}
             appTheme={theme}
+            apiRef={readerApi}
+            initialHref={initial.href}
+            assistant={<ReaderAssistantPanel filename={props.filename} apiRef={readerApi} />}
           />
         ) : (
           <p className="p-6 text-text-secondary">{t('Unsupported file format.')}</p>

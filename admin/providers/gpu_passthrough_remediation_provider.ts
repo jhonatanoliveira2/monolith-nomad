@@ -128,8 +128,10 @@ export default class GpuPassthroughRemediationProvider {
             return
           }
 
-          const hsaOverride = await new DockerService().getAmdHsaOverride()
-          const drift = diffAmdOllamaConfig(inspect, hsaOverride)
+          const dockerService = new DockerService()
+          const hsaOverride = await dockerService.getAmdHsaOverride()
+          const amdBackend = await dockerService.getAmdBackend()
+          const drift = diffAmdOllamaConfig(inspect, hsaOverride, amdBackend.backend)
           if (drift.length > 0) {
             logger.warn(
               '[GpuPassthroughRemediationProvider] AMD GPU configured but Ollama fell back to CPU. ' +

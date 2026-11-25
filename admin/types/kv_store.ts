@@ -17,6 +17,9 @@ export const KV_STORE_SCHEMA = {
   // before they are injected and cited (#1341). Unset means OFF: the check costs
   // a model call per turn and only pays off on ~8B-class models.
   'rag.relevanceCheck': 'boolean',
+  // Embedding model the knowledge-base index was built with (app/utils/embedding_profile.ts):
+  // 'embeddinggemma' | 'nomic-v1.5'. Written when the index is first used; changed only by a rebuild.
+  'rag.embeddingProfile': 'string',
   'system.updateAvailable': 'boolean',
   'system.latestVersion': 'string',
   'system.earlyAccess': 'boolean',
@@ -54,6 +57,11 @@ export const KV_STORE_SCHEMA = {
   // ISO 3166-2 like BR-SP). The time zone is applied to the server process (logs, update windows).
   'regional.timezone': 'string',
   'regional.state': 'string',
+  // Living environment for survival guidance: 'urbano' | 'rural'. Unset means not informed.
+  'regional.environment': 'string',
+  // Free-text place name (city or area, e.g. "Manaus"), at most 80 characters. Only used to
+  // contextualise survival answers; never sent anywhere.
+  'regional.place': 'string',
   // Reverse-proxy / local-DNS override for the Settings sidebar's "Service Logs &
   // Metrics" entry. Dozzle is a management-compose container, not a `services` row,
   // so the per-app `custom_url` column (#991) has nothing to attach to and the link
@@ -89,6 +97,9 @@ export const KV_STORE_SCHEMA = {
   'ai.responseStyle': 'string',
   'ai.amdGpuAcceleration': 'boolean',
   'ai.amdHsaOverride': 'string',
+  // Ollama compute backend on AMD: 'rocm' | 'vulkan' | 'auto' (unset = auto: Vulkan on RDNA 4,
+  // ROCm otherwise; see app/utils/amd_backend.ts). Applied on the next install or update of Ollama.
+  'ai.amdBackend': 'string',
   'ai.autoFixGpuPassthrough': 'boolean',
   'gpu.autoRemediatedAt': 'string',
   'apps.homebox.apiKeyPepper': 'string',

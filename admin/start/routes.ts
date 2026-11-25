@@ -26,7 +26,9 @@ const CollectionUpdatesController = () => import('#controllers/collection_update
 const CreatorPacksController = () => import('#controllers/creator_packs_controller')
 const ZimController = () => import('#controllers/zim_controller')
 const LibraryController = () => import('#controllers/library_controller')
+const AssistantController = () => import('#controllers/assistant_controller')
 import { libraryDownloadValidator, libraryFileParamsValidator } from '#validators/library'
+import { readerAssistantSchema, translateSchema } from '#validators/assistant'
 import router from '@adonisjs/core/services/router'
 import transmit from '@adonisjs/transmit/services/main'
 import { documented } from '#start/openapi/documented'
@@ -55,6 +57,7 @@ import {
   embedFileSchema,
   fileSourceSchema,
   estimateBatchSchema,
+  resetAndRebuildSchema,
 } from '#validators/rag'
 import {
   installServiceValidator,
@@ -125,6 +128,32 @@ router
     })
   })
   .prefix('/api/library')
+// Local AI agent: status, live performance, on-demand translation and the reader assistant
+router
+  .group(() => {
+    documented(router.get('/status', [AssistantController, 'status']), {
+      summary:
+        'Local AI agent status: hardware-based model recommendation, embedding index, translation engines, survival knowledge dates and regional settings',
+      tags: ['assistant'],
+    })
+    documented(router.get('/performance', [AssistantController, 'performance']), {
+      summary: 'Live GPU (sysfs), RAM, loaded models and recent generation speed',
+      tags: ['assistant'],
+    })
+    documented(router.post('/translate', [AssistantController, 'translate']), {
+      summary:
+        'Translate a selection or a page on demand (Bergamot or the local model), with cache',
+      tags: ['assistant'],
+      request: translateSchema,
+    })
+    documented(router.post('/reader', [AssistantController, 'reader']), {
+      summary:
+        'Reader assistant (SSE): chat, explanation or summary about the open PDF/EPUB, citing pages',
+      tags: ['assistant'],
+      request: readerAssistantSchema,
+    })
+  })
+  .prefix('/api/assistant')
 router.on('/knowledge-base').redirectToPath('/chat?knowledge_base=true') // redirect for legacy knowledge-base links
 
 router.get('/easy-setup', [EasySetupController, 'index'])
@@ -166,6 +195,7 @@ router
     router.get('/legal', [SettingsController, 'legal'])
     router.get('/maps', [SettingsController, 'maps'])
     router.get('/models', [SettingsController, 'models'])
+    router.get('/assistant', [SettingsController, 'assistant'])
     router.get('/update', [SettingsController, 'update'])
     router.get('/zim', [SettingsController, 'zim'])
     router.get('/zim/remote-explorer', [SettingsController, 'zimRemote'])
@@ -514,7 +544,13 @@ router
       tags: ['rag'],
     })
     documented(router.post('/reset-and-rebuild', [RagController, 'resetAndRebuild']), {
-      summary: 'Reset and rebuild the RAG index',
+      summary: 'Reset and rebuild the RAG index (optionally with another embedding model)',
+      tags: ['rag'],
+      request: resetAndRebuildSchema,
+    })
+    documented(router.get('/embedding-status', [RagController, 'embeddingStatus']), {
+      summary:
+        'Embedding model of the knowledge-base index and whether a multilingual rebuild is available',
       tags: ['rag'],
     })
     documented(router.post('/estimate-batch', [RagController, 'estimateBatch']), {

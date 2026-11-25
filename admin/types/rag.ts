@@ -43,6 +43,11 @@ export type RAGResult = {
   source?: string
   archive_title?: string
   archive_date?: string
+  page_start?: number
+  page_end?: number
+  chapter?: string
+  chapter_href?: string
+  library_item?: string
 }
 
 export type RerankedRAGResult = Omit<RAGResult, 'keywords'> & {
@@ -102,6 +107,9 @@ export type RetrievedChunk = {
  * harness can ablate one stage at a time without a parallel implementation.
  */
 export type PipelineOptions = {
+  /** Wrap the rendered context block in a different instruction (the survival and reader agents cite
+   *  their sources; the general chat's default template tells the model not to). */
+  renderContext?: (context: string) => string
   topK?: number
   scoreThreshold?: number
   collection?: string

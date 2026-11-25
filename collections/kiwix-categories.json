@@ -1,5 +1,5 @@
 {
-  "spec_version": "2026-11-21",
+  "spec_version": "2026-11-24",
   "categories": [
     {
       "name": "Medicina e Saúde",
@@ -123,6 +123,15 @@
               "url": "https://download.kiwix.org/zim/other/librepathology_en_all_maxi_2026-09.zim",
               "size_mb": 95,
               "language": "en"
+            },
+            {
+              "id": "mdwiki_en_all_maxi",
+              "version": "2025-11",
+              "title": "MDWiki Medical Encyclopedia",
+              "description": "Healthcare articles curated by WikiProjectMed",
+              "url": "https://download.kiwix.org/zim/other/mdwiki_en_all_maxi_2025-11.zim",
+              "size_mb": 2196,
+              "language": "en"
             }
           ]
         }
@@ -132,13 +141,13 @@
       "name": "Sobrevivência e Preparação",
       "slug": "survival",
       "icon": "IconShieldCheck",
-      "description": "Água, alimentos, nós, preparação para desastres e tecnologia apropriada. Não há pacotes equivalentes em português; o conteúdo é em inglês, com a Low-tech Magazine multilíngue no Completo.",
+      "description": "Água, alimentos, abrigo, comunicação, energia e preparação para desastres. O conteúdo em ZIM é em inglês; as publicações oficiais brasileiras (Ministério da Saúde, Defesa Civil, MMA) ficam na Biblioteca, área Sobrevivência e Emergências.",
       "language": "mul",
       "tiers": [
         {
           "name": "Essencial",
           "slug": "survival-essential",
-          "description": "Tratamento de água, preparo de alimentos, nós e vídeos de preparação para o inverno (em inglês). Comece por aqui.",
+          "description": "Tratamento de água, conservação e enlatamento de alimentos e nós (em inglês, pacotes pequenos). As publicações oficiais brasileiras de Defesa Civil e saúde estão na Biblioteca, área Sobrevivência e Emergências.",
           "recommended": true,
           "resources": [
             {
@@ -160,6 +169,15 @@
               "language": "en"
             },
             {
+              "id": "usda-2015_en",
+              "version": "2025-04",
+              "title": "USDA Guide to Home Canning",
+              "description": "Research-based recommendations for canning food safely at home",
+              "url": "https://download.kiwix.org/zim/other/usda-2015_en_2025-04.zim",
+              "size_mb": 19,
+              "language": "en"
+            },
+            {
               "id": "zimgit-knots_en",
               "version": "2024-08",
               "title": "A Library of Knots",
@@ -167,46 +185,34 @@
               "url": "https://download.kiwix.org/zim/other/zimgit-knots_en_2024-08.zim",
               "size_mb": 27,
               "language": "en"
-            },
-            {
-              "id": "canadian-prepper_en_winterprepping",
-              "previous_ids": [
-                "canadian_prepper_winterprepping_en"
-              ],
-              "version": "2026-08",
-              "title": "Canadian Prepper: Winter Prepping",
-              "description": "Video guides for winter survival and cold weather emergencies",
-              "url": "https://download.kiwix.org/zim/videos/canadian-prepper_en_winterprepping_2026-08.zim",
-              "size_mb": 1342,
-              "language": "en"
-            },
-            {
-              "id": "canadian-prepper_en_bugoutroll",
-              "previous_ids": [
-                "canadian_prepper_bugoutroll_en"
-              ],
-              "version": "2026-07",
-              "title": "Canadian Prepper: Bug Out Roll",
-              "description": "Essential gear selection for your bug-out bag",
-              "url": "https://download.kiwix.org/zim/videos/canadian-prepper_en_bugoutroll_2026-07.zim",
-              "size_mb": 879,
-              "language": "en"
             }
           ]
         },
         {
           "name": "Padrão",
           "slug": "survival-standard",
-          "description": "Guias de preparação para emergências, perguntas e respostas sobre atividades ao ar livre e radioamador (em inglês). Inclui tudo do Essencial.",
+          "description": "Ready.gov (planos e kits para desastres), tecnologia apropriada (Appropedia), atividades ao ar livre, radioamador e psicologia (em inglês).",
           "includesTier": "survival-essential",
           "resources": [
             {
-              "id": "www.ready.gov_en",
-              "version": "2024-12",
+              "id": "ready.gov_en_all",
+              "version": "2026-10",
               "title": "Ready.gov",
-              "description": "Official US disaster planning guidance - weather, fire, evacuation plans, and emergency kits",
-              "url": "https://download.kiwix.org/zim/zimit/www.ready.gov_en_2024-12.zim",
-              "size_mb": 2429,
+              "description": "Plan ahead for disasters: weather, fire, family plans and emergency kits",
+              "url": "https://download.kiwix.org/zim/zimit/ready.gov_en_all_2026-10.zim",
+              "size_mb": 1968,
+              "language": "en",
+              "previous_ids": [
+                "www.ready.gov_en"
+              ]
+            },
+            {
+              "id": "appropedia_en_all_maxi",
+              "version": "2026-02",
+              "title": "Appropedia",
+              "description": "Appropriate technology: water, sanitation, energy, shelter and food production",
+              "url": "https://download.kiwix.org/zim/other/appropedia_en_all_maxi_2026-02.zim",
+              "size_mb": 555,
               "language": "en"
             },
             {
@@ -228,6 +234,71 @@
               "language": "en"
             },
             {
+              "id": "psychology.stackexchange.com_en_all",
+              "version": "2026-10",
+              "title": "Psychology & Neuroscience Q&A",
+              "description": "Q&A on psychology, stress and behaviour",
+              "url": "https://download.kiwix.org/zim/stack_exchange/psychology.stackexchange.com_en_all_2026-10.zim",
+              "size_mb": 61,
+              "language": "en"
+            },
+            {
+              "id": "canadian-prepper_en_bugoutroll",
+              "previous_ids": [
+                "canadian_prepper_bugoutroll_en"
+              ],
+              "version": "2026-07",
+              "title": "Canadian Prepper: Bug Out Roll",
+              "description": "Essential gear selection for your bug-out bag",
+              "url": "https://download.kiwix.org/zim/videos/canadian-prepper_en_bugoutroll_2026-07.zim",
+              "size_mb": 879,
+              "language": "en"
+            }
+          ]
+        },
+        {
+          "name": "Completo",
+          "slug": "survival-comprehensive",
+          "description": "Energia fora da rede, recursos pós-desastre, guias de preparação em vídeo, tecnologia apropriada e ciência militar (em inglês, com a Low-tech Magazine multilíngue).",
+          "includesTier": "survival-standard",
+          "resources": [
+            {
+              "id": "energypedia_en_all_nopic",
+              "version": "2026-06",
+              "title": "energypedia",
+              "description": "Off-grid and renewable energy: solar, biogas, mini-grids (no pictures)",
+              "url": "https://download.kiwix.org/zim/other/energypedia_en_all_nopic_2026-06.zim",
+              "size_mb": 689,
+              "language": "en"
+            },
+            {
+              "id": "zimgit-post-disaster_en",
+              "version": "2024-05",
+              "title": "Post Disaster Resource Library",
+              "description": "Shelter, sanitation, salvage, and recovery guidance for the aftermath of a disaster",
+              "url": "https://download.kiwix.org/zim/other/zimgit-post-disaster_en_2024-05.zim",
+              "size_mb": 644,
+              "language": "en"
+            },
+            {
+              "id": "trueprepper.com_en_all",
+              "version": "2026-05",
+              "title": "True prepper",
+              "description": "Emergency preparedness guides and checklists",
+              "url": "https://download.kiwix.org/zim/other/trueprepper.com_en_all_2026-05.zim",
+              "size_mb": 1358,
+              "language": "en"
+            },
+            {
+              "id": "urban-prepper_en_all",
+              "version": "2026-08",
+              "title": "Urban Prepper",
+              "description": "Comprehensive urban emergency preparedness video series",
+              "url": "https://download.kiwix.org/zim/videos/urban-prepper_en_all_2026-08.zim",
+              "size_mb": 2245,
+              "language": "en"
+            },
+            {
               "id": "canadian-prepper_en_bugoutconcepts",
               "previous_ids": [
                 "canadian_prepper_bugoutconcepts_en"
@@ -239,23 +310,6 @@
               "size_mb": 2886,
               "language": "en"
             },
-            {
-              "id": "urban-prepper_en_all",
-              "version": "2026-08",
-              "title": "Urban Prepper",
-              "description": "Comprehensive urban emergency preparedness video series",
-              "url": "https://download.kiwix.org/zim/videos/urban-prepper_en_all_2026-08.zim",
-              "size_mb": 2245,
-              "language": "en"
-            }
-          ]
-        },
-        {
-          "name": "Completo",
-          "slug": "survival-comprehensive",
-          "description": "Bibliotecas pós-desastre, tecnologia apropriada (inclui a Low-tech Magazine, com artigos em português) e ciência militar. Inclui tudo do Padrão.",
-          "includesTier": "survival-standard",
-          "resources": [
             {
               "id": "canadian-prepper_en_preppingfood",
               "previous_ids": [
@@ -269,12 +323,15 @@
               "language": "en"
             },
             {
-              "id": "zimgit-post-disaster_en",
-              "version": "2024-05",
-              "title": "Post Disaster Resource Library",
-              "description": "Shelter, sanitation, salvage, and recovery guidance for the aftermath of a disaster",
-              "url": "https://download.kiwix.org/zim/other/zimgit-post-disaster_en_2024-05.zim",
-              "size_mb": 644,
+              "id": "canadian-prepper_en_winterprepping",
+              "previous_ids": [
+                "canadian_prepper_winterprepping_en"
+              ],
+              "version": "2026-08",
+              "title": "Canadian Prepper: Winter Prepping",
+              "description": "Video guides for winter survival and cold weather emergencies",
+              "url": "https://download.kiwix.org/zim/videos/canadian-prepper_en_winterprepping_2026-08.zim",
+              "size_mb": 1342,
               "language": "en"
             },
             {
@@ -287,21 +344,21 @@
               "language": "en"
             },
             {
-              "id": "gutenberg_en_lcc-u",
-              "version": "2026-03",
-              "title": "Project Gutenberg: Military Science",
-              "description": "Classic military strategy, tactics, and field manuals",
-              "url": "https://download.kiwix.org/zim/gutenberg/gutenberg_en_lcc-u_2026-03.zim",
-              "size_mb": 1200,
-              "language": "en"
-            },
-            {
               "id": "cd3wdproject.org_en_all",
               "version": "2025-11",
               "title": "CD3WD: Appropriate Technology Library",
               "description": "Practical guides to food production, water and sanitation, construction, and village-scale manufacturing without industrial supply chains",
               "url": "https://download.kiwix.org/zim/zimit/cd3wdproject.org_en_all_2025-11.zim",
               "size_mb": 581,
+              "language": "en"
+            },
+            {
+              "id": "gutenberg_en_lcc-u",
+              "version": "2026-03",
+              "title": "Project Gutenberg: Military Science",
+              "description": "Classic military strategy, tactics, and field manuals",
+              "url": "https://download.kiwix.org/zim/gutenberg/gutenberg_en_lcc-u_2026-03.zim",
+              "size_mb": 1200,
               "language": "en"
             },
             {
@@ -312,6 +369,15 @@
               "url": "https://download.kiwix.org/zim/zimit/solar.lowtechmagazine.com_mul_all_2025-01.zim",
               "size_mb": 668,
               "language": "mul"
+            },
+            {
+              "id": "wikipedia_en_knots_maxi",
+              "version": "2026-10",
+              "title": "Knots by Wikipedia",
+              "description": "A subset of Wikipedia encyclopedia dedicated to knots",
+              "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_en_knots_maxi_2026-10.zim",
+              "size_mb": 13,
+              "language": "en"
             }
           ]
         }
@@ -777,6 +843,15 @@
               "description": "Recipes and techniques for food preservation and long-term storage",
               "url": "https://download.kiwix.org/zim/other/zimgit-food-preparation_en_2025-04.zim",
               "size_mb": 98,
+              "language": "en"
+            },
+            {
+              "id": "gardenology.org_en_all",
+              "version": "2026-09",
+              "title": "Gardenology",
+              "description": "Plant and garden encyclopedia: crops, care and pests",
+              "url": "https://download.kiwix.org/zim/other/gardenology.org_en_all_2026-09.zim",
+              "size_mb": 107,
               "language": "en"
             }
           ]

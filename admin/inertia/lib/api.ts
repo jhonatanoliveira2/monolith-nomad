@@ -32,6 +32,13 @@ import {
   OllamaChatRequest,
 } from '../../types/ollama'
 import BenchmarkResult from '#models/benchmark_result'
+import type {
+  AssistantPerformance,
+  AssistantStatus,
+  SurvivalMeta,
+  TranslationLanguage,
+  TranslationResponse,
+} from '../../types/assistant'
 import {
   BenchmarkType,
   RunBenchmarkResponse,
@@ -439,7 +446,8 @@ class API {
     onChunk: (content: string, thinking: string, done: boolean) => void,
     signal?: AbortSignal,
     onSources?: (sources: ChatSource[]) => void,
-    onDoneReason?: (reason: string) => void
+    onDoneReason?: (reason: string) => void,
+    onSurvival?: (meta: SurvivalMeta) => void
   ): Promise<void> {
     // Axios doesn't support ReadableStream in browser, so need to use fetch
     const serialized = serializeChatRequest({ ...chatRequest, stream: true })
@@ -488,6 +496,11 @@ class API {
             onSources?.(data.sources)
             continue
           }
+          // Survival mode's leading event: the scenario the agent understood
+          if (data.survival) {
+            onSurvival?.(data.survival)
+            continue
+          }
 
           // Only the chunk that ends generation carries it; 'length' means the
           // answer was cut off rather than finished (#1342).
@@ -496,6 +509,111 @@ class API {
           }
 
           onChunk(data.message?.content ?? '', data.message?.thinking ?? '', data.done ?? false)
+        }
+      }
+    } finally {
+      reader.releaseLock()
+    }
+  }
+
+  // --- Local AI agent ------------------------------------------------------------------------
+
+  async getAssistantStatus() {
+    return catchInternal(async () => {
+      const response = await this.client.get<AssistantStatus>('/assistant/status')
+      return response.data
+    })()
+  }
+
+  async getAssistantPerformance() {
+    return catchInternal(async () => {
+      const response = await this.client.get<AssistantPerformance>('/assistant/performance')
+      return response.data
+    })()
+  }
+
+  /** Throws with the server's message (too long, no model) so the reader can show it. */
+  async translateText(body: {
+    text: string
+    target: TranslationLanguage
+    source?: TranslationLanguage
+    model?: string
+  }): Promise<TranslationResponse> {
+    try {
+      const response = await this.client.post<TranslationResponse>('/assistant/translate', body)
+      return response.data
+    } catch (error) {
+      const message = (error as AxiosError<{ message?: string }>)?.response?.data?.message
+      throw new Error(message ?? t('Translation failed.'))
+    }
+  }
+
+  async rebuildKnowledgeBase(embeddingProfile?: 'embeddinggemma' | 'nomic-v1.5') {
+    return catchInternal(async () => {
+      const response = await this.client.post<{ success: boolean; message: string }>(
+        '/rag/reset-and-rebuild',
+        embeddingProfile ? { embeddingProfile } : {}
+      )
+      return response.data
+    })()
+  }
+
+  /**
+   * Reader assistant (SSE, same framing as the chat): answer chunks, `{progress}` while a long
+   * summary is made in parts, and `{sources}` with the pages used.
+   */
+  async streamReaderAssistant(
+    body: {
+      filename: string
+      action: 'chat' | 'explain' | 'summarize'
+      model: string
+      passage: { text: string; label: string; page?: number; href?: string }
+      selection?: string
+      question?: string
+      history?: { role: 'user' | 'assistant'; content: string }[]
+    },
+    handlers: {
+      onChunk: (content: string) => void
+      onSources?: (sources: ChatSource[]) => void
+      onProgress?: (done: number, total: number) => void
+    },
+    signal?: AbortSignal
+  ): Promise<void> {
+    const response = await fetch('/api/assistant/reader', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal,
+    })
+    if (!response.ok || !response.body) {
+      const errorBody = await response.json().catch(() => null)
+      throw new Error(
+        errorBody?.message ?? t('HTTP error: {{status}}', { status: response.status })
+      )
+    }
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue
+          let data: any
+          try {
+            data = JSON.parse(line.slice(6))
+          } catch {
+            continue
+          }
+          const streamError = chatStreamErrorMessage(data)
+          if (streamError) throw new Error(streamError)
+          if (data.sources) handlers.onSources?.(data.sources)
+          else if (data.progress) handlers.onProgress?.(data.progress.done, data.progress.total)
+          else if (data.message?.content) handlers.onChunk(data.message.content)
         }
       }
     } finally {

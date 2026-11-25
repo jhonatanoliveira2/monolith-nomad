@@ -1,6 +1,12 @@
 {
-  "spec_version": "2026-11-21",
+  "spec_version": "2026-11-24",
   "areas": [
+    {
+      "slug": "sobrevivencia",
+      "name": "Sobrevivência e Emergências",
+      "description": "Defesa Civil, água, primeiros socorros, animais peçonhentos, desastres naturais e saúde pública em emergências, em publicações oficiais brasileiras.",
+      "icon": "IconShieldCheck"
+    },
     {
       "slug": "matematica",
       "name": "Matemática",
@@ -1560,6 +1566,1032 @@
         {
           "format": "zim",
           "zim_id": "ifixit_pt_all"
+        }
+      ]
+    },
+    {
+      "id": "ms-agua-tratada-em-casa",
+      "version": "2026",
+      "title": "Água tratada em casa: alternativas para o tratamento da água nos domicílios",
+      "authors": [
+        "Ministério da Saúde, Secretaria de Vigilância em Saúde e Ambiente"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "1ª edição (2026)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Filtração, fervura, cloração com hipoclorito de sódio a 2,5 % (com tabela de gotas por litro) e armazenamento seguro da água em casa.",
+      "areas": [
+        "sobrevivencia",
+        "saude"
+      ],
+      "subjects": [
+        "Tratamento de água",
+        "Hipoclorito de sódio",
+        "Fervura",
+        "Armazenamento de água"
+      ],
+      "levels": [
+        "iniciante"
+      ],
+      "source_url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia-ambiental",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério da Saúde e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia-ambiental/agua-tratada-em-casa.pdf",
+          "size_bytes": 4916848,
+          "sha256": "0898415f675b227f0f66f61813457d48f2f4121b4ab5fb9996cf10f136ec3d7b"
+        }
+      ]
+    },
+    {
+      "id": "ms-qualidade-da-agua",
+      "version": "2018",
+      "title": "Qualidade da água para consumo humano: cartilha para promoção e proteção da saúde",
+      "authors": [
+        "Ministério da Saúde, Secretaria de Vigilância em Saúde"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "2018",
+      "year": "2018",
+      "language": "pt",
+      "description": "Fontes de abastecimento, riscos à saúde, soluções alternativas, cuidados com caixas d'água, poços e cisternas.",
+      "areas": [
+        "sobrevivencia",
+        "saude"
+      ],
+      "subjects": [
+        "Qualidade da água",
+        "Poços e cisternas",
+        "Doenças de veiculação hídrica"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario"
+      ],
+      "source_url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia-ambiental",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério da Saúde e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia-ambiental/qualidade-da-agua-para-consumo-humano.pdf",
+          "size_bytes": 5271515,
+          "sha256": "bbe04440bcbf5f94748738d5128939e8586058eccce5569a7b735eda48e1204d"
+        }
+      ]
+    },
+    {
+      "id": "ms-guia-inundacao",
+      "version": "2017",
+      "title": "Guia de preparação e resposta à emergência em saúde pública por inundação",
+      "authors": [
+        "Ministério da Saúde, Secretaria de Vigilância em Saúde"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "2017",
+      "year": "2017",
+      "language": "pt",
+      "description": "Efeitos das inundações na saúde, gestão de risco no setor saúde, preparação e resposta no território.",
+      "areas": [
+        "sobrevivencia",
+        "saude"
+      ],
+      "subjects": [
+        "Inundações",
+        "Gestão de risco",
+        "Saúde pública em desastres"
+      ],
+      "levels": [
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://bvsms.saude.gov.br/",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério da Saúde e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://bvsms.saude.gov.br/bvs/publicacoes/guia_preparacao_respostas_emergencia_saude_publica_inundacao.pdf",
+          "size_bytes": 1784422,
+          "sha256": "d2d3368cdfc5138f70b6506531af920993e164a4e7ae180a630d9689b9b54734"
+        }
+      ]
+    },
+    {
+      "id": "ms-inundacoes-abrigos",
+      "version": "2024",
+      "title": "Inundações: diretrizes para profissionais de saúde — abrigos temporários",
+      "authors": [
+        "Ministério da Saúde, Secretaria de Atenção Primária à Saúde"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "Publicação para emergências (2024)",
+      "year": "2024",
+      "language": "pt",
+      "description": "Organização e cuidados de saúde em abrigos temporários: água, alimentos, higiene, doenças, grupos vulneráveis.",
+      "areas": [
+        "sobrevivencia",
+        "saude"
+      ],
+      "subjects": [
+        "Abrigos temporários",
+        "Inundações",
+        "Atenção primária"
+      ],
+      "levels": [
+        "intermediario"
+      ],
+      "source_url": "https://bvsms.saude.gov.br/",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério da Saúde e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://bvsms.saude.gov.br/bvs/publicacoes/inundacoes_diretrizes_profissionais_abrigostemporarios.pdf",
+          "size_bytes": 744357,
+          "sha256": "7cd044720faf21c63096f91d2d4fd45b58fcd17bbe0d36b61fa792492c1b5cdc"
+        }
+      ]
+    },
+    {
+      "id": "ms-inundacoes-ubs",
+      "version": "2024",
+      "title": "Inundações: diretrizes para profissionais de saúde — unidades básicas de saúde",
+      "authors": [
+        "Ministério da Saúde, Secretaria de Atenção Primária à Saúde"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "Publicação para emergências (2024)",
+      "year": "2024",
+      "language": "pt",
+      "description": "Atendimento na atenção primária durante e após inundações: leptospirose, hepatite A, diarreias, tétano, acidentes com animais e saúde mental.",
+      "areas": [
+        "sobrevivencia",
+        "saude"
+      ],
+      "subjects": [
+        "Inundações",
+        "Leptospirose",
+        "Atenção primária"
+      ],
+      "levels": [
+        "intermediario"
+      ],
+      "source_url": "https://bvsms.saude.gov.br/",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério da Saúde e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://bvsms.saude.gov.br/bvs/publicacoes/inundacoes_diretrizes_profissionais_unidadesbasicas.pdf",
+          "size_bytes": 775723,
+          "sha256": "1081a6e86bff685849b535046b4daf4788fb6650c23cab45c2541859b30fbf6d"
+        }
+      ]
+    },
+    {
+      "id": "ms-plano-chuvas-intensas",
+      "version": "2025",
+      "title": "Plano de contingência nacional para emergências em saúde pública por chuvas intensas e desastres associados",
+      "authors": [
+        "Ministério da Saúde, Secretaria de Vigilância em Saúde e Ambiente"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "2025",
+      "year": "2025",
+      "language": "pt",
+      "description": "Inundações, enxurradas, deslizamentos e alagamentos: níveis de resposta, ações por fase e riscos à saúde.",
+      "areas": [
+        "sobrevivencia",
+        "saude"
+      ],
+      "subjects": [
+        "Chuvas intensas",
+        "Inundações",
+        "Deslizamentos",
+        "Plano de contingência"
+      ],
+      "levels": [
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia-ambiental",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério da Saúde e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia-ambiental/plano-de-contingencia-para-emergencias-em-saude-publica-por-chuvas-intensas-e-desastres-associados.pdf",
+          "size_bytes": 6303506,
+          "sha256": "c56295888501c167042b1d1e138f5171aa6a973e949682b2b391404d5162892a"
+        }
+      ]
+    },
+    {
+      "id": "ms-plano-seca-estiagem",
+      "version": "2026",
+      "title": "Plano de contingência para emergências em saúde pública por seca e estiagem",
+      "authors": [
+        "Ministério da Saúde, Secretaria de Vigilância em Saúde e Ambiente"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "2026",
+      "year": "2026",
+      "language": "pt",
+      "description": "Seca e estiagem, com ênfase no semiárido: abastecimento por carro-pipa, cisternas, qualidade da água e doenças associadas.",
+      "areas": [
+        "sobrevivencia",
+        "saude"
+      ],
+      "subjects": [
+        "Seca e estiagem",
+        "Semiárido",
+        "Abastecimento de água",
+        "Plano de contingência"
+      ],
+      "levels": [
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia-ambiental",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério da Saúde e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia-ambiental/plano-de-contingencia-seca-e-estiagem.pdf",
+          "size_bytes": 2423100,
+          "sha256": "513e4fa587f0a42db9bd988b7646dba65a8844954b07e697e5feb7f1c5de669e"
+        }
+      ]
+    },
+    {
+      "id": "ms-plano-barragens",
+      "version": "2025",
+      "title": "Plano de contingência para emergência em saúde pública por rompimento de barragens",
+      "authors": [
+        "Ministério da Saúde, Secretaria de Vigilância em Saúde e Ambiente"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "2025",
+      "year": "2025",
+      "language": "pt",
+      "description": "Riscos à saúde e organização da resposta em rompimentos de barragens de rejeitos e de água.",
+      "areas": [
+        "sobrevivencia",
+        "saude"
+      ],
+      "subjects": [
+        "Barragens",
+        "Plano de contingência",
+        "Desastres tecnológicos"
+      ],
+      "levels": [
+        "intermediario",
+        "avancado"
+      ],
+      "source_url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia-ambiental",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério da Saúde e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia-ambiental/plano-de-contingencia-barragens.pdf",
+          "size_bytes": 1670421,
+          "sha256": "79c21a75e6121375a79530060e67dbe52d93c681b86a9413345ea0b11416f4e3"
+        }
+      ]
+    },
+    {
+      "id": "ms-queimadas-incendios",
+      "version": "2026",
+      "title": "Queimadas e incêndios florestais: alerta de risco sanitário e recomendações para a população",
+      "authors": [
+        "Ministério da Saúde, Secretaria de Vigilância em Saúde e Ambiente"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "2ª edição (2026)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Efeitos da fumaça na saúde, grupos de risco, uso de máscaras PFF2/N95 e cuidados dentro de casa durante queimadas.",
+      "areas": [
+        "sobrevivencia",
+        "saude"
+      ],
+      "subjects": [
+        "Queimadas",
+        "Incêndios florestais",
+        "Qualidade do ar"
+      ],
+      "levels": [
+        "iniciante"
+      ],
+      "source_url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia-ambiental",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério da Saúde e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia-ambiental/queimadas-e-incencios-florestais-2a-edicao.pdf",
+          "size_bytes": 2376525,
+          "sha256": "c3a199fd0ef3bde5dca816f862c53043b164f7c78558608cd3c08f78f6a9770f"
+        }
+      ]
+    },
+    {
+      "id": "ms-violencias-emergencias-climaticas",
+      "version": "2026",
+      "title": "Violências e acidentes em contextos de emergências climáticas",
+      "authors": [
+        "Ministério da Saúde, Secretaria de Vigilância em Saúde e Ambiente"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "Cartilha (2026)",
+      "year": "2026",
+      "language": "pt",
+      "description": "Prevenção de violências e acidentes em abrigos e comunidades atingidas: proteção de mulheres, crianças, idosos e pessoas com deficiência.",
+      "areas": [
+        "sobrevivencia",
+        "saude"
+      ],
+      "subjects": [
+        "Violência em desastres",
+        "Proteção de grupos vulneráveis",
+        "Abrigos"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario"
+      ],
+      "source_url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/cartilhas",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério da Saúde e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/cartilhas/2026/cartilha-violencias-e-acidentes.pdf",
+          "size_bytes": 1641103,
+          "sha256": "202e0d472d2d8fe8aad16cc6e108db7d66ba8792b4e0e897e9cab9a1ff62adad"
+        }
+      ]
+    },
+    {
+      "id": "ms-guia-animais-peconhentos",
+      "version": "2024",
+      "title": "Guia de animais peçonhentos do Brasil",
+      "authors": [
+        "Ministério da Saúde, Secretaria de Vigilância em Saúde e Ambiente"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "2024",
+      "year": "2024",
+      "language": "pt",
+      "description": "Serpentes, escorpiões, aranhas, lagartas e abelhas do Brasil: identificação, distribuição, prevenção e o que fazer (e não fazer) em caso de acidente.",
+      "areas": [
+        "sobrevivencia",
+        "saude"
+      ],
+      "subjects": [
+        "Animais peçonhentos",
+        "Serpentes",
+        "Escorpiões",
+        "Primeiros socorros"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario"
+      ],
+      "source_url": "https://bvsms.saude.gov.br/",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério da Saúde e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://bvsms.saude.gov.br/bvs/publicacoes/guia_animais_peconhentos_brasil.pdf",
+          "size_bytes": 19959925,
+          "sha256": "83537defa5aa608377970014ac280584b329a328cd12eeed3b04ce07c4dee861"
+        }
+      ]
+    },
+    {
+      "id": "ms-pcdt-acidentes-ofidicos",
+      "version": "2026",
+      "title": "Protocolo clínico e diretrizes terapêuticas dos acidentes ofídicos",
+      "authors": [
+        "Ministério da Saúde"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "2026",
+      "year": "2026",
+      "language": "pt",
+      "description": "Diagnóstico, classificação de gravidade e tratamento com soro dos acidentes por serpentes; condutas que não devem ser feitas, como torniquete.",
+      "areas": [
+        "sobrevivencia",
+        "saude"
+      ],
+      "subjects": [
+        "Acidentes ofídicos",
+        "Soroterapia",
+        "Protocolo clínico"
+      ],
+      "levels": [
+        "avancado"
+      ],
+      "source_url": "https://bvsms.saude.gov.br/",
+      "notes": "Documento para profissionais de saúde.",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério da Saúde e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://bvsms.saude.gov.br/bvs/publicacoes/protocolo_clinico_diretrizes_acidentes_ofidicos.pdf",
+          "size_bytes": 2188973,
+          "sha256": "46100a3400bfbfddaf586e711098c09ae410d68889290687f0fec5e07ec8433d"
+        }
+      ]
+    },
+    {
+      "id": "ms-pcdt-acidentes-escorpionicos",
+      "version": "2026",
+      "title": "Protocolo clínico e diretrizes terapêuticas dos acidentes escorpiônicos",
+      "authors": [
+        "Ministério da Saúde"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "2026",
+      "year": "2026",
+      "language": "pt",
+      "description": "Espécies de importância médica (Tityus), gravidade, tratamento e prevenção de acidentes com escorpiões.",
+      "areas": [
+        "sobrevivencia",
+        "saude"
+      ],
+      "subjects": [
+        "Escorpiões",
+        "Soroterapia",
+        "Protocolo clínico"
+      ],
+      "levels": [
+        "avancado"
+      ],
+      "source_url": "https://bvsms.saude.gov.br/",
+      "notes": "Documento para profissionais de saúde.",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério da Saúde e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://bvsms.saude.gov.br/bvs/publicacoes/pcdt_acidentes_escorpionicos.pdf",
+          "size_bytes": 2260643,
+          "sha256": "8046677105634bdfa8f1b65fa29da049f7dcea8777e5b57fed7bc2e93307ed37"
+        }
+      ]
+    },
+    {
+      "id": "ms-guia-vigilancia-saude-vol-1",
+      "version": "2024",
+      "title": "Guia de vigilância em saúde — volume 1",
+      "authors": [
+        "Ministério da Saúde, Secretaria de Vigilância em Saúde e Ambiente"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "6ª edição revisada (2024), volume 1 de 3",
+      "year": "2024",
+      "language": "pt",
+      "description": "Doenças e agravos de notificação no Brasil (leptospirose, cólera, dengue, hepatites, raiva, tétano e outras): transmissão, sintomas, tratamento e controle. Referência para epidemias e surtos.",
+      "areas": [
+        "sobrevivencia",
+        "saude"
+      ],
+      "subjects": [
+        "Doenças transmissíveis",
+        "Epidemias",
+        "Vigilância epidemiológica"
+      ],
+      "levels": [
+        "avancado"
+      ],
+      "source_url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia",
+      "notes": "Obra em três volumes; cada volume é um arquivo.",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério da Saúde e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia/guia-de-vigilancia-em-saude-volume-1-6a-edicao/@@download/file",
+          "size_bytes": 4351482,
+          "sha256": "ee919eb7952019ddd205f5be0bd193a37f4b03d0d921c3c26b4aa86673077330"
+        }
+      ]
+    },
+    {
+      "id": "ms-guia-vigilancia-saude-vol-2",
+      "version": "2024",
+      "title": "Guia de vigilância em saúde — volume 2",
+      "authors": [
+        "Ministério da Saúde, Secretaria de Vigilância em Saúde e Ambiente"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "6ª edição revisada (2024), volume 2 de 3",
+      "year": "2024",
+      "language": "pt",
+      "description": "Doenças e agravos de notificação no Brasil (leptospirose, cólera, dengue, hepatites, raiva, tétano e outras): transmissão, sintomas, tratamento e controle. Referência para epidemias e surtos.",
+      "areas": [
+        "sobrevivencia",
+        "saude"
+      ],
+      "subjects": [
+        "Doenças transmissíveis",
+        "Epidemias",
+        "Vigilância epidemiológica"
+      ],
+      "levels": [
+        "avancado"
+      ],
+      "source_url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia",
+      "notes": "Obra em três volumes; cada volume é um arquivo.",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério da Saúde e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia/guia-de-vigilancia-em-saude-volume-2-6a-edicao/@@download/file",
+          "size_bytes": 4171174,
+          "sha256": "93329dd1de090aaebfe0630a4077110b4dcf65b6107b074a41f606812cfed80c"
+        }
+      ]
+    },
+    {
+      "id": "ms-guia-vigilancia-saude-vol-3",
+      "version": "2024",
+      "title": "Guia de vigilância em saúde — volume 3",
+      "authors": [
+        "Ministério da Saúde, Secretaria de Vigilância em Saúde e Ambiente"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "6ª edição revisada (2024), volume 3 de 3",
+      "year": "2024",
+      "language": "pt",
+      "description": "Doenças e agravos de notificação no Brasil (leptospirose, cólera, dengue, hepatites, raiva, tétano e outras): transmissão, sintomas, tratamento e controle. Referência para epidemias e surtos.",
+      "areas": [
+        "sobrevivencia",
+        "saude"
+      ],
+      "subjects": [
+        "Doenças transmissíveis",
+        "Epidemias",
+        "Vigilância epidemiológica"
+      ],
+      "levels": [
+        "avancado"
+      ],
+      "source_url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia",
+      "notes": "Obra em três volumes; cada volume é um arquivo.",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério da Saúde e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia/guia-de-vigilancia-em-saude-volume-3-6a-edicao/@@download/file",
+          "size_bytes": 1251457,
+          "sha256": "ddf5aec5f7067a1b3236deea140e4f521e34861faa446cd12358002349b79fe0"
+        }
+      ]
+    },
+    {
+      "id": "ms-alimentos-regionais",
+      "version": "2015",
+      "title": "Alimentos regionais brasileiros",
+      "authors": [
+        "Ministério da Saúde, Secretaria de Atenção à Saúde"
+      ],
+      "publisher": "Ministério da Saúde",
+      "edition": "2ª edição (2015)",
+      "year": "2015",
+      "language": "pt",
+      "description": "Frutas, hortaliças, leguminosas, tubérculos e cereais de cada região do Brasil, com receitas: base para identificar alimentos locais disponíveis.",
+      "areas": [
+        "sobrevivencia",
+        "saude"
+      ],
+      "subjects": [
+        "Alimentos regionais",
+        "Biodiversidade",
+        "Receitas"
+      ],
+      "levels": [
+        "iniciante"
+      ],
+      "source_url": "https://bvsms.saude.gov.br/",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério da Saúde e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://bvsms.saude.gov.br/bvs/publicacoes/alimentos_regionais_brasileiros_2ed.pdf",
+          "size_bytes": 30889203,
+          "sha256": "152582093c5696cb0ffb895bf164d400da764ded8f06659bdb9f153498017b3f"
+        }
+      ]
+    },
+    {
+      "id": "mdr-caderno-gird",
+      "version": "2021",
+      "title": "Caderno técnico de gestão integrada de riscos e desastres (GIRD+10)",
+      "authors": [
+        "Ministério do Desenvolvimento Regional, Secretaria Nacional de Proteção e Defesa Civil",
+        "UFABC",
+        "UMESP",
+        "Instituto SIADES"
+      ],
+      "publisher": "Ministério do Desenvolvimento Regional",
+      "edition": "1ª edição (2021)",
+      "year": "2021",
+      "language": "pt",
+      "description": "Conceitos de risco e desastre, tipos de ameaças no Brasil (movimentos de massa, inundações, secas), percepção e comunicação de risco, preparação comunitária.",
+      "areas": [
+        "sobrevivencia"
+      ],
+      "subjects": [
+        "Defesa Civil",
+        "Gestão de riscos",
+        "Movimentos de massa",
+        "Comunicação de risco"
+      ],
+      "levels": [
+        "intermediario"
+      ],
+      "source_url": "https://www.gov.br/mdr/pt-br/centrais-de-conteudo/publicacoes/protecao-e-defesa-civil-sedec",
+      "license": {
+        "id": "CC-BY-NC-SA-4.0",
+        "name": "Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br",
+        "attribution": "Cite o Ministério do Desenvolvimento Regional (SEDEC) e a obra; uso não comercial; derivados sob a mesma licença."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/mdr/pt-br/centrais-de-conteudo/publicacoes/protecao-e-defesa-civil-sedec/copy_of_Caderno_GIRD10__.pdf",
+          "size_bytes": 5829275,
+          "sha256": "d569c383088140028d40154a88d8999541a2da9ab5097ba57f24d22fa6685c86"
+        }
+      ]
+    },
+    {
+      "id": "mdr-guia-alertas",
+      "version": "2021",
+      "title": "Guia prático de utilização de alertas do Governo Federal para ações de preparação para desastres",
+      "authors": [
+        "Ministério do Desenvolvimento Regional, Secretaria Nacional de Proteção e Defesa Civil"
+      ],
+      "publisher": "Ministério do Desenvolvimento Regional",
+      "edition": "2ª edição (2021)",
+      "year": "2021",
+      "language": "pt",
+      "description": "Como funcionam os alertas da Defesa Civil (SMS 40199, Cell Broadcast, Google), níveis de alerta e ações de preparação ao recebê-los.",
+      "areas": [
+        "sobrevivencia"
+      ],
+      "subjects": [
+        "Alertas de desastre",
+        "Defesa Civil",
+        "Preparação"
+      ],
+      "levels": [
+        "iniciante",
+        "intermediario"
+      ],
+      "source_url": "https://www.gov.br/mdr/pt-br/centrais-de-conteudo/publicacoes/protecao-e-defesa-civil-sedec",
+      "notes": "Os canais de alerta descritos são de 2021; offline, o app não recebe alertas.",
+      "license": {
+        "id": "LicenseRef-MDR-reproducao-com-fonte",
+        "name": "Todos os direitos reservados; reprodução de dados e informações permitida com citação da fonte",
+        "url": "https://www.gov.br/mdr/pt-br/centrais-de-conteudo/publicacoes/protecao-e-defesa-civil-sedec",
+        "attribution": "Cite o Ministério do Desenvolvimento Regional (SEDEC) como fonte; o arquivo é usado sem modificação."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/mdr/pt-br/centrais-de-conteudo/publicacoes/protecao-e-defesa-civil-sedec/copy_of_guiapraticodesastres.pdf",
+          "size_bytes": 17408019,
+          "sha256": "b6807142f7340a30eb67b56240a44ab32225d3c1775191ca581c639686898f81"
+        }
+      ]
+    },
+    {
+      "id": "mma-guia-dialogos-eventos-extremos",
+      "version": "2026",
+      "title": "Comunidades preparadas: guia para diálogos autogestionados (protocolos de educação ambiental em cenários de eventos extremos)",
+      "authors": [
+        "Ministério do Meio Ambiente e Mudança do Clima",
+        "Ministério da Ciência, Tecnologia e Inovação",
+        "Cemaden Educação"
+      ],
+      "publisher": "Ministério do Meio Ambiente e Mudança do Clima",
+      "edition": "2026",
+      "year": "2026",
+      "language": "pt",
+      "description": "Roteiro para a comunidade se organizar antes de eventos extremos: mapear riscos, combinar alertas, montar a mochila de emergência e planejar rotas.",
+      "areas": [
+        "sobrevivencia"
+      ],
+      "subjects": [
+        "Organização comunitária",
+        "Plano de emergência",
+        "Mochila de emergência"
+      ],
+      "levels": [
+        "iniciante"
+      ],
+      "source_url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental",
+      "license": {
+        "id": "LicenseRef-MMA-reproducao-sem-fins-lucrativos",
+        "name": "Reprodução permitida sem fins lucrativos, parcial ou total, com citação da fonte",
+        "url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental",
+        "attribution": "Cite o Ministério do Meio Ambiente e Mudança do Clima; sem fins lucrativos."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental/guia-eventos-extremos.pdf",
+          "size_bytes": 6743668,
+          "sha256": "5917d618be0efd460bab19b109ec2ce09e71cbb9695bf23ced502eace29d50e2"
+        }
+      ]
+    },
+    {
+      "id": "mma-caderno-inundacoes",
+      "version": "2026",
+      "title": "Comunidades preparadas: caderno temático inundações, enchentes e alagamentos",
+      "authors": [
+        "Ministério do Meio Ambiente e Mudança do Clima",
+        "Ministério da Ciência, Tecnologia e Inovação",
+        "Cemaden Educação"
+      ],
+      "publisher": "Ministério do Meio Ambiente e Mudança do Clima",
+      "edition": "2026",
+      "year": "2026",
+      "language": "pt",
+      "description": "Sinais de alerta, preparação da casa e da família, o que fazer durante e depois de inundações.",
+      "areas": [
+        "sobrevivencia"
+      ],
+      "subjects": [
+        "Inundações",
+        "Enchentes",
+        "Preparação comunitária"
+      ],
+      "levels": [
+        "iniciante"
+      ],
+      "source_url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental",
+      "license": {
+        "id": "LicenseRef-MMA-reproducao-sem-fins-lucrativos",
+        "name": "Reprodução permitida sem fins lucrativos, parcial ou total, com citação da fonte",
+        "url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental",
+        "attribution": "Cite o Ministério do Meio Ambiente e Mudança do Clima; sem fins lucrativos."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental/protocolo-inundacoes.pdf",
+          "size_bytes": 2807098,
+          "sha256": "26f22a44e2f57ffa94f2e05ba5d0eb00d1a65279dd09576e10961e0f64cd9e67"
+        }
+      ]
+    },
+    {
+      "id": "mma-caderno-deslizamentos",
+      "version": "2026",
+      "title": "Comunidades preparadas: caderno temático deslizamentos de terra",
+      "authors": [
+        "Ministério do Meio Ambiente e Mudança do Clima",
+        "Ministério da Ciência, Tecnologia e Inovação",
+        "Cemaden Educação"
+      ],
+      "publisher": "Ministério do Meio Ambiente e Mudança do Clima",
+      "edition": "2026",
+      "year": "2026",
+      "language": "pt",
+      "description": "Sinais de instabilidade em encostas (trincas, inclinação de postes e árvores), preparação e evacuação.",
+      "areas": [
+        "sobrevivencia"
+      ],
+      "subjects": [
+        "Deslizamentos",
+        "Encostas",
+        "Preparação comunitária"
+      ],
+      "levels": [
+        "iniciante"
+      ],
+      "source_url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental",
+      "license": {
+        "id": "LicenseRef-MMA-reproducao-sem-fins-lucrativos",
+        "name": "Reprodução permitida sem fins lucrativos, parcial ou total, com citação da fonte",
+        "url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental",
+        "attribution": "Cite o Ministério do Meio Ambiente e Mudança do Clima; sem fins lucrativos."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental/protocolo-deslizamentos.pdf",
+          "size_bytes": 2892735,
+          "sha256": "1661534ce219d29d0fe88155e14729e32f979636e13d9df3be8ce47ed9266398"
+        }
+      ]
+    },
+    {
+      "id": "mma-caderno-secas",
+      "version": "2026",
+      "title": "Comunidades preparadas: caderno temático secas",
+      "authors": [
+        "Ministério do Meio Ambiente e Mudança do Clima",
+        "Ministério da Ciência, Tecnologia e Inovação",
+        "Cemaden Educação"
+      ],
+      "publisher": "Ministério do Meio Ambiente e Mudança do Clima",
+      "edition": "2026",
+      "year": "2026",
+      "language": "pt",
+      "description": "Convivência com a seca: uso e armazenamento da água, saúde, produção de alimentos e organização comunitária.",
+      "areas": [
+        "sobrevivencia"
+      ],
+      "subjects": [
+        "Secas",
+        "Convivência com o semiárido",
+        "Preparação comunitária"
+      ],
+      "levels": [
+        "iniciante"
+      ],
+      "source_url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental",
+      "license": {
+        "id": "LicenseRef-MMA-reproducao-sem-fins-lucrativos",
+        "name": "Reprodução permitida sem fins lucrativos, parcial ou total, com citação da fonte",
+        "url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental",
+        "attribution": "Cite o Ministério do Meio Ambiente e Mudança do Clima; sem fins lucrativos."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental/protocolo-secas.pdf",
+          "size_bytes": 2904963,
+          "sha256": "97ae43324a914e5d1043ee41b851c337ac87e3d3c35a532ec0872de8b294256f"
+        }
+      ]
+    },
+    {
+      "id": "mma-caderno-incendios",
+      "version": "2026",
+      "title": "Comunidades preparadas: caderno temático incêndios",
+      "authors": [
+        "Ministério do Meio Ambiente e Mudança do Clima",
+        "Ministério da Ciência, Tecnologia e Inovação",
+        "Cemaden Educação"
+      ],
+      "publisher": "Ministério do Meio Ambiente e Mudança do Clima",
+      "edition": "2026",
+      "year": "2026",
+      "language": "pt",
+      "description": "Prevenção de incêndios florestais e urbanos, aceiros, uso do fogo, alerta e evacuação.",
+      "areas": [
+        "sobrevivencia"
+      ],
+      "subjects": [
+        "Incêndios florestais",
+        "Prevenção",
+        "Preparação comunitária"
+      ],
+      "levels": [
+        "iniciante"
+      ],
+      "source_url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental",
+      "license": {
+        "id": "LicenseRef-MMA-reproducao-sem-fins-lucrativos",
+        "name": "Reprodução permitida sem fins lucrativos, parcial ou total, com citação da fonte",
+        "url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental",
+        "attribution": "Cite o Ministério do Meio Ambiente e Mudança do Clima; sem fins lucrativos."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental/protocolo-incendios.pdf",
+          "size_bytes": 2793838,
+          "sha256": "3badad4cf18d8df078f6e795981e06432e0cd9c1e77ec5eadb2a34764cddd1cf"
+        }
+      ]
+    },
+    {
+      "id": "mma-caderno-ondas-de-calor",
+      "version": "2026",
+      "title": "Comunidades preparadas: caderno temático ondas de calor",
+      "authors": [
+        "Ministério do Meio Ambiente e Mudança do Clima",
+        "Ministério da Ciência, Tecnologia e Inovação",
+        "Cemaden Educação"
+      ],
+      "publisher": "Ministério do Meio Ambiente e Mudança do Clima",
+      "edition": "2026",
+      "year": "2026",
+      "language": "pt",
+      "description": "Riscos do calor extremo, hidratação, cuidado com idosos, crianças e trabalhadores, adaptação de casas e escolas.",
+      "areas": [
+        "sobrevivencia"
+      ],
+      "subjects": [
+        "Ondas de calor",
+        "Hidratação",
+        "Grupos vulneráveis"
+      ],
+      "levels": [
+        "iniciante"
+      ],
+      "source_url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental",
+      "license": {
+        "id": "LicenseRef-MMA-reproducao-sem-fins-lucrativos",
+        "name": "Reprodução permitida sem fins lucrativos, parcial ou total, com citação da fonte",
+        "url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental",
+        "attribution": "Cite o Ministério do Meio Ambiente e Mudança do Clima; sem fins lucrativos."
+      },
+      "files": [
+        {
+          "format": "pdf",
+          "url": "https://www.gov.br/mma/pt-br/centrais-de-conteudo/publicacoes/educacao-ambiental/protocolo-ondas-de-calor.pdf",
+          "size_bytes": 3332753,
+          "sha256": "3281fe573fc0b2410c70f8de1d465b152e44b62db07841104d2a71c57463b5e3"
         }
       ]
     }

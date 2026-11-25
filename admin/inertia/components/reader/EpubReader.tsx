@@ -5,7 +5,7 @@ import IconButton from '~/components/nd/IconButton'
 import SegmentedControl from '~/components/nd/SegmentedControl'
 import ReaderSearchPanel, { type SearchHit } from './ReaderSearchPanel'
 import ReaderToc, { type TocNode } from './ReaderToc'
-import type { ReaderPanel } from './types'
+import type { ReaderApi, ReaderPanel } from './types'
 import { isControlKeyTarget, readStorage, writeStorage } from './reader_utils'
 
 const POSITION_KEY = (filename: string) => `nomad:library:position:${filename}`
@@ -35,6 +35,9 @@ export default function EpubReader({
   setPanel,
   info,
   appTheme,
+  assistant,
+  apiRef,
+  initialHref,
 }: {
   url: string
   filename: string
@@ -42,12 +45,19 @@ export default function EpubReader({
   setPanel: (p: ReaderPanel) => void
   info: React.ReactNode
   appTheme: 'light' | 'dark'
+  /** The assistant panel's content, shown when `panel === 'assistant'`. */
+  assistant?: React.ReactNode
+  /** Filled with this reader's ReaderApi for the assistant panel. */
+  apiRef?: React.MutableRefObject<ReaderApi | null>
+  /** Chapter to open (a cited chapter from an answer), instead of the last position. */
+  initialHref?: string
 }) {
   const { t } = useTranslation()
   const viewer = useRef<HTMLDivElement>(null)
   const bookRef = useRef<any>(null)
   const rendition = useRef<any>(null)
   const lastHit = useRef<string | null>(null)
+  const lastSelection = useRef('')
   const searchToken = useRef(0)
 
   const [toc, setToc] = useState<TocNode[]>([])
@@ -119,7 +129,12 @@ export default function EpubReader({
           const href = String(location.start.href ?? '').split('#')[0]
           setChapter(href)
         })
-        await r.display(readStorage(POSITION_KEY(filename)) || undefined)
+        // The text the user selects inside the book's iframe, kept for the assistant panel
+        r.on('selected', (_cfi: string, contents: any) => {
+          const text = contents?.window?.getSelection?.()?.toString().trim()
+          if (text) lastSelection.current = text
+        })
+        await r.display(initialHref || readStorage(POSITION_KEY(filename)) || undefined)
         const nav = await book.loaded.navigation
         if (cancelled) return
         const entries: EpubToc[] = nav.toc ?? []
@@ -198,6 +213,35 @@ export default function EpubReader({
         ?.label.trim()) ||
     ''
 
+  // The assistant reads the chapter on screen from the rendered section (no network)
+  const chapterRef = useRef({ href: '', label: '' })
+  chapterRef.current = { href: chapter, label: chapterLabel }
+  useEffect(() => {
+    if (!apiRef) return
+    const location = () => ({
+      label: chapterRef.current.label || t('Current section'),
+      href: chapterRef.current.href || undefined,
+    })
+    apiRef.current = {
+      location,
+      selection: () => lastSelection.current,
+      currentText: async () => {
+        const contents: any[] = rendition.current?.getContents?.() ?? []
+        const text = contents
+          .map((c) => c?.document?.body?.innerText ?? c?.document?.body?.textContent ?? '')
+          .join('\n\n')
+          .trim()
+        return { ...location(), text }
+      },
+      goTo: (target) => {
+        if (target.href) rendition.current?.display(target.href)
+      },
+    }
+    return () => {
+      apiRef.current = null
+    }
+  }, [apiRef, t])
+
   const runSearch = useCallback(
     async (raw: string) => {
       const token = ++searchToken.current
@@ -273,7 +317,9 @@ export default function EpubReader({
   return (
     <div className="relative flex min-h-0 flex-1">
       {panel && (
-        <aside className="absolute inset-y-0 left-0 z-30 flex w-[min(22rem,90vw)] flex-col border-r border-border-subtle bg-surface-primary shadow-2xl lg:static lg:z-auto lg:shadow-none">
+        <aside
+          className={`absolute inset-y-0 left-0 z-30 flex ${panel === 'assistant' ? 'w-[min(28rem,94vw)]' : 'w-[min(22rem,90vw)]'} flex-col border-r border-border-subtle bg-surface-primary shadow-2xl lg:static lg:z-auto lg:shadow-none`}
+        >
           {panel === 'contents' && (
             <ReaderToc
               nodes={toc}
@@ -293,6 +339,7 @@ export default function EpubReader({
               onSelect={openHit}
             />
           )}
+          {panel === 'assistant' && assistant}
           {panel === 'info' && (
             <div className="space-y-6 overflow-y-auto p-5">
               <div>

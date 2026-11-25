@@ -14,6 +14,20 @@ export const chatSchema = vine.compile(
     // Effective per-request thinking preference (per-model override or global default),
     // resolved client-side. Omitted -> server falls back to the ai.autoThinking KV default.
     think: vine.boolean().optional(),
+    // 'survival': the preparedness agent (scenario level, location, survival works first, cited
+    // answers). Omitted or 'general': the regular chat.
+    assistantMode: vine.enum(['general', 'survival'] as const).optional(),
+    // Location for this conversation, overriding the regional settings (survival mode only)
+    location: vine
+      .object({
+        state: vine.string().trim().maxLength(8).nullable().optional(),
+        environment: vine
+          .enum(['urbano', 'rural'] as const)
+          .nullable()
+          .optional(),
+        place: vine.string().trim().maxLength(80).nullable().optional(),
+      })
+      .optional(),
   })
 )
 

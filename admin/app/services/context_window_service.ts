@@ -6,7 +6,7 @@ import { OllamaService } from '#services/ollama_service'
 import { SystemService } from '#services/system_service'
 import {
   UNKNOWN_BACKEND_CONTEXT,
-  computeKvBytesPerToken,
+  computeKvCost,
   estimateKvBytesPerToken,
   parseParameterBillions,
   parseUserContextCap,
@@ -86,14 +86,15 @@ export class ContextWindowService {
       return decision
     }
 
+    const kvCost = computeKvCost(info.rawModelInfo)
     const kvBytesPerToken =
-      computeKvBytesPerToken(info.rawModelInfo) ??
-      estimateKvBytesPerToken(parseParameterBillions(info.parameterSize, model))
+      kvCost?.perToken ?? estimateKvBytesPerToken(parseParameterBillions(info.parameterSize, model))
 
     const decision = resolveContextWindow({
       modelMaxCtx: info.contextLength,
       modelfileNumCtx: info.modelfileNumCtx,
       kvBytesPerToken,
+      kvFixedBytes: kvCost?.fixedBytes,
       availableBytes: await this._availableBytes(),
       modelBytes: await this._modelBytes(model),
       userCap,

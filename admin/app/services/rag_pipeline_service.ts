@@ -212,7 +212,9 @@ export class RagPipelineService {
       query,
       ragChunks: candidateDocs,
       renderRagBlock: (chunks) =>
-        SYSTEM_PROMPTS.rag_context(buildContextBlock(chunks as RetrievedChunk[])),
+        (opts.renderContext ?? SYSTEM_PROMPTS.rag_context)(
+          buildContextBlock(chunks as RetrievedChunk[])
+        ),
       contextWindow,
       ratio,
       ragPlacement: opts.ragPlacement ?? RAG_PLACEMENT,

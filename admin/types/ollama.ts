@@ -36,6 +36,14 @@ export type OllamaChatRequest = {
   // Effective thinking preference for this request (per-model override or global default).
   think?: boolean
   collection?: string
+  /** 'survival' selects the preparedness agent (see SurvivalService). */
+  assistantMode?: 'general' | 'survival'
+  /** Location for this conversation, overriding the regional settings (survival mode). */
+  location?: {
+    state?: string | null
+    environment?: 'urbano' | 'rural' | null
+    place?: string | null
+  }
 }
 
 export type ModelVisionCapability = 'supported' | 'unsupported' | 'unknown'

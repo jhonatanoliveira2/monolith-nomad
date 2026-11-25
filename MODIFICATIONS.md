@@ -8,12 +8,13 @@ removidos pelo mantenedor do monolith-nomad** em relação ao commit `f633b36` d
 O que mudou e por quê está descrito no [`CHANGELOG.md`](CHANGELOG.md) e em [`docs/`](docs/). Créditos e licenças de
 terceiros: [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
-Gerado por `scripts/list-modifications.sh` (não edite à mão): 384 modificados, 172
+Gerado por `scripts/list-modifications.sh` (não edite à mão): 392 modificados, 206
 adicionados, 30 removidos.
 
 | Situação | Arquivo |
 |---|---|
 | Modificado | `admin/adonisrc.ts` |
+| Adicionado | `admin/app/controllers/assistant_controller.ts` |
 | Modificado | `admin/app/controllers/benchmark_controller.ts` |
 | Modificado | `admin/app/controllers/chats_controller.ts` |
 | Modificado | `admin/app/controllers/creator_packs_controller.ts` |
@@ -69,21 +70,27 @@ adicionados, 30 removidos.
 | Modificado | `admin/app/services/ollama_service.ts` |
 | Modificado | `admin/app/services/rag_pipeline_service.ts` |
 | Modificado | `admin/app/services/rag_service.ts` |
+| Adicionado | `admin/app/services/survival_service.ts` |
 | Modificado | `admin/app/services/system_service.ts` |
 | Modificado | `admin/app/services/system_update_service.ts` |
 | Modificado | `admin/app/services/token_calibration_service.ts` |
+| Adicionado | `admin/app/services/translation_service.ts` |
 | Modificado | `admin/app/services/zim_extraction_service.ts` |
 | Modificado | `admin/app/services/zim_service.ts` |
+| Adicionado | `admin/app/utils/amd_backend.ts` |
 | Modificado | `admin/app/utils/amd_hsa_override.ts` |
 | Adicionado | `admin/app/utils/aria2.ts` |
 | Adicionado | `admin/app/utils/backoff.ts` |
 | Adicionado | `admin/app/utils/connect_guard.ts` |
 | Modificado | `admin/app/utils/content_auto_update_backoff.ts` |
 | Modificado | `admin/app/utils/context_budget.ts` |
+| Modificado | `admin/app/utils/context_window.ts` |
 | Adicionado | `admin/app/utils/document_format.ts` |
+| Adicionado | `admin/app/utils/document_segments.ts` |
 | Modificado | `admin/app/utils/download_integrity.ts` |
 | Adicionado | `admin/app/utils/download_preferences.ts` |
 | Modificado | `admin/app/utils/downloads.ts` |
+| Adicionado | `admin/app/utils/embedding_profile.ts` |
 | Modificado | `admin/app/utils/eval/generation_metrics.ts` |
 | Modificado | `admin/app/utils/eval/golden_set.ts` |
 | Modificado | `admin/app/utils/eval/report.ts` |
@@ -93,6 +100,7 @@ adicionados, 30 removidos.
 | Adicionado | `admin/app/utils/gpu_sysfs.ts` |
 | Adicionado | `admin/app/utils/host_safety.ts` |
 | Adicionado | `admin/app/utils/image_tag.ts` |
+| Adicionado | `admin/app/utils/inference_stats.ts` |
 | Modificado | `admin/app/utils/kb_ingest_decision.ts` |
 | Modificado | `admin/app/utils/kb_job_health.ts` |
 | Modificado | `admin/app/utils/kb_ratio_lookup.ts` |
@@ -100,19 +108,29 @@ adicionados, 30 removidos.
 | Adicionado | `admin/app/utils/lazy_logger.ts` |
 | Adicionado | `admin/app/utils/library.ts` |
 | Adicionado | `admin/app/utils/locale.ts` |
+| Adicionado | `admin/app/utils/manifest_version.ts` |
 | Adicionado | `admin/app/utils/metalink.ts` |
 | Adicionado | `admin/app/utils/mirror_benchmark.ts` |
 | Adicionado | `admin/app/utils/mirror_selection.ts` |
+| Adicionado | `admin/app/utils/model_recommendation.ts` |
+| Modificado | `admin/app/utils/rag_prompt.ts` |
+| Modificado | `admin/app/utils/rag_relevance.ts` |
+| Adicionado | `admin/app/utils/reader_assistant.ts` |
 | Adicionado | `admin/app/utils/server_timezone.ts` |
 | Modificado | `admin/app/utils/service_catalog_merge.ts` |
 | Adicionado | `admin/app/utils/smart_download.ts` |
+| Adicionado | `admin/app/utils/survival_knowledge.ts` |
+| Adicionado | `admin/app/utils/translation.ts` |
 | Modificado | `admin/app/utils/version.ts` |
 | Modificado | `admin/app/utils/zim_batch_decision.ts` |
 | Modificado | `admin/app/utils/zim_filename.ts` |
+| Adicionado | `admin/app/validators/assistant.ts` |
 | Modificado | `admin/app/validators/chat.ts` |
 | Modificado | `admin/app/validators/common.ts` |
 | Modificado | `admin/app/validators/curated_collections.ts` |
 | Adicionado | `admin/app/validators/library.ts` |
+| Modificado | `admin/app/validators/ollama.ts` |
+| Modificado | `admin/app/validators/rag.ts` |
 | Modificado | `admin/app/validators/settings.ts` |
 | Modificado | `admin/app/validators/system.ts` |
 | Modificado | `admin/app/validators/zim.ts` |
@@ -154,6 +172,7 @@ adicionados, 30 removidos.
 | Modificado | `admin/database/migrations/1778600000006_add_indications_fulltext_index.ts` |
 | Modificado | `admin/database/migrations/1778800000001_add_dataset_to_installed_resources_type.ts` |
 | Adicionado | `admin/database/migrations/1786000000005_add_document_to_installed_resources_type.ts` |
+| Adicionado | `admin/database/migrations/1786000000006_create_translation_cache.ts` |
 | Modificado | `admin/database/seeders/service_seeder.ts` |
 | Modificado | `admin/docs/about.md` |
 | Adicionado | `admin/docs/about.pt-BR.md` |
@@ -205,6 +224,9 @@ adicionados, 30 removidos.
 | Modificado | `admin/inertia/components/chat/KbPolicyPromptBanner.tsx` |
 | Modificado | `admin/inertia/components/chat/KnowledgeBaseModal.tsx` |
 | Modificado | `admin/inertia/components/chat/NomadMdModal.tsx` |
+| Adicionado | `admin/inertia/components/chat/SourceList.tsx` |
+| Adicionado | `admin/inertia/components/chat/SurvivalBar.tsx` |
+| Adicionado | `admin/inertia/components/chat/SurvivalScenarioCard.tsx` |
 | Modificado | `admin/inertia/components/conditions/RemedySafetyNote.tsx` |
 | Modificado | `admin/inertia/components/conditions/SafetyBanner.tsx` |
 | Modificado | `admin/inertia/components/CountryPickerModal.tsx` |
@@ -273,6 +295,7 @@ adicionados, 30 removidos.
 | Modificado | `admin/inertia/components/ProgressBar.tsx` |
 | Adicionado | `admin/inertia/components/reader/EpubReader.tsx` |
 | Adicionado | `admin/inertia/components/reader/PdfReader.tsx` |
+| Adicionado | `admin/inertia/components/reader/ReaderAssistantPanel.tsx` |
 | Adicionado | `admin/inertia/components/reader/ReaderSearchPanel.tsx` |
 | Adicionado | `admin/inertia/components/reader/ReaderToc.tsx` |
 | Adicionado | `admin/inertia/components/reader/reader_utils.ts` |
@@ -286,6 +309,7 @@ adicionados, 30 removidos.
 | Adicionado | `admin/inertia/components/setup/StepMaps.tsx` |
 | Adicionado | `admin/inertia/components/setup/StepResources.tsx` |
 | Adicionado | `admin/inertia/components/setup/StepReview.tsx` |
+| Adicionado | `admin/inertia/components/setup/SurvivalLibraryPicker.tsx` |
 | Adicionado | `admin/inertia/components/shell/BrandMark.tsx` |
 | Adicionado | `admin/inertia/components/shell/CommandPalette.tsx` |
 | Adicionado | `admin/inertia/components/shell/Sidebar.tsx` |
@@ -385,6 +409,7 @@ adicionados, 30 removidos.
 | Adicionado | `admin/inertia/lib/setup_plan.ts` |
 | Modificado | `admin/inertia/lib/util.ts` |
 | Modificado | `admin/inertia/lib/vision_guidance.ts` |
+| Adicionado | `admin/inertia/locales/pt-BR/assistant.json` |
 | Adicionado | `admin/inertia/locales/pt-BR/base.json` |
 | Adicionado | `admin/inertia/locales/pt-BR/chat.json` |
 | Adicionado | `admin/inertia/locales/pt-BR/content.json` |
@@ -412,6 +437,7 @@ adicionados, 30 removidos.
 | Modificado | `admin/inertia/pages/maps.tsx` |
 | Modificado | `admin/inertia/pages/settings/advanced.tsx` |
 | Modificado | `admin/inertia/pages/settings/apps.tsx` |
+| Adicionado | `admin/inertia/pages/settings/assistant.tsx` |
 | Modificado | `admin/inertia/pages/settings/benchmark.tsx` |
 | Modificado | `admin/inertia/pages/settings/creator-packs.tsx` |
 | Modificado | `admin/inertia/pages/settings/legal.tsx` |
@@ -475,6 +501,7 @@ adicionados, 30 removidos.
 | Modificado | `admin/tailwind.config.ts` |
 | Modificado | `admin/tests/eval/README.md` |
 | Adicionado | `admin/tests/functional/library.spec.ts` |
+| Adicionado | `admin/tests/functional/local_assistant.spec.ts` |
 | Modificado | `admin/tests/functional/openapi.spec.ts` |
 | Adicionado | `admin/tests/functional/setup_wizard.spec.ts` |
 | Modificado | `admin/tests/standalone/conditions.standalone.ts` |
@@ -491,6 +518,8 @@ adicionados, 30 removidos.
 | Modificado | `admin/tests/unit/context_window.spec.ts` |
 | Modificado | `admin/tests/unit/custom_app_guard.spec.ts` |
 | Adicionado | `admin/tests/unit/document_format.spec.ts` |
+| Adicionado | `admin/tests/unit/document_locations.spec.ts` |
+| Adicionado | `admin/tests/unit/download_head_refused.spec.ts` |
 | Modificado | `admin/tests/unit/download_integrity.spec.ts` |
 | Adicionado | `admin/tests/unit/download_mirrors.spec.ts` |
 | Adicionado | `admin/tests/unit/downloads_engine.spec.ts` |
@@ -515,7 +544,9 @@ adicionados, 30 removidos.
 | Adicionado | `admin/tests/unit/library_catalog.spec.ts` |
 | Adicionado | `admin/tests/unit/library_filters.spec.ts` |
 | Modificado | `admin/tests/unit/link_tile.spec.ts` |
+| Adicionado | `admin/tests/unit/local_agent.spec.ts` |
 | Adicionado | `admin/tests/unit/locale.spec.ts` |
+| Adicionado | `admin/tests/unit/manifest_version.spec.ts` |
 | Adicionado | `admin/tests/unit/mirror_benchmark.spec.ts` |
 | Modificado | `admin/tests/unit/ollama_compute.spec.ts` |
 | Modificado | `admin/tests/unit/ollama_controller_chat.spec.ts` |
@@ -524,6 +555,7 @@ adicionados, 30 removidos.
 | Modificado | `admin/tests/unit/rag_citations.spec.ts` |
 | Modificado | `admin/tests/unit/rag_relevance.spec.ts` |
 | Modificado | `admin/tests/unit/rag_retrieval_toggle.spec.ts` |
+| Adicionado | `admin/tests/unit/relevance_floors.spec.ts` |
 | Modificado | `admin/tests/unit/relevance_judge.spec.ts` |
 | Adicionado | `admin/tests/unit/repo_hygiene.spec.ts` |
 | Adicionado | `admin/tests/unit/server_messages.spec.ts` |
@@ -531,11 +563,14 @@ adicionados, 30 removidos.
 | Modificado | `admin/tests/unit/service_logs_url.spec.ts` |
 | Adicionado | `admin/tests/unit/setup_plan.spec.ts` |
 | Adicionado | `admin/tests/unit/smart_download.spec.ts` |
+| Adicionado | `admin/tests/unit/survival_knowledge.spec.ts` |
 | Adicionado | `admin/tests/unit/theme_tokens.spec.ts` |
 | Modificado | `admin/tests/unit/token_estimate.spec.ts` |
 | Modificado | `admin/tests/unit/zim_extraction_resume.spec.ts` |
 | Modificado | `admin/tests/unit/zim_filename.spec.ts` |
+| Adicionado | `admin/types/assistant.ts` |
 | Modificado | `admin/types/benchmark.ts` |
+| Modificado | `admin/types/chat.ts` |
 | Modificado | `admin/types/collections.ts` |
 | Modificado | `admin/types/docker.ts` |
 | Modificado | `admin/types/downloads.ts` |
@@ -544,6 +579,7 @@ adicionados, 30 removidos.
 | Modificado | `admin/types/kv_store.ts` |
 | Adicionado | `admin/types/library.ts` |
 | Modificado | `admin/types/maps.ts` |
+| Modificado | `admin/types/ollama.ts` |
 | Modificado | `admin/types/rag.ts` |
 | Modificado | `admin/types/system.ts` |
 | Modificado | `admin/types/util.ts` |
@@ -554,11 +590,14 @@ adicionados, 30 removidos.
 | Modificado | `admin/vite.config.ts` |
 | Adicionado | `CHANGELOG.md` |
 | Modificado | `CODE_OF_CONDUCT.md` |
+| Adicionado | `collections/curation/survival-library.json` |
 | Modificado | `collections/kiwix-categories.json` |
 | Adicionado | `collections/library.json` |
+| Adicionado | `collections/survival.json` |
 | Modificado | `collections/wikipedia.json` |
 | Modificado | `CONTRIBUTING.md` |
 | Modificado | `Dockerfile` |
+| Adicionado | `docs/assistente-local.md` |
 | Adicionado | `docs/catalogo.md` |
 | Adicionado | `docs/design-system.md` |
 | Adicionado | `docs/distribuicao.md` |
@@ -581,7 +620,9 @@ adicionados, 30 removidos.
 | Modificado | `install/migrate-disk-collector.sh` |
 | Modificado | `install/nomad-translate/Dockerfile` |
 | Modificado | `install/nomad-translate/fetch_models.py` |
+| Modificado | `install/nomad-translate/proxy.py` |
 | Modificado | `install/nomad-translate/README.md` |
+| Adicionado | `install/nomad-translate/test_api.py` |
 | Modificado | `install/nomad-translate/test_fetch_models.py` |
 | Modificado | `install/run_updater_fixes.sh` |
 | Modificado | `install/sidecar-updater/update-watcher.sh` |
@@ -594,6 +635,7 @@ adicionados, 30 removidos.
 | Modificado | `package.json` |
 | Modificado | `README.md` |
 | Modificado | `.releaserc.json` |
+| Adicionado | `scripts/build-library-entries.mjs` |
 | Adicionado | `scripts/check-catalog-availability.mjs` |
 | Adicionado | `scripts/list-modifications.sh` |
 | Adicionado | `scripts/test-in-docker.sh` |

@@ -13,6 +13,7 @@ import {
   estimateBatchSchema,
   fileSourceSchema,
   getJobStatusSchema,
+  resetAndRebuildSchema,
 } from '#validators/rag'
 import logger from '@adonisjs/core/services/logger'
 import { sanitizeCollectionName } from '../../constants/kb_collections.js'
@@ -255,13 +256,24 @@ export default class RagController {
     }
   }
 
-  public async resetAndRebuild({ response }: HttpContext) {
+  public async resetAndRebuild({ request, response }: HttpContext) {
+    const { embeddingProfile } = await request.validateUsing(resetAndRebuildSchema)
     try {
-      const result = await this.ragService.resetAndRebuild()
+      const result = await this.ragService.resetAndRebuild(embeddingProfile)
       return response.status(200).json(result)
     } catch (error) {
       logger.error({ err: error }, '[RagController] Error during reset and rebuild')
       return response.status(500).json({ error: 'Error during reset and rebuild' })
+    }
+  }
+
+  /** Which embedding model the index uses and whether a multilingual rebuild is available. */
+  public async embeddingStatus({ response }: HttpContext) {
+    try {
+      return response.status(200).json(await this.ragService.getEmbeddingStatus())
+    } catch (error) {
+      logger.error({ err: error }, '[RagController] Error reading embedding status')
+      return response.status(500).json({ error: 'Error reading embedding status' })
     }
   }
 

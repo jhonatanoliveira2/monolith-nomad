@@ -641,6 +641,7 @@ export class SystemService {
             // Reinstalling an AMD container whose config already matches rebuilds the
             // same CPU-bound container, so the banner must not offer that as the fix.
             if (gpuHealth.status === 'passthrough_failed' && expectedVendor === 'amd' && ollama) {
+              const amdBackend = await this.dockerService.getAmdBackend()
               Object.assign(
                 gpuHealth,
                 diagnoseAmdCpuFallback(
@@ -651,7 +652,8 @@ export class SystemService {
                   await this.dockerService.getAmdHsaOverride({
                     quiet: true,
                     containerEnv: ollama.inspect.Config?.Env,
-                  })
+                  }),
+                  amdBackend.backend
                 )
               )
             }

@@ -17,6 +17,7 @@ import {
 import { librarySpecSchema } from '#validators/library'
 import { readFile } from 'node:fs/promises'
 import { isGatedResource } from '../utils/hosted_content.js'
+import { newestSpec } from '../utils/manifest_version.js'
 import {
   ensureDirectoryExists,
   listDirectoryContents,
@@ -116,7 +117,7 @@ export class CollectionManifestService {
     } catch {
       // Fetch failed, will fall back to cache
     }
-    return (await this.getCachedSpec<T>(type)) ?? (await this.getBundledSpec<T>(type))
+    return newestSpec(await this.getCachedSpec<T>(type), await this.getBundledSpec<T>(type))
   }
 
   /** The validated manifest shipped in the image, or null (see BUNDLED_SPEC_FILES). */

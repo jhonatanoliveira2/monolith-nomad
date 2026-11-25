@@ -111,3 +111,88 @@ export function applyDrmVram<T extends { busAddress?: string; vram?: number | nu
   }
   return corrected
 }
+
+/** Live counters amdgpu publishes for one card; any field the driver omits is null. */
+export interface DrmGpuTelemetry {
+  busAddress: string
+  vendorId: string
+  deviceId: string
+  /** Shader engine busy time over the driver's last sample, 0–100. */
+  busyPercent: number | null
+  vramUsedMiB: number | null
+  vramTotalMiB: number | null
+  /** System memory the GPU has mapped (GTT): grows when a model spills out of VRAM. */
+  gttUsedMiB: number | null
+  /** Edge temperature in °C (hwmon temp1). */
+  temperatureC: number | null
+  /** Average board power in W (hwmon power1_average). */
+  powerW: number | null
+  /** Current shader clock in MHz (hwmon freq1). */
+  shaderClockMHz: number | null
+}
+
+const toMiB = (raw: string | null) =>
+  raw !== null && /^\d+$/.test(raw) ? Math.round(Number(raw) / (1024 * 1024)) : null
+const toNumber = (raw: string | null) => (raw !== null && /^-?\d+$/.test(raw) ? Number(raw) : null)
+
+/**
+ * Sample the live GPU counters from sysfs (amdgpu: gpu_busy_percent, mem_info_*, hwmon). Read
+ * straight from the files, so it works inside the admin container with no extra mount and costs a
+ * few small reads, cheap enough to poll every couple of seconds. Never throws.
+ */
+export async function readDrmGpuTelemetry(sysRoot = '/sys'): Promise<DrmGpuTelemetry[]> {
+  const gpus = await readDrmGpus(sysRoot)
+  let entries: string[]
+  try {
+    const all = await readdir(path.join(sysRoot, 'class/drm'))
+    entries = all.filter((e) => CARD_ENTRY.test(e))
+  } catch {
+    return []
+  }
+  const out: DrmGpuTelemetry[] = []
+  for (const entry of entries.sort()) {
+    const deviceDir = path.join(sysRoot, 'class/drm', entry, 'device')
+    let resolved: string
+    try {
+      resolved = await realpath(deviceDir)
+    } catch {
+      continue
+    }
+    const busAddress = normalizeBusAddress(path.basename(resolved))
+    const base = gpus.find((g) => g.busAddress === busAddress)
+    if (!base || out.some((g) => g.busAddress === busAddress)) continue
+
+    let hwmonDir: string | null = null
+    try {
+      const hwmons = await readdir(path.join(deviceDir, 'hwmon'))
+      const hw = hwmons.sort()[0]
+      if (hw) hwmonDir = path.join(deviceDir, 'hwmon', hw)
+    } catch {}
+
+    const [busy, vramUsed, vramTotal, gttUsed, temp, power, freq] = await Promise.all([
+      readTrimmed(path.join(deviceDir, 'gpu_busy_percent')),
+      readTrimmed(path.join(deviceDir, 'mem_info_vram_used')),
+      readTrimmed(path.join(deviceDir, 'mem_info_vram_total')),
+      readTrimmed(path.join(deviceDir, 'mem_info_gtt_used')),
+      hwmonDir ? readTrimmed(path.join(hwmonDir, 'temp1_input')) : Promise.resolve(null),
+      hwmonDir ? readTrimmed(path.join(hwmonDir, 'power1_average')) : Promise.resolve(null),
+      hwmonDir ? readTrimmed(path.join(hwmonDir, 'freq1_input')) : Promise.resolve(null),
+    ])
+    const tempMilli = toNumber(temp)
+    const powerMicro = toNumber(power)
+    const freqHz = toNumber(freq)
+    out.push({
+      busAddress,
+      vendorId: base.vendorId,
+      deviceId: base.deviceId,
+      busyPercent: toNumber(busy),
+      vramUsedMiB: toMiB(vramUsed),
+      vramTotalMiB: toMiB(vramTotal),
+      gttUsedMiB: toMiB(gttUsed),
+      temperatureC: tempMilli !== null ? Math.round(tempMilli / 100) / 10 : null,
+      powerW: powerMicro !== null ? Math.round(powerMicro / 100_000) / 10 : null,
+      shaderClockMHz: freqHz !== null ? Math.round(freqHz / 1_000_000) : null,
+    })
+  }
+  return out
+}

@@ -63,8 +63,23 @@ async function checkKiwix(url, e) {
   return { ok: problems.length === 0, why: problems.join('; '), detail: `${sizeMb.toFixed(0)} MB, ${mirrors} mirrors, sha256 ${sha?.slice(0, 12)}…` }
 }
 
+/**
+ * HEAD, or a one-byte ranged GET when the host refuses HEAD (gov.br answers 403 to every HEAD and 206 to
+ * a ranged GET, like the app's own download preflight handles). The returned size is the full file size.
+ */
+async function probe(url) {
+  const head = await fetch(url, { method: 'HEAD', redirect: 'follow', signal: AbortSignal.timeout(TIMEOUT_MS) })
+  if (![403, 405, 501].includes(head.status)) {
+    return { ok: head.ok, status: head.status, size: Number(head.headers.get('content-length') || 0) }
+  }
+  const res = await fetch(url, { headers: { Range: 'bytes=0-0' }, redirect: 'follow', signal: AbortSignal.timeout(TIMEOUT_MS) })
+  await res.body?.cancel()
+  const total = /\/(\d+)\s*$/.exec(res.headers.get('content-range') || '')
+  return { ok: res.ok, status: res.status, size: total ? Number(total[1]) : Number(res.headers.get('content-length') || 0) }
+}
+
 async function checkOther(url) {
-  const res = await fetch(url, { method: 'HEAD', redirect: 'follow', signal: AbortSignal.timeout(TIMEOUT_MS) })
+  const res = await probe(url)
   return { ok: res.ok, why: res.ok ? '' : `HTTP ${res.status}`, detail: `HTTP ${res.status}` }
 }
 
@@ -74,9 +89,9 @@ async function checkOther(url) {
  */
 async function checkDocument(url, e) {
   if (!VERIFY_HASHES) {
-    const res = await fetch(url, { method: 'HEAD', redirect: 'follow', signal: AbortSignal.timeout(TIMEOUT_MS) })
+    const res = await probe(url)
     if (!res.ok) return { ok: false, why: `HTTP ${res.status}` }
-    const len = Number(res.headers.get('content-length') || 0)
+    const len = res.size
     if (len && e.sha256 && len !== e.size_bytes) return { ok: false, why: `size ${len} B vs pinned ${e.size_bytes} B (file changed)` }
     return { ok: true, detail: `HTTP ${res.status}, ${len || '?'} B` }
   }

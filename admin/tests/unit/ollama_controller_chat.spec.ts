@@ -95,7 +95,8 @@ test('unknown backend image rejection returns actionable compatibility details o
       hasDocuments: async () => false,
       searchSimilarDocuments: async () => [],
     } as any,
-    { record: async () => undefined } as any
+    { record: async () => undefined } as any,
+    {} as any
   )
 
   try {
@@ -186,7 +187,8 @@ test('unknown backend image rejection returns actionable compatibility details w
       hasDocuments: async () => false,
       searchSimilarDocuments: async () => [],
     } as any,
-    { record: async () => undefined } as any
+    { record: async () => undefined } as any,
+    {} as any
   )
 
   try {
@@ -266,7 +268,8 @@ test('unknown backend image requests do not mislabel preprocessing failures as i
       hasDocuments: async () => false,
       searchSimilarDocuments: async () => [],
     } as any,
-    { record: async () => undefined } as any
+    { record: async () => undefined } as any,
+    {} as any
   )
 
   try {
@@ -338,7 +341,8 @@ test('text-only JSON chat preserves long histories through the controller bounda
       hasDocuments: async () => false,
       searchSimilarDocuments: async () => [],
     } as any,
-    { record: async () => undefined } as any
+    { record: async () => undefined } as any,
+    {} as any
   )
 
   const result = await controller.chat({ request, response } as any)

@@ -15,6 +15,10 @@ import Switch from '~/components/inputs/Switch'
 import InfoTooltip from '~/components/InfoTooltip'
 import { abortActiveStream, clearStreamIfCurrent } from './stream_abort'
 import { useTranslation } from 'react-i18next'
+import SurvivalBar, { type AssistantMode, type ChatLocation } from './SurvivalBar'
+import type { SurvivalMeta } from '../../../types/assistant'
+
+const MODE_KEY = 'nomad:chat:mode'
 
 interface ChatProps {
   enabled: boolean
@@ -96,6 +100,47 @@ export default function Chat({
   // as false.
   const { data: ragEnabledSetting } = useSystemSetting({ key: 'rag.enabled', enabled })
   const ragEnabled = !(ragEnabledSetting?.value === false || ragEnabledSetting?.value === 'false')
+
+  // Survival mode: the preparedness agent, with the user's place (regional settings by default)
+  const [assistantMode, setAssistantModeState] = useState<AssistantMode>(() =>
+    typeof window !== 'undefined' && localStorage.getItem(MODE_KEY) === 'survival'
+      ? 'survival'
+      : 'general'
+  )
+  const setAssistantMode = useCallback((mode: AssistantMode) => {
+    setAssistantModeState(mode)
+    try {
+      localStorage.setItem(MODE_KEY, mode)
+    } catch {}
+  }, [])
+  const { data: regionStateSetting } = useSystemSetting({ key: 'regional.state', enabled })
+  const { data: regionEnvironmentSetting } = useSystemSetting({
+    key: 'regional.environment',
+    enabled,
+  })
+  const { data: regionPlaceSetting } = useSystemSetting({ key: 'regional.place', enabled })
+  const [location, setLocation] = useState<ChatLocation | null>(null)
+  const settingsLocation: ChatLocation = {
+    state: (regionStateSetting?.value as string) || null,
+    environment: ((regionEnvironmentSetting?.value as string) ||
+      null) as ChatLocation['environment'],
+    place: (regionPlaceSetting?.value as string) || null,
+  }
+  const effectiveLocation = location ?? settingsLocation
+  const { data: assistantStatus } = useQuery({
+    queryKey: ['assistant-status'],
+    queryFn: () => api.getAssistantStatus(),
+    enabled: enabled && assistantMode === 'survival',
+    staleTime: 60_000,
+  })
+  const saveLocationDefault = useCallback(async () => {
+    await Promise.all([
+      api.updateSetting('regional.state', effectiveLocation.state ?? ''),
+      api.updateSetting('regional.environment', effectiveLocation.environment ?? ''),
+      api.updateSetting('regional.place', effectiveLocation.place ?? ''),
+    ])
+    queryClient.invalidateQueries({ queryKey: ['system-setting'] })
+  }, [effectiveLocation, queryClient])
 
   const ragEnabledMutation = useMutation({
     mutationFn: async (value: boolean) => await api.updateSetting('rag.enabled', value),
@@ -450,6 +495,7 @@ export default function Chat({
         let isFirstChunk = true
         let fullContent = ''
         let thinkingContent = ''
+        let survivalMeta: SurvivalMeta | undefined
         let isThinkingPhase = true
         let thinkingStartTime: number | null = null
         let thinkingDuration: number | null = null
@@ -464,6 +510,9 @@ export default function Chat({
               think: effectiveThinking(selectedModel),
               collection: collectionFilter || undefined,
               images: images.map((image) => image.file),
+              ...(assistantMode === 'survival'
+                ? { assistantMode: 'survival' as const, location: effectiveLocation }
+                : {}),
             },
             (chunkContent, chunkThinking, done) => {
               if (chunkThinking.length > 0 && thinkingStartTime === null) {
@@ -483,6 +532,7 @@ export default function Chat({
                     isStreaming: true,
                     isThinking: chunkThinking.length > 0 && chunkContent.length === 0,
                     thinkingDuration: undefined,
+                    survival: survivalMeta,
                   },
                 ])
               } else {
@@ -523,6 +573,13 @@ export default function Chat({
               if (reason !== 'length') return
               setMessages((prev) =>
                 prev.map((m) => (m.id === assistantMsgId ? { ...m, truncated: true } : m))
+              )
+            },
+            (meta) => {
+              // Arrives before the first token; attached when the answer bubble is created
+              survivalMeta = meta
+              setMessages((prev) =>
+                prev.map((m) => (m.id === assistantMsgId ? { ...m, survival: meta } : m))
               )
             }
           )
@@ -585,6 +642,8 @@ export default function Chat({
       streamingEnabled,
       effectiveThinking,
       abortCurrentStream,
+      assistantMode,
+      effectiveLocation,
       t,
     ]
   )
@@ -760,6 +819,14 @@ export default function Chat({
               )}
             </div>
           </div>
+          <SurvivalBar
+            mode={assistantMode}
+            onModeChange={setAssistantMode}
+            location={effectiveLocation}
+            onLocationChange={setLocation}
+            onSaveDefault={saveLocationDefault}
+            knowledge={assistantStatus?.survival ?? null}
+          />
           <ChatInterface
             messages={messages}
             onSendMessage={handleSendMessage}

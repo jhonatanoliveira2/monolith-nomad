@@ -28,6 +28,7 @@ import {
   IconMessageCircle,
   IconMovie,
   IconPill,
+  IconSparkles,
   IconWand,
   IconWorldDownload,
 } from '@tabler/icons-react'
@@ -193,6 +194,14 @@ export function buildNavigation(ctx: NavContext): NavGroup[] {
                 href: '/settings/models',
                 icon: IconWand,
                 keywords: 'modelos ia ollama llm models',
+              },
+              {
+                id: 'assistant',
+                label: 'Local assistant',
+                href: '/settings/assistant',
+                icon: IconSparkles,
+                keywords:
+                  'assistente local ia gpu vram desempenho traducao sobrevivencia regiao offline vulkan rocm',
               },
             ]
           : []),

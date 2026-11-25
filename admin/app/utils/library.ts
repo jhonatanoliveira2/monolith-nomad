@@ -89,3 +89,15 @@ export function formatOfFilename(filename: string): LibraryDocumentFormat | null
   if (lower.endsWith('.epub')) return 'epub'
   return null
 }
+
+/**
+ * Inverse of documentFilename: `<item id>-<format>_<version>.<ext>` → its parts, or null for any other
+ * name. Item ids may contain hyphens, so the format is the last `-pdf`/`-epub` before the `_`.
+ */
+export function parseDocumentFilename(
+  filename: string
+): { itemId: string; format: LibraryDocumentFormat; version: string } | null {
+  const match = /^([a-z0-9][a-z0-9-]*)-(pdf|epub)_([0-9A-Za-z.-]+)\.(pdf|epub)$/.exec(filename)
+  if (!match || match[2] !== match[4]) return null
+  return { itemId: match[1], format: match[2] as LibraryDocumentFormat, version: match[3] }
+}

@@ -119,6 +119,8 @@ COPY admin/docs /app/docs
 # Library catalog shipped with the image: CollectionManifestService falls back to it when GitHub is
 # unreachable and nothing is cached yet, so an offline first boot still lists the library.
 COPY collections/library.json /app/collections/library.json
+# Survival knowledge map (levels, phases, hazards, regions, works) read by the survival agent offline
+COPY collections/survival.json /app/collections/survival.json
 COPY README.md /app/README.md
 
 # Empty Calibre library, seeded into storage/books on Calibre-Web install

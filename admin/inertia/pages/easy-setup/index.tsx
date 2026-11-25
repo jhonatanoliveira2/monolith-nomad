@@ -2,6 +2,7 @@ import { Head, router } from '@inertiajs/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { MODEL_DOWNLOAD_SIZES } from '../../../app/utils/model_recommendation'
 import { IconArrowLeft, IconArrowRight, IconPlayerPlay } from '@tabler/icons-react'
 import AppLayout from '~/layouts/AppLayout'
 import PageHeader from '~/components/nd/PageHeader'
@@ -27,6 +28,8 @@ import {
   mapLabel,
   mapSlug,
   parseDraft,
+  DEFAULT_SURVIVAL_LIBRARY,
+  survivalLibraryPlan,
   type SetupDraft,
 } from '~/lib/setup_plan'
 import { ServiceSlim } from '../../../types/services'
@@ -56,6 +59,9 @@ function freshDraft(
     ingestPolicy: 'Manual',
     timezone: timezone || DEFAULT_TIMEZONE,
     state: state ?? null,
+    survivalLibrary: DEFAULT_SURVIVAL_LIBRARY,
+    environment: null,
+    place: null,
   }
 }
 
@@ -93,6 +99,8 @@ export default function EasySetupWizard(props: {
     error: null as string | null,
   })
 
+  // Set when the wizard starts from a fresh draft, so the hardware recommendation is preselected once
+  const freshRef = useRef(false)
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -103,6 +111,7 @@ export default function EasySetupWizard(props: {
       ])
       if (cancelled) return
       const restored = parseDraft(saved?.value)
+      freshRef.current = !restored
       const next = restored ?? freshDraft(installedServices, tz?.value, state?.value)
       setDraft(next)
       setMaxVisited(next.step)
@@ -140,11 +149,50 @@ export default function EasySetupWizard(props: {
     queryFn: () => api.getWikipediaState(),
     refetchOnWindowFocus: false,
   })
-  const { data: models = [], isLoading: modelsLoading } = useQuery({
+  // Hardware-based recommendation (models that fit this GPU and answer well in Portuguese)
+  const { data: assistantStatus } = useQuery({
+    queryKey: ['assistant-status'],
+    queryFn: () => api.getAssistantStatus(),
+    refetchOnWindowFocus: false,
+  })
+  const { data: library } = useQuery({
+    queryKey: ['library'],
+    queryFn: () => api.getLibrary(),
+    refetchOnWindowFocus: false,
+  })
+  const { data: upstreamModels = [], isLoading: modelsLoading } = useQuery({
     queryKey: ['recommended-ollama-models'],
     queryFn: async () => (await api.getAvailableModels({ recommendedOnly: true }))?.models ?? [],
     refetchOnWindowFocus: false,
   })
+  const hardwarePlan = assistantStatus?.recommendation
+  // The models measured for this hardware come first; the generic list follows
+  const models = useMemo(() => {
+    if (!hardwarePlan) return upstreamModels
+    const own = [
+      {
+        name: hardwarePlan.chat,
+        description: t('Recommended for this computer: chat, readers and the survival agent.'),
+        tags: [{ size: MODEL_DOWNLOAD_SIZES[hardwarePlan.chat], input: 'Text, Image' }],
+      },
+      {
+        name: hardwarePlan.embedding,
+        description: t('Multilingual embeddings for searching the library in Portuguese.'),
+        tags: [{ size: MODEL_DOWNLOAD_SIZES[hardwarePlan.embedding], input: 'Text' }],
+      },
+    ]
+    return [...own, ...upstreamModels.filter((m) => !own.some((o) => o.name === m.name))]
+  }, [hardwarePlan, upstreamModels, t])
+
+  // A new draft starts with the hardware recommendation selected (models not installed yet)
+  useEffect(() => {
+    if (!draft || !hardwarePlan || !freshRef.current) return
+    freshRef.current = false
+    const installedModels = new Set(assistantStatus?.installedModels ?? [])
+    const pick = [hardwarePlan.chat, hardwarePlan.embedding].filter((m) => !installedModels.has(m))
+    if (pick.length && draft.aiModels.length === 0) update({ aiModels: pick })
+  }, [draft, hardwarePlan, assistantStatus])
+
   const { data: regionFiles = [] } = useQuery({
     queryKey: ['map-region-files'],
     queryFn: async () => (await api.listMapRegionFiles()) ?? [],
@@ -326,6 +374,10 @@ export default function EasySetupWizard(props: {
         : { byCategory: [], skipped: 0, bytes: 0 },
     [draft, categories, installedIds, downloadingIds, kiwixReady]
   )
+  const survivalPlan = useMemo(
+    () => survivalLibraryPlan(library?.items ?? [], draft?.survivalLibrary ?? 'none'),
+    [library, draft?.survivalLibrary]
+  )
   const wikiOption =
     draft?.wikipedia && wikipediaState
       ? wikipediaState.options.find((o) => o.id === draft.wikipedia)
@@ -355,7 +407,14 @@ export default function EasySetupWizard(props: {
     : 0
   const wantsMap = codes.length > 0 && !mapInstalled && !mapDownloading
   const mapBytes = wantsMap ? (estimate.bytes ?? 0) : 0
-  const total = plan.bytes + wikiBytes + modelBytes + packBytes + collectionsBytes + mapBytes
+  const total =
+    plan.bytes +
+    wikiBytes +
+    modelBytes +
+    packBytes +
+    collectionsBytes +
+    mapBytes +
+    survivalPlan.bytes
 
   const disk = getPrimaryDiskInfo(systemInfo?.disk, systemInfo?.fsSize)
   const freeBytes = disk ? Math.max(0, disk.totalSize - disk.totalUsed) : null
@@ -377,6 +436,7 @@ export default function EasySetupWizard(props: {
     (draft?.maps.collections.length ?? 0) > 0 ||
     (draft?.creatorPacks.length ?? 0) > 0 ||
     (draft?.aiModels.length ?? 0) > 0 ||
+    survivalPlan.queue.length > 0 ||
     remoteOllama.enabled
 
   const lines: SummaryLine[] = [
@@ -388,6 +448,9 @@ export default function EasySetupWizard(props: {
       detail: codes.length ? label : undefined,
     },
     { label: t('Content'), bytes: plan.bytes + wikiBytes + packBytes },
+    ...(survivalPlan.queue.length
+      ? [{ label: t('Survival library'), bytes: survivalPlan.bytes }]
+      : []),
     ...(modelBytes ? [{ label: t('AI models'), bytes: modelBytes }] : []),
   ]
 
@@ -465,6 +528,14 @@ export default function EasySetupWizard(props: {
         ...draft.maps.collections.map((c) => attempt(c, () => api.downloadMapCollection(c))),
         ...draft.creatorPacks.map((id) => attempt(id, () => api.installCreatorPack(id))),
         ...draft.aiModels.map((m) => attempt(m, () => api.downloadModel(m))),
+        ...survivalPlan.queue.map((w) =>
+          attempt(w.title, () => api.downloadLibraryFile(w.id, 'pdf'))
+        ),
+      ])
+      // Where the user is, for the survival agent (kept on this machine only)
+      await Promise.all([
+        api.updateSetting('regional.environment', draft.environment ?? '').catch(() => {}),
+        api.updateSetting('regional.place', draft.place ?? '').catch(() => {}),
       ])
 
       if (wikiChanged && draft.wikipedia) {
@@ -598,6 +669,7 @@ export default function EasySetupWizard(props: {
                     wikipediaState={wikipediaState}
                     creatorPacks={{ configured: !!creatorPacksConfigured, packs: creatorPacks }}
                     kiwixReady={kiwixReady}
+                    survival={{ items: library?.items ?? [], plan: survivalPlan }}
                     enableKiwix={() =>
                       update({ services: [...new Set([...draft.services, SERVICE_NAMES.KIWIX])] })
                     }
@@ -619,6 +691,7 @@ export default function EasySetupWizard(props: {
                     modelBytes={modelBytes}
                     packBytes={packBytes}
                     collectionsBytes={collectionsBytes}
+                    survival={survivalPlan}
                   />
                 )}
               </div>
